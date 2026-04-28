@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>TORA TODO</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root {
+  --bg: #FDFAF7;
+  --bg2: #F2EDE6;
+  --bg3: #EBE5DC;
+  --accent: #C4603A;
+  --accent-light: #C4603A18;
+  --green: #2D3B2E;
+  --text: #2D3B2E;
+  --text2: #6B7B6C;
+  --text3: #9AA59B;
+  --white: #ffffff;
+  --sep: rgba(45,59,46,0.08);
+  --radius: 12px;
+  --radius-sm: 8px;
+  --font: 'DM Sans', -apple-system, sans-serif;
+  --font-num: 'Bebas Neue', sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--font); }
+body { display: flex; flex-direction: column; max-width: 480px; margin: 0 auto; position: relative; }
+
+/* AUTH */
+#auth-screen {
+  min-height: 100vh; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; padding: 40px 24px;
+  background: var(--bg);
+}
+.auth-logo { font-family: var(--font-num); font-size: 42px; color: var(--accent); letter-spacing: .04em; margin-bottom: 4px; }
+.auth-sub { font-size: 12px; color: var(--text3); letter-spacing: .12em; text-transform: uppercase; margin-bottom: 40px; }
+.auth-card { background: var(--white); border-radius: var(--radius); border: 0.5px solid var(--sep); padding: 28px 24px; width: 100%; max-width: 360px; }
+.auth-title { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 20px; }
+.field { margin-bottom: 14px; }
+.field label { font-size: 11px; color: var(--text3); letter-spacing: .1em; text-transform: uppercase; display: block; margin-bottom: 6px; }
+.field input { width: 100%; height: 42px; border: 0.5px solid var(--bg3); border-radius: var(--radius-sm); background: var(--bg); padding: 0 12px; font-size: 14px; font-family: var(--font); color: var(--text); outline: none; transition: border-color .2s; }
+.field input:focus { border-color: var(--accent); }
+.btn-primary { width: 100%; height: 44px; background: var(--accent); color: white; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; font-family: var(--font); cursor: pointer; transition: opacity .2s; }
+.btn-primary:active { opacity: .8; }
+.auth-toggle { text-align: center; margin-top: 16px; font-size: 13px; color: var(--text3); }
+.auth-toggle a { color: var(--accent); cursor: pointer; text-decoration: none; }
+.auth-err { font-size: 12px; color: #C4603A; margin-top: 10px; text-align: center; min-height: 18px; }
+
+/* HEADER */
+#app { display: none; flex-direction: column; height: 100vh; }
+.header {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(253,250,247,.88); backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 0.5px solid var(--sep);
+  padding: 14px 20px 12px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.header-logo { font-family: var(--font-num); font-size: 22px; color: var(--accent); letter-spacing: .06em; }
+.header-date { font-size: 11px; color: var(--text3); letter-spacing: .08em; }
+.header-right { display: flex; align-items: center; gap: 10px; }
+.btn-logout { font-size: 11px; color: var(--text3); background: none; border: none; cursor: pointer; font-family: var(--font); padding: 4px 8px; border-radius: 6px; }
+.btn-logout:hover { background: var(--bg3); }
+
+/* MAIN SCROLL */
+.main { flex: 1; overflow-y: auto; padding: 16px 20px 100px; }
+
+/* NAV */
+.nav {
+  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 480px;
+  background: rgba(242,237,230,.92); backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 0.5px solid var(--sep);
+  display: flex; justify-content: space-around;
+  padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
+  z-index: 100;
+}
+.nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; padding: 4px 16px; border-radius: 8px; transition: background .15s; }
+.nav-item:active { background: var(--bg3); }
+.nav-icon { width: 22px; height: 22px; }
+.nav-label { font-size: 9px; letter-spacing: .08em; text-transform: uppercase; color: var(--text3); font-weight: 500; transition: color .2s; }
+.nav-item.active .nav-label { color: var(--accent); }
+
+/* SECTION LABEL */
+.sec-label { font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: var(--text3); font-weight: 500; margin-bottom: 10px; margin-top: 20px; }
+.sec-label:first-child { margin-top: 4px; }
+
+/* GOAL CARDS */
+.goals-wrap { display: flex; flex-direction: column; gap: 6px; margin-bottom: 4px; }
+.goal-card {
+  background: var(--white); border: 0.5px solid var(--sep);
+  border-radius: var(--radius-sm); padding: 10px 12px;
+  display: flex; align-items: center; gap: 10px;
+}
+.goal-circle {
+  width: 20px; height: 20px; border-radius: 50%;
+  border: 1.5px solid var(--bg3); flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all .2s;
+}
+.goal-circle.done { background: var(--accent); border-color: var(--accent); }
+.goal-text { font-size: 13px; color: var(--text); flex: 1; line-height: 1.4; }
+.goal-text.done { color: var(--text3); text-decoration: line-through; }
+.goal-del { width: 18px; height: 18px; cursor: pointer; opacity: .3; flex-shrink: 0; }
+.goal-del:hover { opacity: .6; }
+.goal-add { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: var(--radius-sm); border: 0.5px dashed var(--bg3); cursor: pointer; margin-top: 4px; transition: background .15s; }
+.goal-add:hover { background: var(--bg2); }
+.goal-add-text { font-size: 13px; color: var(--text3); }
+
+/* TASK CARDS */
+.task-card {
+  background: var(--white); border: 0.5px solid var(--sep);
+  border-radius: var(--radius); padding: 12px 14px;
+  margin-bottom: 8px; cursor: pointer;
+  transition: background .15s;
+  position: relative; overflow: hidden;
+}
+.task-card:active { background: var(--bg2); }
+.task-card.done { opacity: .5; }
+.task-card-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.task-card-left { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
+.task-type-badge {
+  font-size: 9px; letter-spacing: .08em; text-transform: uppercase;
+  padding: 2px 7px; border-radius: 4px; flex-shrink: 0; font-weight: 500;
+}
+.type-routine { background: #2D3B2E14; color: #2D3B2E; }
+.type-unknown { background: #C4603A18; color: #C4603A; }
+.type-judgment { background: #4A6FA518; color: #4A6FA5; }
+.type-dependent { background: #B5566A18; color: #B5566A; }
+.task-title { font-size: 13px; color: var(--text); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.task-card-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.task-time { font-family: var(--font-num); font-size: 14px; color: var(--text3); letter-spacing: .04em; }
+.task-card-bottom { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+.task-min { font-size: 11px; color: var(--text3); }
+.task-deadline { font-size: 11px; color: var(--accent); }
+
+/* SUBTASK */
+.subtask-list { margin-top: 8px; padding-top: 8px; border-top: 0.5px solid var(--sep); display: flex; flex-direction: column; gap: 4px; }
+.subtask-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 6px; background: var(--bg); }
+.subtask-check { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid var(--bg3); flex-shrink: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.subtask-check.done { background: var(--accent); border-color: var(--accent); }
+.subtask-title { font-size: 12px; color: var(--text2); flex: 1; }
+.subtask-title.done { color: var(--text3); text-decoration: line-through; }
+.subtask-min { font-size: 11px; color: var(--text3); font-family: var(--font-num); }
+
+/* SCHEDULE */
+.schedule-wrap { display: flex; flex-direction: column; gap: 0; }
+.sched-row { display: flex; gap: 12px; align-items: flex-start; padding: 6px 0; }
+.sched-time { font-family: var(--font-num); font-size: 13px; color: var(--text3); width: 44px; flex-shrink: 0; padding-top: 2px; letter-spacing: .04em; }
+.sched-line { display: flex; flex-direction: column; align-items: center; padding-top: 4px; }
+.sched-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+.sched-connector { width: 1px; background: var(--sep); flex: 1; min-height: 20px; margin-top: 2px; }
+.sched-content { flex: 1; padding-bottom: 8px; }
+
+/* EMPTY */
+.empty { text-align: center; padding: 40px 20px; color: var(--text3); font-size: 13px; line-height: 1.7; }
+.empty-icon { font-size: 32px; margin-bottom: 10px; }
+
+/* MODAL */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(45,59,46,.2);
+  display: flex; align-items: flex-end; z-index: 200;
+  opacity: 0; pointer-events: none; transition: opacity .25s;
+}
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal {
+  background: var(--bg); width: 100%; max-width: 480px; margin: 0 auto;
+  border-radius: 20px 20px 0 0;
+  padding: 0 20px calc(24px + env(safe-area-inset-bottom));
+  transform: translateY(100%);
+  transition: transform .3s cubic-bezier(.32,1,.23,1);
+  max-height: 90vh; overflow-y: auto;
+}
+.modal-overlay.open .modal { transform: translateY(0); }
+.modal-handle { width: 36px; height: 4px; background: var(--bg3); border-radius: 2px; margin: 12px auto 20px; }
+.modal-title { font-size: 15px; font-weight: 500; color: var(--text); margin-bottom: 20px; }
+
+/* WIZARD */
+.wizard-step { display: none; }
+.wizard-step.active { display: block; }
+.wiz-q { font-size: 16px; font-weight: 500; color: var(--text); margin-bottom: 6px; line-height: 1.5; }
+.wiz-sub { font-size: 13px; color: var(--text3); margin-bottom: 20px; line-height: 1.5; }
+.wiz-options { display: flex; flex-direction: column; gap: 8px; }
+.wiz-opt {
+  background: var(--white); border: 0.5px solid var(--sep);
+  border-radius: var(--radius-sm); padding: 12px 14px;
+  cursor: pointer; transition: all .15s;
+  display: flex; align-items: center; gap: 10px;
+}
+.wiz-opt:active, .wiz-opt:hover { background: var(--bg2); border-color: var(--accent); }
+.wiz-opt-icon { width: 20px; height: 20px; flex-shrink: 0; }
+.wiz-opt-text { font-size: 14px; color: var(--text); font-weight: 500; }
+.wiz-opt-sub { font-size: 12px; color: var(--text3); margin-top: 1px; }
+.wiz-input-wrap { margin-bottom: 16px; }
+.wiz-label { font-size: 11px; color: var(--text3); letter-spacing: .1em; text-transform: uppercase; margin-bottom: 6px; display: block; }
+.wiz-input {
+  width: 100%; height: 44px; border: 0.5px solid var(--bg3);
+  border-radius: var(--radius-sm); background: var(--white);
+  padding: 0 12px; font-size: 14px; font-family: var(--font);
+  color: var(--text); outline: none; transition: border-color .2s;
+}
+.wiz-input:focus { border-color: var(--accent); }
+.wiz-input-lg { height: auto; padding: 10px 12px; resize: none; }
+.wiz-row { display: flex; gap: 10px; }
+.wiz-row .wiz-input-wrap { flex: 1; }
+.wiz-nav { display: flex; gap: 10px; margin-top: 20px; }
+.btn-back {
+  height: 44px; padding: 0 20px; border: 0.5px solid var(--bg3);
+  border-radius: var(--radius-sm); background: var(--white);
+  font-size: 14px; font-family: var(--font); color: var(--text2);
+  cursor: pointer; transition: background .15s;
+}
+.btn-back:active { background: var(--bg2); }
+.btn-next {
+  flex: 1; height: 44px; background: var(--accent); color: white;
+  border: none; border-radius: var(--radius-sm);
+  font-size: 14px; font-weight: 500; font-family: var(--font);
+  cursor: pointer; transition: opacity .2s;
+}
+.btn-next:active { opacity: .8; }
+.decompose-preview { background: var(--white); border: 0.5px solid var(--sep); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 16px; }
+.decompose-item { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 0.5px solid var(--sep); }
+.decompose-item:last-child { border-bottom: none; }
+.decompose-title { font-size: 13px; color: var(--text); flex: 1; }
+.decompose-min { font-size: 12px; color: var(--text3); font-family: var(--font-num); }
+
+/* SCHEDULE PLOT */
+.time-slots { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-bottom: 16px; }
+.time-slot {
+  background: var(--white); border: 0.5px solid var(--sep);
+  border-radius: var(--radius-sm); padding: 10px 12px;
+  cursor: pointer; transition: all .15s; text-align: center;
+}
+.time-slot:hover { border-color: var(--accent); background: var(--bg2); }
+.time-slot.selected { border-color: var(--accent); background: var(--accent-light); }
+.time-slot-time { font-family: var(--font-num); font-size: 16px; color: var(--accent); }
+.time-slot-label { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+/* TASK DETAIL MODAL */
+.detail-actions { display: flex; gap: 8px; margin-top: 16px; }
+.btn-done { flex: 1; height: 44px; background: var(--accent); color: white; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; font-family: var(--font); cursor: pointer; }
+.btn-carry { flex: 1; height: 44px; background: var(--white); border: 0.5px solid var(--sep); border-radius: var(--radius-sm); font-size: 14px; font-family: var(--font); color: var(--text2); cursor: pointer; }
+.btn-delete { height: 44px; padding: 0 16px; background: none; border: 0.5px solid #C4603A40; border-radius: var(--radius-sm); font-size: 13px; font-family: var(--font); color: var(--accent); cursor: pointer; }
+
+/* WEEKLY REVIEW */
+.review-card { background: var(--white); border: 0.5px solid var(--sep); border-radius: var(--radius); padding: 14px; margin-bottom: 8px; }
+.review-card-title { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+.review-card-sub { font-size: 12px; color: var(--text3); }
+.review-action { display: flex; gap: 6px; margin-top: 10px; }
+.btn-sm { height: 34px; padding: 0 14px; border-radius: 6px; font-size: 12px; font-family: var(--font); cursor: pointer; border: 0.5px solid var(--sep); background: var(--bg2); color: var(--text2); transition: background .15s; }
+.btn-sm:active { background: var(--bg3); }
+.btn-sm-accent { background: var(--accent); color: white; border-color: var(--accent); }
+
+/* TOAST */
+.toast {
+  position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: var(--green); color: white; font-size: 13px;
+  padding: 10px 20px; border-radius: 100px; z-index: 300;
+  opacity: 0; transition: all .3s; white-space: nowrap;
+  pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* PAGE */
+.page { display: none; }
+.page.active { display: block; }
+
+/* DATE INPUT */
+input[type="date"], input[type="time"] {
+  -webkit-appearance: none; appearance: none;
+}
+
+/* CHIP */
+.chip-group { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+.chip { padding: 6px 12px; border-radius: 100px; font-size: 12px; font-family: var(--font); border: 0.5px solid var(--sep); background: var(--white); color: var(--text2); cursor: pointer; transition: all .15s; }
+.chip.selected { background: var(--accent); color: white; border-color: var(--accent); }
+</style>
+</head>
+<body>
+
+<!-- AUTH -->
+<div id="auth-screen">
+  <div class="auth-logo">TORA TODO</div>
+  <div class="auth-sub">仕事を、システムで回す</div>
+  <div class="auth-card">
+    <div class="auth-title" id="auth-mode-title">ログイン</div>
+    <div class="field">
+      <label>メールアドレス</label>
+      <input type="email" id="auth-email" placeholder="example@email.com">
+    </div>
+    <div class="field">
+      <label>パスワード</label>
+      <input type="password" id="auth-password" placeholder="••••••••">
+    </div>
+    <button class="btn-primary" id="auth-btn">ログイン</button>
+    <div class="auth-err" id="auth-err"></div>
+    <div class="auth-toggle">
+      <span id="auth-toggle-text">アカウントがない方は</span>
+      <a id="auth-toggle-link">新規登録</a>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="header">
+    <div class="header-logo">TORA TODO</div>
+    <div class="header-right">
+      <div class="header-date" id="header-date"></div>
+      <button class="btn-logout" id="logout-btn">ログアウト</button>
+    </div>
+  </div>
+
+  <div class="main" id="main-content">
+    <!-- 今日 -->
+    <div class="page active" id="page-today">
+      <div class="sec-label">今日の3つ</div>
+      <div class="goals-wrap" id="goals-list"></div>
+      <div class="goal-add" id="goal-add-btn">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <line x1="7" y1="2" x2="7" y2="12" stroke="#9AA59B" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="2" y1="7" x2="12" y2="7" stroke="#9AA59B" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span class="goal-add-text">完了条件を追加</span>
+      </div>
+      <div class="sec-label">今日のスケジュール</div>
+      <div class="schedule-wrap" id="schedule-list"></div>
+    </div>
+
+    <!-- 追加 -->
+    <div class="page" id="page-add">
+      <div class="sec-label">タスクを追加</div>
+      <div id="wizard-container"></div>
+    </div>
+
+    <!-- 一覧 -->
+    <div class="page" id="page-list">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; margin-top:4px;">
+        <div class="sec-label" style="margin:0;">すべてのタスク</div>
+        <button class="btn-sm" id="review-btn" style="font-size:11px;">週次レビュー</button>
+      </div>
+      <div class="chip-group" id="filter-chips">
+        <div class="chip selected" data-filter="all">すべて</div>
+        <div class="chip" data-filter="pending">未完了</div>
+        <div class="chip" data-filter="routine">ルーティン</div>
+        <div class="chip" data-filter="unknown">初めて</div>
+        <div class="chip" data-filter="judgment">判断</div>
+        <div class="chip" data-filter="dependent">他者依存</div>
+      </div>
+      <div id="task-list"></div>
+    </div>
+
+    <!-- 明日の準備 -->
+    <div class="page" id="page-tomorrow">
+      <div class="sec-label">今日の持ち越し</div>
+      <div id="carried-list"></div>
+      <div class="sec-label">新規タスク（随時入力）</div>
+      <div id="tomorrow-new-list"></div>
+      <button class="btn-primary" id="plot-tomorrow-btn" style="margin-top:16px;">翌日にプロット</button>
+    </div>
+  </div>
+
+  <nav class="nav" id="main-nav">
+    <div class="nav-item active" data-page="today">
+      <svg class="nav-icon" viewBox="0 0 22 22" fill="none">
+        <rect x="3" y="11" width="4" height="8" rx="1.5" fill="#C4603A"/>
+        <rect x="9" y="7" width="4" height="12" rx="1.5" fill="#C4603A" opacity=".55"/>
+        <rect x="15" y="3" width="4" height="16" rx="1.5" fill="#C4603A" opacity=".3"/>
+      </svg>
+      <span class="nav-label">今日</span>
+    </div>
+    <div class="nav-item" data-page="add">
+      <svg class="nav-icon" viewBox="0 0 22 22" fill="none">
+        <circle cx="11" cy="11" r="8" stroke="#9AA59B" stroke-width="1.5"/>
+        <line x1="11" y1="7" x2="11" y2="15" stroke="#9AA59B" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="7" y1="11" x2="15" y2="11" stroke="#9AA59B" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      <span class="nav-label">追加</span>
+    </div>
+    <div class="nav-item" data-page="list">
+      <svg class="nav-icon" viewBox="0 0 22 22" fill="none">
+        <line x1="4" y1="6" x2="18" y2="6" stroke="#9AA59B" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="4" y1="11" x2="18" y2="11" stroke="#9AA59B" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="4" y1="16" x2="13" y2="16" stroke="#9AA59B" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      <span class="nav-label">一覧</span>
+    </div>
+    <div class="nav-item" data-page="tomorrow">
+      <svg class="nav-icon" viewBox="0 0 22 22" fill="none">
+        <path d="M11 3 C7 3 3.5 6.5 3.5 11 C3.5 15.5 7 19 11 19" stroke="#9AA59B" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M11 19 C15 19 18.5 15.5 18.5 11" stroke="#9AA59B" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="2.5 2"/>
+        <polyline points="14,7.5 18.5,11 14,14.5" stroke="#9AA59B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      </svg>
+      <span class="nav-label">明日</span>
+    </div>
+  </nav>
+</div>
+
+<!-- TASK DETAIL MODAL -->
+<div class="modal-overlay" id="detail-modal">
+  <div class="modal" id="detail-modal-content">
+    <div class="modal-handle"></div>
+    <div id="detail-body"></div>
+  </div>
+</div>
+
+<!-- GOAL ADD MODAL -->
+<div class="modal-overlay" id="goal-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">完了条件を追加</div>
+    <div class="wiz-input-wrap">
+      <label class="wiz-label">今日これが終わればOK</label>
+      <input class="wiz-input" id="goal-input" placeholder="例：企画たたき台1枚を上司に送る" maxlength="60">
+    </div>
+    <button class="btn-next" id="goal-save-btn">追加する</button>
+  </div>
+</div>
+
+<!-- WEEKLY REVIEW MODAL -->
+<div class="modal-overlay" id="review-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">週次レビュー</div>
+    <div id="review-body"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL = 'https://ohqgpmtkhhixvnkrjbvb.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ocWdwbXRraGhpeHZua3JqYnZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzMDE4MjEsImV4cCI6MjA5MTg3NzgyMX0.tkm8eT9FCWGmKXPPVeDV6L6STEQ_jVnrNkcGDbRtSCg';
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: { autoRefreshToken: true, persistSession: true, detectSessionInUrl: false }
+});
+
+let currentUser = null;
+let allTasks = [];
+let allSubtasks = [];
+let todayGoals = [];
+let currentFilter = 'all';
+let wizardData = {};
+
+const TODAY = new Date();
+const TODAY_STR = TODAY.toISOString().split('T')[0];
+const DAYS = ['日','月','火','水','木','金','土'];
+
+// ---- UTILS ----
+function fmt(date) {
+  return `${date.getMonth()+1}/${date.getDate()} (${DAYS[date.getDay()]})`;
+}
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+// ---- AUTH ----
+let authMode = 'login';
+document.getElementById('auth-btn').addEventListener('click', async () => {
+  const email = document.getElementById('auth-email').value.trim();
+  const pw = document.getElementById('auth-password').value;
+  const err = document.getElementById('auth-err');
+  err.textContent = '';
+  if (!email || !pw) { err.textContent = 'メールアドレスとパスワードを入力してください'; return; }
+  if (authMode === 'login') {
+    const { error } = await db.auth.signInWithPassword({ email, password: pw });
+    if (error) err.textContent = 'メールアドレスまたはパスワードが違います';
+  } else {
+    const { error } = await db.auth.signUp({ email, password: pw });
+    if (error) err.textContent = error.message;
+    else err.textContent = '確認メールを送信しました';
+  }
+});
+document.getElementById('auth-toggle-link').addEventListener('click', () => {
+  authMode = authMode === 'login' ? 'signup' : 'login';
+  document.getElementById('auth-mode-title').textContent = authMode === 'login' ? 'ログイン' : '新規登録';
+  document.getElementById('auth-btn').textContent = authMode === 'login' ? 'ログイン' : '登録する';
+  document.getElementById('auth-toggle-text').textContent = authMode === 'login' ? 'アカウントがない方は' : 'すでにアカウントがある方は';
+  document.getElementById('auth-toggle-link').textContent = authMode === 'login' ? '新規登録' : 'ログイン';
+});
+document.getElementById('logout-btn').addEventListener('click', async () => {
+  await db.auth.signOut();
+});
+db.auth.onAuthStateChange((event, session) => {
+  if (session) {
+    currentUser = session.user;
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+    document.getElementById('header-date').textContent = fmt(TODAY);
+    loadAll();
+  } else {
+    currentUser = null;
+    document.getElementById('auth-screen').style.display = 'flex';
+    document.getElementById('app').style.display = 'none';
+  }
+});
+
+// ---- NAVIGATION ----
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => {
+    const page = item.dataset.page;
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    item.classList.add('active');
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-' + page).classList.add('active');
+    if (page === 'add') initWizard();
+    if (page === 'list') renderTaskList();
+    if (page === 'tomorrow') renderTomorrow();
+    if (page === 'today') renderToday();
+  });
+});
+
+// ---- LOAD ----
+async function loadAll() {
+  const [{ data: tasks }, { data: subtasks }, { data: goals }] = await Promise.all([
+    db.from('tasks').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false }),
+    db.from('subtasks').select('*').order('sort_order'),
+    db.from('daily_goals').select('*').eq('user_id', currentUser.id).eq('date', TODAY_STR).order('sort_order')
+  ]);
+  allTasks = tasks || [];
+  allSubtasks = subtasks || [];
+  todayGoals = goals || [];
+  renderToday();
+}
+
+// ---- TODAY ----
+function renderToday() {
+  renderGoals();
+  renderSchedule();
+}
+
+function renderGoals() {
+  const list = document.getElementById('goals-list');
+  list.innerHTML = '';
+  todayGoals.forEach(g => {
+    const task = allTasks.find(t => t.id === g.task_id);
+    const title = task ? task.title : g.task_id;
+    const done = task ? task.status === 'done' : false;
+    const div = document.createElement('div');
+    div.className = 'goal-card';
+    div.innerHTML = `
+      <div class="goal-circle ${done ? 'done' : ''}" data-id="${g.task_id}">
+        ${done ? `<svg width="8" height="8" viewBox="0 0 8 8"><polyline points="1,4 3,6 7,2" stroke="white" stroke-width="1.5" fill="none"/></svg>` : ''}
+      </div>
+      <span class="goal-text ${done ? 'done' : ''}">${title}</span>
+      <svg class="goal-del" data-goal-id="${g.id}" viewBox="0 0 18 18" fill="none">
+        <line x1="4" y1="4" x2="14" y2="14" stroke="#9AA59B" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="14" y1="4" x2="4" y2="14" stroke="#9AA59B" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+    `;
+    div.querySelector('.goal-circle').addEventListener('click', () => toggleTask(g.task_id));
+    div.querySelector('.goal-del').addEventListener('click', () => deleteGoal(g.id));
+    list.appendChild(div);
+  });
+  const addBtn = document.getElementById('goal-add-btn');
+  addBtn.style.display = todayGoals.length >= 3 ? 'none' : 'flex';
+}
+
+function renderSchedule() {
+  const wrap = document.getElementById('schedule-list');
+  const todayTasks = allTasks.filter(t => t.scheduled_date === TODAY_STR && t.status !== 'done');
+  todayTasks.sort((a, b) => (a.scheduled_time || '99:99').localeCompare(b.scheduled_time || '99:99'));
+  if (!todayTasks.length) {
+    wrap.innerHTML = '<div class="empty"><div class="empty-icon">📋</div>今日のタスクはまだありません<br>右下の追加ボタンからどうぞ</div>';
+    return;
+  }
+  wrap.innerHTML = '';
+  todayTasks.forEach((t, i) => {
+    const subs = allSubtasks.filter(s => s.task_id === t.id);
+    const row = document.createElement('div');
+    row.className = 'sched-row';
+    const timeStr = t.scheduled_time ? t.scheduled_time.slice(0,5) : '--:--';
+    row.innerHTML = `
+      <div class="sched-time">${timeStr}</div>
+      <div class="sched-line">
+        <div class="sched-dot"></div>
+        ${i < todayTasks.length - 1 ? '<div class="sched-connector"></div>' : ''}
+      </div>
+      <div class="sched-content">
+        <div class="task-card" data-id="${t.id}">
+          <div class="task-card-top">
+            <div class="task-card-left">
+              <div class="task-type-badge type-${t.type}">${typeLabel(t.type)}</div>
+              <span class="task-title">${t.title}</span>
+            </div>
+            <div class="task-card-right">
+              <span class="task-time">${t.estimated_minutes}min</span>
+            </div>
+          </div>
+          ${subs.length ? `<div class="subtask-list">${subs.map(s => `
+            <div class="subtask-item">
+              <div class="subtask-check ${s.status==='done'?'done':''}" data-sub-id="${s.id}">
+                ${s.status==='done'?`<svg width="7" height="7" viewBox="0 0 7 7"><polyline points="1,3.5 2.8,5.5 6,1.5" stroke="white" stroke-width="1.5" fill="none"/></svg>`:''}
+              </div>
+              <span class="subtask-title ${s.status==='done'?'done':''}">${s.title}</span>
+              <span class="subtask-min">${s.estimated_minutes}min</span>
+            </div>`).join('')}</div>` : ''}
+        </div>
+      </div>
+    `;
+    row.querySelector('.task-card').addEventListener('click', () => openDetail(t.id));
+    row.querySelectorAll('.subtask-check').forEach(el => {
+      el.addEventListener('click', (e) => { e.stopPropagation(); toggleSubtask(el.dataset.subId); });
+    });
+    wrap.appendChild(row);
+  });
+}
+
+function typeLabel(type) {
+  return { routine: 'ルーティン', unknown: '初めて', judgment: '判断', dependent: '他者依存' }[type] || type;
+}
+
+// ---- GOALS ----
+document.getElementById('goal-add-btn').addEventListener('click', () => openModal('goal-modal'));
+document.getElementById('goal-save-btn').addEventListener('click', async () => {
+  const input = document.getElementById('goal-input');
+  const val = input.value.trim();
+  if (!val) return;
+  const pendingTask = allTasks.find(t => t.title.includes(val) && t.status === 'pending');
+  const taskId = pendingTask ? pendingTask.id : val;
+  const { data } = await db.from('daily_goals').insert({
+    user_id: currentUser.id, date: TODAY_STR,
+    task_id: pendingTask ? taskId : null,
+    sort_order: todayGoals.length
+  }).select().single();
+  if (!pendingTask) {
+    const fake = { id: data.id, task_id: null, title: val };
+    todayGoals.push({ ...data });
+    allTasks.push({ id: data.id, title: val, status: 'pending', type: 'judgment' });
+  } else {
+    todayGoals.push(data);
+  }
+  input.value = '';
+  closeModal('goal-modal');
+  renderGoals();
+  showToast('完了条件を追加しました');
+});
+async function deleteGoal(goalId) {
+  await db.from('daily_goals').delete().eq('id', goalId);
+  todayGoals = todayGoals.filter(g => g.id !== goalId);
+  renderGoals();
+}
+
+// ---- TOGGLE ----
+async function toggleTask(taskId) {
+  const task = allTasks.find(t => t.id === taskId);
+  if (!task) return;
+  const newStatus = task.status === 'done' ? 'pending' : 'done';
+  await db.from('tasks').update({ status: newStatus }).eq('id', taskId);
+  task.status = newStatus;
+  renderToday();
+  if (newStatus === 'done') showToast('完了！');
+}
+async function toggleSubtask(subId) {
+  const sub = allSubtasks.find(s => s.id === subId);
+  if (!sub) return;
+  const newStatus = sub.status === 'done' ? 'pending' : 'done';
+  await db.from('subtasks').update({ status: newStatus }).eq('id', subId);
+  sub.status = newStatus;
+  renderToday();
+}
+
+// ---- DETAIL MODAL ----
+function openDetail(taskId) {
+  const task = allTasks.find(t => t.id === taskId);
+  if (!task) return;
+  const subs = allSubtasks.filter(s => s.task_id === taskId);
+  const body = document.getElementById('detail-body');
+  body.innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+      <div class="task-type-badge type-${task.type}">${typeLabel(task.type)}</div>
+      <span style="font-size:16px;font-weight:500;color:var(--text);">${task.title}</span>
+    </div>
+    <div style="display:flex;gap:16px;margin-bottom:14px;">
+      <div>
+        <div style="font-size:9px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px;">所要時間</div>
+        <div style="font-family:var(--font-num);font-size:20px;color:var(--accent);">${task.estimated_minutes}<span style="font-size:11px;margin-left:2px;">min</span></div>
+      </div>
+      ${task.scheduled_time ? `<div>
+        <div style="font-size:9px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px;">開始時刻</div>
+        <div style="font-family:var(--font-num);font-size:20px;color:var(--text2);">${task.scheduled_time.slice(0,5)}</div>
+      </div>` : ''}
+      ${task.deadline ? `<div>
+        <div style="font-size:9px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px;">期限</div>
+        <div style="font-size:13px;color:var(--accent);margin-top:4px;">${task.deadline}</div>
+      </div>` : ''}
+    </div>
+    ${subs.length ? `
+      <div style="font-size:9px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;">サブタスク</div>
+      <div class="subtask-list" style="margin-top:0;padding-top:0;border-top:none;">
+        ${subs.map(s => `
+          <div class="subtask-item">
+            <div class="subtask-check ${s.status==='done'?'done':''}" data-sub-id="${s.id}">
+              ${s.status==='done'?`<svg width="7" height="7" viewBox="0 0 7 7"><polyline points="1,3.5 2.8,5.5 6,1.5" stroke="white" stroke-width="1.5" fill="none"/></svg>`:''}
+            </div>
+            <span class="subtask-title ${s.status==='done'?'done':''}">${s.title}</span>
+            <span class="subtask-min">${s.estimated_minutes}min</span>
+          </div>`).join('')}
+      </div>` : ''}
+    ${task.memo ? `<div style="margin-top:12px;font-size:13px;color:var(--text2);line-height:1.6;background:var(--bg2);border-radius:8px;padding:10px 12px;">${task.memo}</div>` : ''}
+    <div class="detail-actions">
+      <button class="btn-done" id="detail-done-btn">完了</button>
+      <button class="btn-carry" id="detail-carry-btn">持ち越し</button>
+      <button class="btn-delete" id="detail-del-btn">削除</button>
+    </div>
+  `;
+  body.querySelectorAll('.subtask-check').forEach(el => {
+    el.addEventListener('click', () => toggleSubtask(el.dataset.subId));
+  });
+  document.getElementById('detail-done-btn').addEventListener('click', async () => {
+    await toggleTask(taskId); closeModal('detail-modal');
+  });
+  document.getElementById('detail-carry-btn').addEventListener('click', async () => {
+    const tomorrow = new Date(TODAY); tomorrow.setDate(tomorrow.getDate() + 1);
+    const tStr = tomorrow.toISOString().split('T')[0];
+    await db.from('tasks').update({ status: 'carried', scheduled_date: tStr }).eq('id', taskId);
+    const t = allTasks.find(x => x.id === taskId);
+    if (t) { t.status = 'carried'; t.scheduled_date = tStr; }
+    closeModal('detail-modal'); renderToday(); showToast('明日に持ち越しました');
+  });
+  document.getElementById('detail-del-btn').addEventListener('click', async () => {
+    if (!confirm('削除しますか？')) return;
+    await db.from('tasks').delete().eq('id', taskId);
+    allTasks = allTasks.filter(t => t.id !== taskId);
+    allSubtasks = allSubtasks.filter(s => s.task_id !== taskId);
+    closeModal('detail-modal'); renderToday(); showToast('削除しました');
+  });
+  openModal('detail-modal');
+}
+document.getElementById('detail-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal('detail-modal');
+});
+document.getElementById('goal-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal('goal-modal');
+});
+
+// ---- WIZARD ----
+const DECOMPOSE_PATTERNS = {
+  research: [
+    { title: '情報・事例リサーチ', minutes: 30 },
+    { title: '情報整理', minutes: 15 },
+    { title: '作成', minutes: 45 }
+  ],
+  confirm: [
+    { title: '確認事項をまとめる', minutes: 15 },
+    { title: '確認依頼を送る', minutes: 5 },
+    { title: '返信待ち・作成', minutes: 45 }
+  ],
+  find_resource: [
+    { title: '過去資料・テンプレを探す', minutes: 15 },
+    { title: '作成', minutes: 45 }
+  ],
+  fully_unknown: [
+    { title: 'わからないことを洗い出す', minutes: 30 },
+    { title: '分解・計画を立てる', minutes: 10 },
+    { title: '実行', minutes: 45 }
+  ],
+  multi_person: [
+    { title: '担当整理・タスク切り出し', minutes: 15 },
+    { title: '依頼を送る', minutes: 10 },
+    { title: '自分のパート実行', minutes: 45 }
+  ],
+  approval: [
+    { title: '作成', minutes: 45 },
+    { title: '確認依頼', minutes: 5 },
+    { title: '修正対応（バッファ）', minutes: 20 },
+    { title: '承認待ち', minutes: 5 }
+  ],
+  material: [
+    { title: '素材・データ収集', minutes: 20 },
+    { title: '作成', minutes: 45 }
+  ],
+  judgment: [
+    { title: '判断材料を整理する', minutes: 20 },
+    { title: '意思決定', minutes: 10 },
+    { title: '実行', minutes: 30 }
+  ]
+};
+
+const TIME_SLOTS = [
+  { time: '09:00', label: '朝イチ' },
+  { time: '09:30', label: '朝' },
+  { time: '10:00', label: '午前' },
+  { time: '10:30', label: '午前' },
+  { time: '11:00', label: '午前' },
+  { time: '13:00', label: '昼後' },
+  { time: '14:00', label: '午後' },
+  { time: '15:00', label: '午後' },
+  { time: '16:00', label: '集中枠' },
+  { time: '16:30', label: '集中枠' },
+  { time: '17:00', label: '集中枠' },
+  { time: '17:30', label: '集中枠' },
+];
+
+function initWizard() {
+  wizardData = {};
+  renderWizardStep(1);
+}
+
+function renderWizardStep(step) {
+  const container = document.getElementById('wizard-container');
+  container.innerHTML = '';
+
+  if (step === 1) {
+    container.innerHTML = `
+      <div class="wiz-input-wrap">
+        <label class="wiz-label">タスク名</label>
+        <input class="wiz-input" id="wiz-title" placeholder="例：来月キャンペーン企画" value="${wizardData.title||''}">
+      </div>
+      <div class="wiz-input-wrap">
+        <label class="wiz-label">メモ（任意）</label>
+        <textarea class="wiz-input wiz-input-lg" id="wiz-memo" rows="2" placeholder="詳細・背景など">${wizardData.memo||''}</textarea>
+      </div>
+      <button class="btn-next" id="wiz-next-1">次へ →</button>
+    `;
+    document.getElementById('wiz-next-1').addEventListener('click', () => {
+      const t = document.getElementById('wiz-title').value.trim();
+      if (!t) { showToast('タスク名を入力してください'); return; }
+      wizardData.title = t;
+      wizardData.memo = document.getElementById('wiz-memo').value.trim();
+      renderWizardStep(2);
+    });
+
+  } else if (step === 2) {
+    container.innerHTML = `
+      <div class="wiz-q">「${wizardData.title}」<br>以前やったことがありますか？</div>
+      <div class="wiz-sub">同じ手順で繰り返しているものはルーティンです</div>
+      <div class="wiz-options">
+        <div class="wiz-opt" data-val="yes">
+          <svg class="wiz-opt-icon" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="#4A7C59" stroke-width="1.5"/><polyline points="6,10 9,13 14,7" stroke="#4A7C59" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+          <div><div class="wiz-opt-text">ある（ルーティン）</div><div class="wiz-opt-sub">毎回同じ手順で完結する</div></div>
+        </div>
+        <div class="wiz-opt" data-val="no">
+          <svg class="wiz-opt-icon" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="#C4603A" stroke-width="1.5"/><line x1="10" y1="7" x2="10" y2="11" stroke="#C4603A" stroke-width="1.5" stroke-linecap="round"/><circle cx="10" cy="13.5" r=".8" fill="#C4603A"/></svg>
+          <div><div class="wiz-opt-text">ない・よくわからない</div><div class="wiz-opt-sub">初めてや新しい要素がある</div></div>
+        </div>
+      </div>
+      <div class="wiz-nav"><button class="btn-back" id="wiz-back-2">戻る</button></div>
+    `;
+    container.querySelectorAll('.wiz-opt').forEach(opt => {
+      opt.addEventListener('click', () => {
+        wizardData.isRoutine = opt.dataset.val === 'yes';
+        if (wizardData.isRoutine) {
+          wizardData.type = 'routine';
+          renderWizardStep(5);
+        } else {
+          renderWizardStep(3);
+        }
+      });
+    });
+    document.getElementById('wiz-back-2').addEventListener('click', () => renderWizardStep(1));
+
+  } else if (step === 3) {
+    container.innerHTML = `
+      <div class="wiz-q">誰かのアクションや<br>情報が必要ですか？</div>
+      <div class="wiz-sub">返信待ち・承認待ちなど、自分だけでは完結しない場合</div>
+      <div class="wiz-options">
+        <div class="wiz-opt" data-val="yes">
+          <svg class="wiz-opt-icon" viewBox="0 0 20 20" fill="none"><path d="M4 14 C4 11 7 9 10 9 C13 9 16 11 16 14" stroke="#B5566A" stroke-width="1.5" stroke-linecap="round"/><circle cx="10" cy="6" r="3" stroke="#B5566A" stroke-width="1.5"/></svg>
+          <div><div class="wiz-opt-text">ある（他者依存）</div><div class="wiz-opt-sub">誰かに頼む・返信を待つ</div></div>
+        </div>
+        <div class="wiz-opt" data-val="no">
+          <svg class="wiz-opt-icon" viewBox="0 0 20 20" fill="none"><rect x="4" y="4" width="12" height="12" rx="2" stroke="#4A6FA5" stroke-width="1.5"/><line x1="7" y1="10" x2="13" y2="10" stroke="#4A6FA5" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <div><div class="wiz-opt-text">ない（自分で完結）</div><div class="wiz-opt-sub">自分だけで進められる</div></div>
+        </div>
+      </div>
+      <div class="wiz-nav"><button class="btn-back" id="wiz-back-3">戻る</button></div>
+    `;
+    container.querySelectorAll('.wiz-opt').forEach(opt => {
+      opt.addEventListener('click', () => {
+        if (opt.dataset.val === 'yes') {
+          wizardData.type = 'dependent';
+          renderWizardStep(4);
+        } else {
+          renderWizardStep(3.5);
+        }
+      });
+    });
+    document.getElementById('wiz-back-3').addEventListener('click', () => renderWizardStep(2));
+
+  } else if (step === 3.5) {
+    container.innerHTML = `
+      <div class="wiz-q">やり始める前に<br>何か揃えるものがありますか？</div>
+      <div class="wiz-sub">分解が必要なパターンを選んでください（複数でもOK）</div>
+      <div class="wiz-options" id="decompose-opts">
+        <div class="wiz-opt" data-pattern="research"><div><div class="wiz-opt-text">リサーチが必要</div><div class="wiz-opt-sub">情報・事例・他社動向が不明</div></div></div>
+        <div class="wiz-opt" data-pattern="confirm"><div><div class="wiz-opt-text">社内確認が必要</div><div class="wiz-opt-sub">誰かに確認しないと進められない</div></div></div>
+        <div class="wiz-opt" data-pattern="find_resource"><div><div class="wiz-opt-text">過去資料を探す必要がある</div><div class="wiz-opt-sub">前例・テンプレが存在しそう</div></div></div>
+        <div class="wiz-opt" data-pattern="fully_unknown"><div><div class="wiz-opt-text">全部不明（完全初めて）</div><div class="wiz-opt-sub">何がわからないかもわからない</div></div></div>
+        <div class="wiz-opt" data-pattern="multi_person"><div><div class="wiz-opt-text">複数人が関わる</div><div class="wiz-opt-sub">分担・すり合わせが必要</div></div></div>
+        <div class="wiz-opt" data-pattern="approval"><div><div class="wiz-opt-text">承認フローがある</div><div class="wiz-opt-sub">上司・他部署の承認が必要</div></div></div>
+        <div class="wiz-opt" data-pattern="material"><div><div class="wiz-opt-text">素材・データが必要</div><div class="wiz-opt-sub">画像・数字・原稿などが手元にない</div></div></div>
+        <div class="wiz-opt" data-pattern="judgment"><div><div class="wiz-opt-text">判断が必要（自分で決める）</div><div class="wiz-opt-sub">意思決定してから進む</div></div></div>
+        <div class="wiz-opt" data-pattern="none"><div><div class="wiz-opt-text">特になし・そのまま進める</div><div class="wiz-opt-sub">揃えるものは特にない</div></div></div>
+      </div>
+      <div class="wiz-nav">
+        <button class="btn-back" id="wiz-back-35">戻る</button>
+        <button class="btn-next" id="wiz-next-35">次へ →</button>
+      </div>
+    `;
+    let selectedPatterns = [];
+    container.querySelectorAll('.wiz-opt').forEach(opt => {
+      opt.addEventListener('click', () => {
+        const p = opt.dataset.pattern;
+        if (p === 'none') {
+          selectedPatterns = ['none'];
+          container.querySelectorAll('.wiz-opt').forEach(o => o.style.background = '');
+          opt.style.background = 'var(--bg2)';
+          opt.style.borderColor = 'var(--accent)';
+        } else {
+          selectedPatterns = selectedPatterns.filter(x => x !== 'none');
+          if (selectedPatterns.includes(p)) {
+            selectedPatterns = selectedPatterns.filter(x => x !== p);
+            opt.style.background = '';
+            opt.style.borderColor = '';
+          } else {
+            selectedPatterns.push(p);
+            opt.style.background = 'var(--bg2)';
+            opt.style.borderColor = 'var(--accent)';
+          }
+        }
+      });
+    });
+    document.getElementById('wiz-back-35').addEventListener('click', () => renderWizardStep(3));
+    document.getElementById('wiz-next-35').addEventListener('click', () => {
+      if (!selectedPatterns.length) { showToast('選択してください'); return; }
+      wizardData.patterns = selectedPatterns;
+      if (selectedPatterns[0] === 'none') {
+        wizardData.type = 'judgment';
+        wizardData.subtasks = [];
+        renderWizardStep(5);
+      } else {
+        wizardData.type = 'unknown';
+        const subs = [];
+        selectedPatterns.forEach(p => {
+          (DECOMPOSE_PATTERNS[p] || []).forEach(s => subs.push({ ...s }));
+        });
+        wizardData.subtasks = subs;
+        renderWizardStep(4);
+      }
+    });
+
+  } else if (step === 4) {
+    const subs = wizardData.subtasks || [];
+    const totalMin = subs.reduce((a, b) => a + b.minutes, 0) || 30;
+    wizardData.estimated_minutes = totalMin;
+    container.innerHTML = `
+      <div class="wiz-q">分解結果</div>
+      <div class="wiz-sub">タスクをこのステップに分解します</div>
+      ${subs.length ? `<div class="decompose-preview">
+        ${subs.map(s => `<div class="decompose-item">
+          <span class="decompose-title">${s.title}</span>
+          <span class="decompose-min">${s.minutes}min</span>
+        </div>`).join('')}
+        <div style="text-align:right;font-size:12px;color:var(--accent);margin-top:8px;font-family:var(--font-num);">合計 ${totalMin}min</div>
+      </div>` : '<div style="font-size:13px;color:var(--text3);margin-bottom:16px;">サブタスクなし</div>'}
+      <div class="wiz-nav">
+        <button class="btn-back" id="wiz-back-4">戻る</button>
+        <button class="btn-next" id="wiz-next-4">次へ →</button>
+      </div>
+    `;
+    document.getElementById('wiz-back-4').addEventListener('click', () => renderWizardStep(wizardData.type === 'dependent' ? 3 : 3.5));
+    document.getElementById('wiz-next-4').addEventListener('click', () => renderWizardStep(5));
+
+  } else if (step === 5) {
+    const defaultMin = wizardData.type === 'routine' ? 30 : (wizardData.estimated_minutes || 30);
+    container.innerHTML = `
+      <div class="wiz-q">詳細設定</div>
+      <div class="wiz-row">
+        <div class="wiz-input-wrap">
+          <label class="wiz-label">所要時間（分）</label>
+          <input class="wiz-input" type="number" id="wiz-min" value="${defaultMin}" min="5" max="480" step="5">
+        </div>
+        <div class="wiz-input-wrap">
+          <label class="wiz-label">期限（任意）</label>
+          <input class="wiz-input" type="date" id="wiz-deadline" value="${wizardData.deadline||''}">
+        </div>
+      </div>
+      <div class="wiz-input-wrap">
+        <label class="wiz-label">今日やる？</label>
+        <select class="wiz-input" id="wiz-today-flag">
+          <option value="yes">今日スケジュールに入れる</option>
+          <option value="no">後日やる（一覧に追加）</option>
+        </select>
+      </div>
+      <div id="time-slot-section">
+        <label class="wiz-label">開始時刻</label>
+        <div class="time-slots" id="time-slots-grid"></div>
+      </div>
+      <div class="wiz-nav">
+        <button class="btn-back" id="wiz-back-5">戻る</button>
+        <button class="btn-next" id="wiz-next-5">保存する</button>
+      </div>
+    `;
+    const slotsGrid = document.getElementById('time-slots-grid');
+    TIME_SLOTS.forEach(slot => {
+      const div = document.createElement('div');
+      div.className = 'time-slot';
+      if (wizardData.scheduled_time === slot.time) div.classList.add('selected');
+      div.innerHTML = `<div class="time-slot-time">${slot.time}</div><div class="time-slot-label">${slot.label}</div>`;
+      div.addEventListener('click', () => {
+        document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+        div.classList.add('selected');
+        wizardData.scheduled_time = slot.time;
+      });
+      slotsGrid.appendChild(div);
+    });
+    document.getElementById('wiz-today-flag').addEventListener('change', function() {
+      document.getElementById('time-slot-section').style.display = this.value === 'yes' ? 'block' : 'none';
+    });
+    const backStep = wizardData.type === 'routine' ? 2 : (wizardData.subtasks && wizardData.subtasks.length ? 4 : 3.5);
+    document.getElementById('wiz-back-5').addEventListener('click', () => renderWizardStep(backStep));
+    document.getElementById('wiz-next-5').addEventListener('click', async () => {
+      wizardData.estimated_minutes = parseInt(document.getElementById('wiz-min').value) || 30;
+      wizardData.deadline = document.getElementById('wiz-deadline').value || null;
+      const todayFlag = document.getElementById('wiz-today-flag').value;
+      wizardData.scheduled_date = todayFlag === 'yes' ? TODAY_STR : null;
+      await saveTask();
+    });
+  }
+}
+
+async function saveTask() {
+  const { data: task, error } = await db.from('tasks').insert({
+    user_id: currentUser.id,
+    title: wizardData.title,
+    type: wizardData.type || 'judgment',
+    status: 'pending',
+    estimated_minutes: wizardData.estimated_minutes || 30,
+    deadline: wizardData.deadline || null,
+    scheduled_date: wizardData.scheduled_date || null,
+    scheduled_time: wizardData.scheduled_time || null,
+    memo: wizardData.memo || null
+  }).select().single();
+  if (error) { showToast('保存に失敗しました'); return; }
+  allTasks.unshift(task);
+  if (wizardData.subtasks && wizardData.subtasks.length) {
+    const subs = wizardData.subtasks.map((s, i) => ({
+      task_id: task.id, title: s.title, estimated_minutes: s.minutes,
+      status: 'pending', sort_order: i
+    }));
+    const { data: savedSubs } = await db.from('subtasks').insert(subs).select();
+    if (savedSubs) allSubtasks.push(...savedSubs);
+  }
+  showToast('タスクを追加しました🐯');
+  wizardData = {};
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelector('[data-page="today"]').classList.add('active');
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-today').classList.add('active');
+  renderToday();
+}
+
+// ---- TASK LIST ----
+function renderTaskList() {
+  const list = document.getElementById('task-list');
+  let tasks = [...allTasks];
+  if (currentFilter === 'pending') tasks = tasks.filter(t => t.status === 'pending');
+  else if (['routine','unknown','judgment','dependent'].includes(currentFilter)) tasks = tasks.filter(t => t.type === currentFilter);
+  if (!tasks.length) {
+    list.innerHTML = '<div class="empty"><div class="empty-icon">📋</div>タスクがありません</div>';
+    return;
+  }
+  list.innerHTML = '';
+  tasks.forEach(t => {
+    const subs = allSubtasks.filter(s => s.task_id === t.id);
+    const card = document.createElement('div');
+    card.className = `task-card ${t.status === 'done' ? 'done' : ''}`;
+    card.innerHTML = `
+      <div class="task-card-top">
+        <div class="task-card-left">
+          <div class="task-type-badge type-${t.type}">${typeLabel(t.type)}</div>
+          <span class="task-title">${t.title}</span>
+        </div>
+        <div class="task-card-right">
+          <span class="task-time">${t.estimated_minutes}min</span>
+        </div>
+      </div>
+      <div class="task-card-bottom">
+        ${t.scheduled_date ? `<span class="task-min">${t.scheduled_date}</span>` : ''}
+        ${t.deadline ? `<span class="task-deadline">期限 ${t.deadline}</span>` : ''}
+        ${subs.length ? `<span class="task-min">サブタスク ${subs.filter(s=>s.status==='done').length}/${subs.length}</span>` : ''}
+      </div>
+    `;
+    card.addEventListener('click', () => openDetail(t.id));
+    list.appendChild(card);
+  });
+}
+
+document.querySelectorAll('.chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+    chip.classList.add('selected');
+    currentFilter = chip.dataset.filter;
+    renderTaskList();
+  });
+});
+
+// ---- TOMORROW ----
+function renderTomorrow() {
+  const tomorrow = new Date(TODAY);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const tStr = tomorrow.toISOString().split('T')[0];
+  const carried = allTasks.filter(t => t.status === 'carried' || (t.status === 'pending' && t.scheduled_date === TODAY_STR));
+  const newTasks = allTasks.filter(t => t.scheduled_date === null && t.status === 'pending');
+  const carriedList = document.getElementById('carried-list');
+  const newList = document.getElementById('tomorrow-new-list');
+  if (!carried.length) {
+    carriedList.innerHTML = '<div class="empty" style="padding:16px 0;"><span style="font-size:13px;color:var(--text3);">持ち越しタスクなし 🎉</span></div>';
+  } else {
+    carriedList.innerHTML = '';
+    carried.forEach(t => {
+      const card = document.createElement('div');
+      card.className = 'task-card';
+      card.innerHTML = `
+        <div class="task-card-top">
+          <div class="task-card-left">
+            <div class="task-type-badge type-${t.type}">${typeLabel(t.type)}</div>
+            <span class="task-title">${t.title}</span>
+          </div>
+          <span class="task-time">${t.estimated_minutes}min</span>
+        </div>
+      `;
+      card.addEventListener('click', () => openDetail(t.id));
+      carriedList.appendChild(card);
+    });
+  }
+  if (!newTasks.length) {
+    newList.innerHTML = '<div style="font-size:13px;color:var(--text3);padding:8px 0;">未スケジュールのタスクなし</div>';
+  } else {
+    newList.innerHTML = '';
+    newTasks.forEach(t => {
+      const card = document.createElement('div');
+      card.className = 'task-card';
+      card.innerHTML = `
+        <div class="task-card-top">
+          <div class="task-card-left">
+            <div class="task-type-badge type-${t.type}">${typeLabel(t.type)}</div>
+            <span class="task-title">${t.title}</span>
+          </div>
+          <span class="task-time">${t.estimated_minutes}min</span>
+        </div>
+      `;
+      card.addEventListener('click', () => openDetail(t.id));
+      newList.appendChild(card);
+    });
+  }
+  document.getElementById('plot-tomorrow-btn').addEventListener('click', async () => {
+    const targets = [...carried, ...newTasks];
+    if (!targets.length) { showToast('プロット対象なし'); return; }
+    await Promise.all(targets.map(t =>
+      db.from('tasks').update({ scheduled_date: tStr, status: 'pending' }).eq('id', t.id)
+    ));
+    targets.forEach(t => { t.scheduled_date = tStr; t.status = 'pending'; });
+    showToast(`${targets.length}件を明日にプロットしました`);
+    renderTomorrow();
+  });
+}
+
+// ---- WEEKLY REVIEW ----
+document.getElementById('review-btn').addEventListener('click', () => {
+  const body = document.getElementById('review-body');
+  const lastWeekPending = allTasks.filter(t => t.status === 'pending' || t.status === 'carried');
+  body.innerHTML = `
+    <div style="font-size:13px;color:var(--text2);margin-bottom:16px;line-height:1.6;">
+      未完了タスク <strong>${lastWeekPending.length}件</strong> を確認します
+    </div>
+    ${lastWeekPending.slice(0,10).map(t => `
+      <div class="review-card">
+        <div class="review-card-title">${t.title}</div>
+        <div class="review-card-sub">${typeLabel(t.type)} · ${t.estimated_minutes}min${t.scheduled_date ? ' · '+t.scheduled_date : ''}</div>
+        <div class="review-action">
+          <button class="btn-sm" onclick="moveToNextWeek('${t.id}')">来週に移す</button>
+          <button class="btn-sm btn-sm-accent" onclick="keepTask('${t.id}')">今週継続</button>
+          <button class="btn-sm" style="color:var(--accent);" onclick="dropTask('${t.id}')">不要・削除</button>
+        </div>
+      </div>
+    `).join('')}
+    ${lastWeekPending.length === 0 ? '<div class="empty"><div class="empty-icon">🎉</div>未完了タスクなし！完璧な週でした</div>' : ''}
+  `;
+  openModal('review-modal');
+});
+document.getElementById('review-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal('review-modal');
+});
+
+window.moveToNextWeek = async function(taskId) {
+  const nextMonday = new Date(TODAY);
+  nextMonday.setDate(TODAY.getDate() + (8 - TODAY.getDay()) % 7 || 7);
+  const nStr = nextMonday.toISOString().split('T')[0];
+  await db.from('tasks').update({ scheduled_date: nStr, status: 'pending' }).eq('id', taskId);
+  const t = allTasks.find(x => x.id === taskId);
+  if (t) { t.scheduled_date = nStr; t.status = 'pending'; }
+  showToast('来週に移しました');
+  document.getElementById('review-btn').click();
+};
+window.keepTask = function(taskId) {
+  showToast('今週継続します');
+};
+window.dropTask = async function(taskId) {
+  if (!confirm('削除しますか？')) return;
+  await db.from('tasks').delete().eq('id', taskId);
+  allTasks = allTasks.filter(t => t.id !== taskId);
+  showToast('削除しました');
+  document.getElementById('review-btn').click();
+};
+
+// swipe to close modals
+document.querySelectorAll('.modal').forEach(modal => {
+  let startY = 0;
+  modal.addEventListener('touchstart', e => { startY = e.touches[0].clientY; }, { passive: true });
+  modal.addEventListener('touchend', e => {
+    if (e.changedTouches[0].clientY - startY > 80) {
+      const overlay = modal.closest('.modal-overlay');
+      if (overlay) overlay.classList.remove('open');
+    }
+  }, { passive: true });
+});
+</script>
+</body>
+</html>
