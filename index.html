@@ -18,7 +18,50 @@
 }
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--font); }
-body { display: flex; flex-direction: column; max-width: 480px; margin: 0 auto; }
+body { display: flex; flex-direction: column; margin: 0 auto; }
+
+/* PC LAYOUT */
+.pc-layout { display: flex; flex-direction: column; height: 100vh; }
+@media (min-width: 900px) {
+  #app { flex-direction: column; }
+  .app-body { display: grid; grid-template-columns: 1fr 320px; flex: 1; overflow: hidden; }
+  .main { padding: 20px 24px 24px; overflow-y: auto; }
+  .right-panel { border-left: 0.5px solid var(--sep); background: var(--white); overflow-y: auto; padding: 20px 20px 24px; }
+  .nav { display: none; }
+  .pc-nav { display: flex !important; }
+  .main { padding-bottom: 24px; }
+}
+.pc-nav { display: none; gap: 4px; }
+.pc-nav-item { display: flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 13px; color: var(--text3); font-weight: 500; transition: all .15s; border: none; background: none; font-family: var(--font); }
+.pc-nav-item:hover { background: var(--bg2); color: var(--text); }
+.pc-nav-item.active { background: var(--accent-light); color: var(--accent); }
+.pc-nav-item svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+/* WEEK VIEW */
+.week-view { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 4px; }
+.week-day-col { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.week-day-header { font-size: 10px; font-weight: 500; text-align: center; padding: 5px 0; border-radius: 6px; color: var(--text3); letter-spacing: .04em; }
+.week-day-header.today { background: var(--accent-light); color: var(--accent); }
+.week-task-block { border-radius: 5px; padding: 4px 6px; font-size: 10px; line-height: 1.3; cursor: pointer; transition: opacity .15s; }
+.week-task-block:hover { opacity: .8; }
+.week-task-block.wt-unknown { background: #C4603A16; color: #C4603A; border-left: 2px solid #C4603A; }
+.week-task-block.wt-routine { background: #2D3B2E10; color: #2D3B2E; border-left: 2px solid #2D3B2E; }
+.week-task-block.wt-judgment { background: #4A6FA514; color: #4A6FA5; border-left: 2px solid #4A6FA5; }
+.week-task-block.wt-dependent { background: #B5566A14; color: #B5566A; border-left: 2px solid #B5566A; }
+.week-task-block.wt-block { background: var(--bg3); color: var(--text3); border-left: 2px solid var(--text3); }
+.week-empty { font-size: 11px; color: var(--text3); text-align: center; padding: 8px 0; opacity: .5; }
+
+/* CONFLICT BANNER */
+.conflict-banner { background: #FFF3E0; border: 0.5px solid #FFCC80; border-radius: var(--radius-sm); padding: 10px 14px; margin-bottom: 12px; display: flex; align-items: flex-start; gap: 10px; }
+.conflict-banner-text { font-size: 13px; color: #E65100; flex: 1; line-height: 1.5; }
+.conflict-banner-actions { display: flex; gap: 6px; margin-top: 6px; }
+.btn-conflict { font-size: 12px; padding: 4px 12px; border-radius: 6px; cursor: pointer; font-family: var(--font); border: 0.5px solid; }
+.btn-conflict-move { background: #E65100; color: white; border-color: #E65100; }
+.btn-conflict-keep { background: var(--white); color: #E65100; border-color: #FFCC80; }
+
+/* SHORTCUT HINT */
+.shortcut-hint { font-size: 10px; color: var(--text3); letter-spacing: .06em; margin-top: 4px; }
+kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); border-radius: 3px; font-size: 10px; font-family: var(--font); background: var(--bg2); color: var(--text2); }
 
 /* AUTH */
 #auth-screen { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 24px; }
@@ -44,6 +87,7 @@ body { display: flex; flex-direction: column; max-width: 480px; margin: 0 auto; 
 .header-date { font-size: 11px; color: var(--text3); }
 .btn-logout { font-size: 11px; color: var(--text3); background: none; border: none; cursor: pointer; font-family: var(--font); }
 .main { flex: 1; overflow-y: auto; padding: 16px 20px 100px; }
+.app-body { display: flex; flex: 1; overflow: hidden; }
 
 /* NAV */
 .nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: rgba(242,237,230,.94); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-top: 0.5px solid var(--sep); display: flex; justify-content: space-around; padding: 8px 0 calc(8px + env(safe-area-inset-bottom)); z-index: 100; }
@@ -242,83 +286,119 @@ body { display: flex; flex-direction: column; max-width: 480px; margin: 0 auto; 
   <div class="header">
     <div class="header-logo">TORA TODO</div>
     <div class="header-right">
+      <div class="pc-nav" id="pc-nav">
+        <button class="pc-nav-item active" data-page="today">
+          <svg viewBox="0 0 22 22" fill="none"><rect x="3" y="11" width="4" height="8" rx="1.5" fill="currentColor"/><rect x="9" y="7" width="4" height="12" rx="1.5" fill="currentColor" opacity=".55"/><rect x="15" y="3" width="4" height="16" rx="1.5" fill="currentColor" opacity=".3"/></svg>
+          今日
+        </button>
+        <button class="pc-nav-item" data-page="add">
+          <svg viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="1.5"/><line x1="11" y1="7" x2="11" y2="15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="7" y1="11" x2="15" y2="11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          追加 <kbd>N</kbd>
+        </button>
+        <button class="pc-nav-item" data-page="list">
+          <svg viewBox="0 0 22 22" fill="none"><line x1="4" y1="6" x2="18" y2="6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="4" y1="11" x2="18" y2="11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="4" y1="16" x2="13" y2="16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          一覧 <kbd>L</kbd>
+        </button>
+        <button class="pc-nav-item" data-page="tomorrow">
+          <svg viewBox="0 0 22 22" fill="none"><path d="M11 3 C7 3 3.5 6.5 3.5 11 C3.5 15.5 7 19 11 19" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M11 19 C15 19 18.5 15.5 18.5 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="2.5 2"/><polyline points="14,7.5 18.5,11 14,14.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+          明日 <kbd>M</kbd>
+        </button>
+      </div>
       <div class="header-date" id="header-date"></div>
       <button class="btn-logout" id="logout-btn">ログアウト</button>
     </div>
   </div>
-  <div class="main" id="main-content">
 
-    <!-- 今日 -->
-    <div class="page active" id="page-today">
-      <div id="next-action-wrap"></div>
-      <div id="buffer-wrap"></div>
-      <div class="sec-label">今日の3つ</div>
-      <div class="goals-wrap" id="goals-list"></div>
-      <div class="goal-add" id="goal-add-btn">
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="7" y1="2" x2="7" y2="12" stroke="#9AA59B" stroke-width="1.5" stroke-linecap="round"/><line x1="2" y1="7" x2="12" y2="7" stroke="#9AA59B" stroke-width="1.5" stroke-linecap="round"/></svg>
-        <span class="goal-add-text">完了条件を追加</span>
-      </div>
-      <div class="sec-label">今日のスケジュール</div>
-      <div id="schedule-list"></div>
-    </div>
+  <div class="app-body">
+    <div class="main" id="main-content">
 
-    <!-- 追加 -->
-    <div class="page" id="page-add">
-      <div class="sec-label" style="margin-top:4px;">タスクを追加</div>
-      <div class="mode-tabs">
-        <button class="mode-tab active" id="tab-quick">🤖 クイック入力</button>
-        <button class="mode-tab" id="tab-detail">詳細入力</button>
+      <!-- 今日 -->
+      <div class="page active" id="page-today">
+        <div id="conflict-area"></div>
+        <div id="next-action-wrap"></div>
+        <div id="buffer-wrap"></div>
+        <div class="sec-label">今日の3つ</div>
+        <div class="goals-wrap" id="goals-list"></div>
+        <div class="goal-add" id="goal-add-btn">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="7" y1="2" x2="7" y2="12" stroke="#9AA59B" stroke-width="1.5" stroke-linecap="round"/><line x1="2" y1="7" x2="12" y2="7" stroke="#9AA59B" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <span class="goal-add-text">完了条件を追加</span>
+        </div>
+        <div class="sec-label" style="margin-top:20px;">今日のスケジュール</div>
+        <div id="schedule-list"></div>
       </div>
-      <div id="quick-panel">
-        <div class="quick-wrap">
-          <div>
-            <label class="wiz-label">タスク名を入れてAIに任せる</label>
-            <div class="quick-input-row">
-              <input class="quick-input" id="quick-title" placeholder="例：来月キャンペーン企画" maxlength="60">
-              <button class="btn-ai" id="quick-ai-btn">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="white" stroke-width="1.5"/><path d="M5 8 C5 6.3 6.3 5 8 5 C9.7 5 11 6.3 11 8" stroke="white" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="10" r="1" fill="white"/></svg>
-                AI分析
-              </button>
+
+      <!-- 追加 -->
+      <div class="page" id="page-add">
+        <div class="sec-label" style="margin-top:4px;">タスクを追加 <span class="shortcut-hint" style="margin-left:8px;">Enterで送信</span></div>
+        <div class="mode-tabs">
+          <button class="mode-tab active" id="tab-quick">AI クイック入力</button>
+          <button class="mode-tab" id="tab-detail">詳細入力</button>
+        </div>
+        <div id="quick-panel">
+          <div class="quick-wrap">
+            <div>
+              <label class="wiz-label">タスク名を入れてAIに任せる</label>
+              <div class="quick-input-row">
+                <input class="quick-input" id="quick-title" placeholder="例：来月キャンペーン企画" maxlength="60">
+                <button class="btn-ai" id="quick-ai-btn">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="white" stroke-width="1.5"/><path d="M5 8 C5 6.3 6.3 5 8 5 C9.7 5 11 6.3 11 8" stroke="white" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="10" r="1" fill="white"/></svg>
+                  AI分析
+                </button>
+              </div>
             </div>
+            <div id="quick-result"></div>
           </div>
-          <div id="quick-result"></div>
+        </div>
+        <div id="detail-panel" style="display:none;">
+          <div id="wizard-container"></div>
         </div>
       </div>
-      <div id="detail-panel" style="display:none;">
-        <div id="wizard-container"></div>
+
+      <!-- 一覧 -->
+      <div class="page" id="page-list">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;margin-bottom:10px;">
+          <div class="sec-label" style="margin:0;">すべてのタスク</div>
+          <button class="btn-sm" id="review-btn">週次レビュー</button>
+        </div>
+        <div class="chip-group" id="filter-chips">
+          <div class="chip selected" data-filter="all">すべて</div>
+          <div class="chip" data-filter="pending">未完了</div>
+          <div class="chip" data-filter="routine">ルーティン</div>
+          <div class="chip" data-filter="unknown">初めて</div>
+          <div class="chip" data-filter="judgment">判断</div>
+          <div class="chip" data-filter="dependent">他者依存</div>
+        </div>
+        <div id="task-list"></div>
       </div>
+
+      <!-- 明日の準備 -->
+      <div class="page" id="page-tomorrow">
+        <div class="sec-label" style="margin-top:4px;">固定ブロック（会議・MTG）</div>
+        <div id="block-list"></div>
+        <button class="btn-sm btn-sm-accent" id="add-block-btn" style="margin-bottom:16px;">+ 会議・MTGを追加</button>
+        <div class="sec-label">今日の持ち越し</div>
+        <div id="carried-list"></div>
+        <div class="sec-label">未スケジュールのタスク</div>
+        <div id="unscheduled-list"></div>
+        <button class="btn-primary" id="plot-tomorrow-btn" style="margin-top:16px;">明日に自動プロット</button>
+      </div>
+
     </div>
 
-    <!-- 一覧 -->
-    <div class="page" id="page-list">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;margin-bottom:10px;">
-        <div class="sec-label" style="margin:0;">すべてのタスク</div>
-        <button class="btn-sm" id="review-btn">週次レビュー</button>
+    <!-- PC右パネル：週間タイムライン -->
+    <div class="right-panel" id="right-panel" style="display:none;">
+      <div class="sec-label" style="margin-top:0;">今週</div>
+      <div class="week-view" id="week-view"></div>
+      <div style="margin-top:16px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <div class="sec-label" style="margin:0;">会議・MTG</div>
+          <button class="btn-sm" id="add-block-right-btn" style="font-size:11px;">+ 追加</button>
+        </div>
+        <div id="block-list-right"></div>
       </div>
-      <div class="chip-group" id="filter-chips">
-        <div class="chip selected" data-filter="all">すべて</div>
-        <div class="chip" data-filter="pending">未完了</div>
-        <div class="chip" data-filter="routine">ルーティン</div>
-        <div class="chip" data-filter="unknown">初めて</div>
-        <div class="chip" data-filter="judgment">判断</div>
-        <div class="chip" data-filter="dependent">他者依存</div>
-      </div>
-      <div id="task-list"></div>
     </div>
-
-    <!-- 明日の準備 -->
-    <div class="page" id="page-tomorrow">
-      <div class="sec-label" style="margin-top:4px;">固定ブロック（会議・MTG）</div>
-      <div id="block-list"></div>
-      <button class="btn-sm btn-sm-accent" id="add-block-btn" style="margin-bottom:16px;">+ 会議・MTGを追加</button>
-      <div class="sec-label">今日の持ち越し</div>
-      <div id="carried-list"></div>
-      <div class="sec-label">未スケジュールのタスク</div>
-      <div id="unscheduled-list"></div>
-      <button class="btn-primary" id="plot-tomorrow-btn" style="margin-top:16px;">翌日に自動プロット</button>
-    </div>
-
   </div>
+
   <nav class="nav">
     <div class="nav-item active" data-page="today">
       <svg class="nav-icon" viewBox="0 0 22 22" fill="none"><rect x="3" y="11" width="4" height="8" rx="1.5" fill="#C4603A"/><rect x="9" y="7" width="4" height="12" rx="1.5" fill="#C4603A" opacity=".5"/><rect x="15" y="3" width="4" height="16" rx="1.5" fill="#C4603A" opacity=".28"/></svg>
@@ -361,7 +441,7 @@ body { display: flex; flex-direction: column; max-width: 480px; margin: 0 auto; 
 <script>
 const SUPABASE_URL = 'https://ohqgpmtkhhixvnkrjbvb.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ocWdwbXRraGhpeHZua3JqYnZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzMDE4MjEsImV4cCI6MjA5MTg3NzgyMX0.tkm8eT9FCWGmKXPPVeDV6L6STEQ_jVnrNkcGDbRtSCg';
-const GEMINI_KEY = 'AIzaSyCMSvy9yyPLruxvDUPcWot6qg0Gzn3QZ-g';
+const GEMINI_KEY = 'AIzaSyAAa3HNHJpAxZ-wqLYan7JIvq62XGKdZz0';
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { autoRefreshToken: true, persistSession: true, detectSessionInUrl: false } });
 
 let currentUser = null, allTasks = [], allSubtasks = [], allBlocks = [], todayGoals = [], currentFilter = 'all', wizardData = {}, aiResult = null;
@@ -435,30 +515,157 @@ async function loadAll() {
     db.from('daily_goals').select('*').eq('user_id', currentUser.id).eq('date', TODAY_STR).order('sort_order')
   ]);
   allTasks = tasks || []; allSubtasks = subtasks || []; allBlocks = blocks || []; todayGoals = goals || [];
+  checkPCLayout();
   renderToday();
 }
 
-// NAV
-document.querySelectorAll('.nav-item').forEach(item => {
-  item.addEventListener('click', () => {
-    const page = item.dataset.page;
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    item.classList.add('active');
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById('page-' + page).classList.add('active');
-    if (page === 'add') { initAddPage(); }
-    if (page === 'list') renderTaskList();
-    if (page === 'tomorrow') renderTomorrow();
-    if (page === 'today') renderToday();
+// NAV（モバイル＋PC共通）
+function navigateTo(page) {
+  document.querySelectorAll('.nav-item, .pc-nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll(`[data-page="${page}"]`).forEach(n => n.classList.add('active'));
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  if (page === 'add') { initAddPage(); }
+  if (page === 'list') renderTaskList();
+  if (page === 'tomorrow') renderTomorrow();
+  if (page === 'today') renderToday();
+}
+document.querySelectorAll('.nav-item, .pc-nav-item').forEach(item => {
+  item.addEventListener('click', () => navigateTo(item.dataset.page));
+});
+
+// PCレイアウト検知
+function checkPCLayout() {
+  const isPC = window.innerWidth >= 900;
+  const rightPanel = document.getElementById('right-panel');
+  rightPanel.style.display = isPC ? 'block' : 'none';
+  const mainContent = document.getElementById('main-content');
+  mainContent.style.maxWidth = isPC ? 'none' : '480px';
+  if (isPC) renderWeekView();
+}
+window.addEventListener('resize', checkPCLayout);
+
+// 週間ビュー
+function renderWeekView() {
+  const wrap = document.getElementById('week-view');
+  if (!wrap) return;
+  const mon = new Date(TODAY);
+  mon.setDate(TODAY.getDate() - ((TODAY.getDay() + 6) % 7));
+  wrap.innerHTML = '';
+  for (let i = 0; i < 5; i++) {
+    const day = new Date(mon);
+    day.setDate(mon.getDate() + i);
+    const dStr = day.toISOString().split('T')[0];
+    const isToday = dStr === TODAY_STR;
+    const dayTasks = allTasks.filter(t => t.scheduled_date === dStr && t.status !== 'done');
+    const dayBlocks = allBlocks.filter(b => b.date === dStr);
+    const col = document.createElement('div');
+    col.className = 'week-day-col';
+    col.innerHTML = `<div class="week-day-header${isToday ? ' today' : ''}">${DAYS[day.getDay()]} ${day.getDate()}</div>`;
+    dayBlocks.forEach(b => {
+      const div = document.createElement('div');
+      div.className = 'week-task-block wt-block';
+      div.textContent = b.title;
+      col.appendChild(div);
+    });
+    if (!dayTasks.length && !dayBlocks.length) {
+      const emp = document.createElement('div');
+      emp.className = 'week-empty'; emp.textContent = '−';
+      col.appendChild(emp);
+    }
+    dayTasks.forEach(t => {
+      const div = document.createElement('div');
+      div.className = `week-task-block wt-${t.type}`;
+      div.textContent = t.title;
+      div.addEventListener('click', () => openDetail(t.id));
+      col.appendChild(div);
+    });
+    wrap.appendChild(col);
+  }
+  renderBlockListRight();
+}
+
+function renderBlockListRight() {
+  const wrap = document.getElementById('block-list-right');
+  if (!wrap) return;
+  const todayBlocks = allBlocks.filter(b => b.date === TODAY_STR);
+  wrap.innerHTML = todayBlocks.length
+    ? todayBlocks.map(b => `<div class="task-card block-card" style="margin-bottom:6px;cursor:default;"><div class="task-card-top"><div class="task-card-left"><div class="task-type-badge type-block">固定</div><span class="task-title">${b.title}</span></div><span class="task-time">${b.start_time.slice(0,5)}〜${b.end_time.slice(0,5)}</span></div></div>`).join('')
+    : '<div style="font-size:12px;color:var(--text3);padding:4px 0;">今日の会議なし</div>';
+}
+
+document.getElementById('add-block-right-btn')?.addEventListener('click', () => {
+  document.getElementById('block-date').value = TODAY_STR;
+  openModal('block-modal');
+});
+
+// 衝突検知・提案
+function checkConflicts() {
+  const area = document.getElementById('conflict-area');
+  if (!area) return;
+  const conflicts = [];
+  allTasks.filter(t => t.scheduled_date === TODAY_STR && t.scheduled_time && t.status === 'pending').forEach(task => {
+    const [th, tm] = task.scheduled_time.split(':').map(Number);
+    const taskStart = th * 60 + tm;
+    const taskEnd = taskStart + (task.estimated_minutes || 30);
+    allBlocks.filter(b => b.date === TODAY_STR).forEach(block => {
+      const [bsh, bsm] = block.start_time.split(':').map(Number);
+      const [beh, bem] = block.end_time.split(':').map(Number);
+      const blockStart = bsh * 60 + bsm;
+      const blockEnd = beh * 60 + bem;
+      if (taskStart < blockEnd && taskEnd > blockStart) {
+        conflicts.push({ task, block });
+      }
+    });
   });
+  if (!conflicts.length) { area.innerHTML = ''; return; }
+  area.innerHTML = conflicts.map(({ task, block }) => `
+    <div class="conflict-banner">
+      <div style="flex:1;">
+        <div class="conflict-banner-text">「${task.title}」が「${block.title}」(${block.start_time.slice(0,5)}〜${block.end_time.slice(0,5)})と重なっています</div>
+        <div class="conflict-banner-actions">
+          <button class="btn-conflict btn-conflict-move" onclick="moveConflictTask('${task.id}')">空き枠に移動</button>
+          <button class="btn-conflict btn-conflict-keep" onclick="dismissConflict(this)">このままにする</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+window.moveConflictTask = async function(taskId) {
+  const task = allTasks.find(t => t.id === taskId);
+  if (!task) return;
+  const newTime = autoPlotTime(task.type, task.estimated_minutes, TODAY_STR);
+  await db.from('tasks').update({ scheduled_time: newTime }).eq('id', taskId);
+  task.scheduled_time = newTime;
+  renderToday();
+  showToast(`${task.title}を${newTime}に移動しました`);
+};
+window.dismissConflict = function(btn) {
+  btn.closest('.conflict-banner').remove();
+};
+
+// キーボードショートカット
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  switch(e.key.toLowerCase()) {
+    case 'n': navigateTo('add'); setTimeout(() => document.getElementById('quick-title')?.focus(), 100); break;
+    case 'd': navigateTo('today'); break;
+    case 'l': navigateTo('list'); break;
+    case 'm': navigateTo('tomorrow'); break;
+    case 'escape': ['detail-modal','goal-modal','review-modal','block-modal'].forEach(id => closeModal(id)); break;
+  }
 });
 
 // TODAY
 function renderToday() {
+  checkConflicts();
   renderNextAction();
   renderBuffer();
   renderGoals();
   renderSchedule();
+  if (window.innerWidth >= 900) renderWeekView();
 }
 
 function renderNextAction() {
@@ -738,7 +945,10 @@ function showDetailPanel() {
 document.getElementById('tab-quick').addEventListener('click', showQuickPanel);
 document.getElementById('tab-detail').addEventListener('click', showDetailPanel);
 
-document.getElementById('quick-ai-btn').addEventListener('click', async () => {
+document.getElementById('quick-ai-btn').addEventListener('click', handleQuickAI);
+document.getElementById('quick-title').addEventListener('keydown', e => { if (e.key === 'Enter') handleQuickAI(); });
+
+async function handleQuickAI() {
   const title = document.getElementById('quick-title').value.trim();
   if (!title) { showToast('タスク名を入力してください'); return; }
   const resultDiv = document.getElementById('quick-result');
@@ -1033,6 +1243,7 @@ document.getElementById('block-save-btn').addEventListener('click', async () => 
   closeModal('block-modal');
   renderTomorrow();
   renderToday();
+  if (window.innerWidth >= 900) renderWeekView();
   showToast('固定ブロックを追加しました');
 });
 
