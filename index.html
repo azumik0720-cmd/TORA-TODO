@@ -8,36 +8,24 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root {
-  --bg: #FDFAF7;
-  --bg2: #F2EDE6;
-  --bg3: #EBE5DC;
-  --accent: #C4603A;
-  --accent-light: #C4603A18;
-  --green: #2D3B2E;
-  --text: #2D3B2E;
-  --text2: #6B7B6C;
-  --text3: #9AA59B;
-  --white: #ffffff;
-  --sep: rgba(45,59,46,0.08);
-  --radius: 12px;
-  --radius-sm: 8px;
+  --bg: #FDFAF7; --bg2: #F2EDE6; --bg3: #EBE5DC;
+  --accent: #C4603A; --accent-light: #C4603A14;
+  --green: #2D3B2E; --text: #2D3B2E; --text2: #6B7B6C; --text3: #9AA59B;
+  --white: #ffffff; --sep: rgba(45,59,46,0.08);
+  --radius: 12px; --radius-sm: 8px;
   --font: 'DM Sans', -apple-system, sans-serif;
   --font-num: 'Bebas Neue', sans-serif;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--font); }
-body { display: flex; flex-direction: column; max-width: 480px; margin: 0 auto; position: relative; }
+body { display: flex; flex-direction: column; max-width: 480px; margin: 0 auto; }
 
 /* AUTH */
-#auth-screen {
-  min-height: 100vh; display: flex; flex-direction: column;
-  align-items: center; justify-content: center; padding: 40px 24px;
-  background: var(--bg);
-}
-.auth-logo { font-family: var(--font-num); font-size: 42px; color: var(--accent); letter-spacing: .04em; margin-bottom: 4px; }
-.auth-sub { font-size: 12px; color: var(--text3); letter-spacing: .12em; text-transform: uppercase; margin-bottom: 40px; }
+#auth-screen { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 24px; }
+.auth-logo { font-family: var(--font-num); font-size: 44px; color: var(--accent); letter-spacing: .05em; margin-bottom: 4px; }
+.auth-sub { font-size: 11px; color: var(--text3); letter-spacing: .14em; text-transform: uppercase; margin-bottom: 40px; }
 .auth-card { background: var(--white); border-radius: var(--radius); border: 0.5px solid var(--sep); padding: 28px 24px; width: 100%; max-width: 360px; }
-.auth-title { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 20px; }
+.auth-title { font-size: 14px; font-weight: 500; margin-bottom: 20px; }
 .field { margin-bottom: 14px; }
 .field label { font-size: 11px; color: var(--text3); letter-spacing: .1em; text-transform: uppercase; display: block; margin-bottom: 6px; }
 .field input { width: 100%; height: 42px; border: 0.5px solid var(--bg3); border-radius: var(--radius-sm); background: var(--bg); padding: 0 12px; font-size: 14px; font-family: var(--font); color: var(--text); outline: none; transition: border-color .2s; }
@@ -45,238 +33,192 @@ body { display: flex; flex-direction: column; max-width: 480px; margin: 0 auto; 
 .btn-primary { width: 100%; height: 44px; background: var(--accent); color: white; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; font-family: var(--font); cursor: pointer; transition: opacity .2s; }
 .btn-primary:active { opacity: .8; }
 .auth-toggle { text-align: center; margin-top: 16px; font-size: 13px; color: var(--text3); }
-.auth-toggle a { color: var(--accent); cursor: pointer; text-decoration: none; }
-.auth-err { font-size: 12px; color: #C4603A; margin-top: 10px; text-align: center; min-height: 18px; }
+.auth-toggle a { color: var(--accent); cursor: pointer; }
+.auth-err { font-size: 12px; color: var(--accent); margin-top: 10px; text-align: center; min-height: 18px; }
 
-/* HEADER */
+/* APP */
 #app { display: none; flex-direction: column; height: 100vh; }
-.header {
-  position: sticky; top: 0; z-index: 100;
-  background: rgba(253,250,247,.88); backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 0.5px solid var(--sep);
-  padding: 14px 20px 12px;
-  display: flex; align-items: center; justify-content: space-between;
-}
+.header { position: sticky; top: 0; z-index: 100; background: rgba(253,250,247,.9); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 0.5px solid var(--sep); padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; }
 .header-logo { font-family: var(--font-num); font-size: 22px; color: var(--accent); letter-spacing: .06em; }
-.header-date { font-size: 11px; color: var(--text3); letter-spacing: .08em; }
-.header-right { display: flex; align-items: center; gap: 10px; }
-.btn-logout { font-size: 11px; color: var(--text3); background: none; border: none; cursor: pointer; font-family: var(--font); padding: 4px 8px; border-radius: 6px; }
-.btn-logout:hover { background: var(--bg3); }
-
-/* MAIN SCROLL */
+.header-right { display: flex; align-items: center; gap: 12px; }
+.header-date { font-size: 11px; color: var(--text3); }
+.btn-logout { font-size: 11px; color: var(--text3); background: none; border: none; cursor: pointer; font-family: var(--font); }
 .main { flex: 1; overflow-y: auto; padding: 16px 20px 100px; }
 
 /* NAV */
-.nav {
-  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
-  width: 100%; max-width: 480px;
-  background: rgba(242,237,230,.92); backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-top: 0.5px solid var(--sep);
-  display: flex; justify-content: space-around;
-  padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
-  z-index: 100;
-}
-.nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; padding: 4px 16px; border-radius: 8px; transition: background .15s; }
+.nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: rgba(242,237,230,.94); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-top: 0.5px solid var(--sep); display: flex; justify-content: space-around; padding: 8px 0 calc(8px + env(safe-area-inset-bottom)); z-index: 100; }
+.nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; padding: 4px 14px; border-radius: 8px; }
 .nav-item:active { background: var(--bg3); }
 .nav-icon { width: 22px; height: 22px; }
-.nav-label { font-size: 9px; letter-spacing: .08em; text-transform: uppercase; color: var(--text3); font-weight: 500; transition: color .2s; }
+.nav-label { font-size: 9px; letter-spacing: .08em; text-transform: uppercase; color: var(--text3); font-weight: 500; }
 .nav-item.active .nav-label { color: var(--accent); }
-
-/* SECTION LABEL */
-.sec-label { font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: var(--text3); font-weight: 500; margin-bottom: 10px; margin-top: 20px; }
-.sec-label:first-child { margin-top: 4px; }
-
-/* GOAL CARDS */
-.goals-wrap { display: flex; flex-direction: column; gap: 6px; margin-bottom: 4px; }
-.goal-card {
-  background: var(--white); border: 0.5px solid var(--sep);
-  border-radius: var(--radius-sm); padding: 10px 12px;
-  display: flex; align-items: center; gap: 10px;
-}
-.goal-circle {
-  width: 20px; height: 20px; border-radius: 50%;
-  border: 1.5px solid var(--bg3); flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; transition: all .2s;
-}
-.goal-circle.done { background: var(--accent); border-color: var(--accent); }
-.goal-text { font-size: 13px; color: var(--text); flex: 1; line-height: 1.4; }
-.goal-text.done { color: var(--text3); text-decoration: line-through; }
-.goal-del { width: 18px; height: 18px; cursor: pointer; opacity: .3; flex-shrink: 0; }
-.goal-del:hover { opacity: .6; }
-.goal-add { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: var(--radius-sm); border: 0.5px dashed var(--bg3); cursor: pointer; margin-top: 4px; transition: background .15s; }
-.goal-add:hover { background: var(--bg2); }
-.goal-add-text { font-size: 13px; color: var(--text3); }
-
-/* TASK CARDS */
-.task-card {
-  background: var(--white); border: 0.5px solid var(--sep);
-  border-radius: var(--radius); padding: 12px 14px;
-  margin-bottom: 8px; cursor: pointer;
-  transition: background .15s;
-  position: relative; overflow: hidden;
-}
-.task-card:active { background: var(--bg2); }
-.task-card.done { opacity: .5; }
-.task-card-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.task-card-left { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
-.task-type-badge {
-  font-size: 9px; letter-spacing: .08em; text-transform: uppercase;
-  padding: 2px 7px; border-radius: 4px; flex-shrink: 0; font-weight: 500;
-}
-.type-routine { background: #2D3B2E14; color: #2D3B2E; }
-.type-unknown { background: #C4603A18; color: #C4603A; }
-.type-judgment { background: #4A6FA518; color: #4A6FA5; }
-.type-dependent { background: #B5566A18; color: #B5566A; }
-.task-title { font-size: 13px; color: var(--text); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.task-card-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-.task-time { font-family: var(--font-num); font-size: 14px; color: var(--text3); letter-spacing: .04em; }
-.task-card-bottom { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
-.task-min { font-size: 11px; color: var(--text3); }
-.task-deadline { font-size: 11px; color: var(--accent); }
-
-/* SUBTASK */
-.subtask-list { margin-top: 8px; padding-top: 8px; border-top: 0.5px solid var(--sep); display: flex; flex-direction: column; gap: 4px; }
-.subtask-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 6px; background: var(--bg); }
-.subtask-check { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid var(--bg3); flex-shrink: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-.subtask-check.done { background: var(--accent); border-color: var(--accent); }
-.subtask-title { font-size: 12px; color: var(--text2); flex: 1; }
-.subtask-title.done { color: var(--text3); text-decoration: line-through; }
-.subtask-min { font-size: 11px; color: var(--text3); font-family: var(--font-num); }
-
-/* SCHEDULE */
-.schedule-wrap { display: flex; flex-direction: column; gap: 0; }
-.sched-row { display: flex; gap: 12px; align-items: flex-start; padding: 6px 0; }
-.sched-time { font-family: var(--font-num); font-size: 13px; color: var(--text3); width: 44px; flex-shrink: 0; padding-top: 2px; letter-spacing: .04em; }
-.sched-line { display: flex; flex-direction: column; align-items: center; padding-top: 4px; }
-.sched-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
-.sched-connector { width: 1px; background: var(--sep); flex: 1; min-height: 20px; margin-top: 2px; }
-.sched-content { flex: 1; padding-bottom: 8px; }
-
-/* EMPTY */
-.empty { text-align: center; padding: 40px 20px; color: var(--text3); font-size: 13px; line-height: 1.7; }
-.empty-icon { font-size: 32px; margin-bottom: 10px; }
-
-/* MODAL */
-.modal-overlay {
-  position: fixed; inset: 0; background: rgba(45,59,46,.2);
-  display: flex; align-items: flex-end; z-index: 200;
-  opacity: 0; pointer-events: none; transition: opacity .25s;
-}
-.modal-overlay.open { opacity: 1; pointer-events: all; }
-.modal {
-  background: var(--bg); width: 100%; max-width: 480px; margin: 0 auto;
-  border-radius: 20px 20px 0 0;
-  padding: 0 20px calc(24px + env(safe-area-inset-bottom));
-  transform: translateY(100%);
-  transition: transform .3s cubic-bezier(.32,1,.23,1);
-  max-height: 90vh; overflow-y: auto;
-}
-.modal-overlay.open .modal { transform: translateY(0); }
-.modal-handle { width: 36px; height: 4px; background: var(--bg3); border-radius: 2px; margin: 12px auto 20px; }
-.modal-title { font-size: 15px; font-weight: 500; color: var(--text); margin-bottom: 20px; }
-
-/* WIZARD */
-.wizard-step { display: none; }
-.wizard-step.active { display: block; }
-.wiz-q { font-size: 16px; font-weight: 500; color: var(--text); margin-bottom: 6px; line-height: 1.5; }
-.wiz-sub { font-size: 13px; color: var(--text3); margin-bottom: 20px; line-height: 1.5; }
-.wiz-options { display: flex; flex-direction: column; gap: 8px; }
-.wiz-opt {
-  background: var(--white); border: 0.5px solid var(--sep);
-  border-radius: var(--radius-sm); padding: 12px 14px;
-  cursor: pointer; transition: all .15s;
-  display: flex; align-items: center; gap: 10px;
-}
-.wiz-opt:active, .wiz-opt:hover { background: var(--bg2); border-color: var(--accent); }
-.wiz-opt-icon { width: 20px; height: 20px; flex-shrink: 0; }
-.wiz-opt-text { font-size: 14px; color: var(--text); font-weight: 500; }
-.wiz-opt-sub { font-size: 12px; color: var(--text3); margin-top: 1px; }
-.wiz-input-wrap { margin-bottom: 16px; }
-.wiz-label { font-size: 11px; color: var(--text3); letter-spacing: .1em; text-transform: uppercase; margin-bottom: 6px; display: block; }
-.wiz-input {
-  width: 100%; height: 44px; border: 0.5px solid var(--bg3);
-  border-radius: var(--radius-sm); background: var(--white);
-  padding: 0 12px; font-size: 14px; font-family: var(--font);
-  color: var(--text); outline: none; transition: border-color .2s;
-}
-.wiz-input:focus { border-color: var(--accent); }
-.wiz-input-lg { height: auto; padding: 10px 12px; resize: none; }
-.wiz-row { display: flex; gap: 10px; }
-.wiz-row .wiz-input-wrap { flex: 1; }
-.wiz-nav { display: flex; gap: 10px; margin-top: 20px; }
-.btn-back {
-  height: 44px; padding: 0 20px; border: 0.5px solid var(--bg3);
-  border-radius: var(--radius-sm); background: var(--white);
-  font-size: 14px; font-family: var(--font); color: var(--text2);
-  cursor: pointer; transition: background .15s;
-}
-.btn-back:active { background: var(--bg2); }
-.btn-next {
-  flex: 1; height: 44px; background: var(--accent); color: white;
-  border: none; border-radius: var(--radius-sm);
-  font-size: 14px; font-weight: 500; font-family: var(--font);
-  cursor: pointer; transition: opacity .2s;
-}
-.btn-next:active { opacity: .8; }
-.decompose-preview { background: var(--white); border: 0.5px solid var(--sep); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 16px; }
-.decompose-item { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 0.5px solid var(--sep); }
-.decompose-item:last-child { border-bottom: none; }
-.decompose-title { font-size: 13px; color: var(--text); flex: 1; }
-.decompose-min { font-size: 12px; color: var(--text3); font-family: var(--font-num); }
-
-/* SCHEDULE PLOT */
-.time-slots { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-bottom: 16px; }
-.time-slot {
-  background: var(--white); border: 0.5px solid var(--sep);
-  border-radius: var(--radius-sm); padding: 10px 12px;
-  cursor: pointer; transition: all .15s; text-align: center;
-}
-.time-slot:hover { border-color: var(--accent); background: var(--bg2); }
-.time-slot.selected { border-color: var(--accent); background: var(--accent-light); }
-.time-slot-time { font-family: var(--font-num); font-size: 16px; color: var(--accent); }
-.time-slot-label { font-size: 11px; color: var(--text3); margin-top: 2px; }
-
-/* TASK DETAIL MODAL */
-.detail-actions { display: flex; gap: 8px; margin-top: 16px; }
-.btn-done { flex: 1; height: 44px; background: var(--accent); color: white; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; font-family: var(--font); cursor: pointer; }
-.btn-carry { flex: 1; height: 44px; background: var(--white); border: 0.5px solid var(--sep); border-radius: var(--radius-sm); font-size: 14px; font-family: var(--font); color: var(--text2); cursor: pointer; }
-.btn-delete { height: 44px; padding: 0 16px; background: none; border: 0.5px solid #C4603A40; border-radius: var(--radius-sm); font-size: 13px; font-family: var(--font); color: var(--accent); cursor: pointer; }
-
-/* WEEKLY REVIEW */
-.review-card { background: var(--white); border: 0.5px solid var(--sep); border-radius: var(--radius); padding: 14px; margin-bottom: 8px; }
-.review-card-title { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
-.review-card-sub { font-size: 12px; color: var(--text3); }
-.review-action { display: flex; gap: 6px; margin-top: 10px; }
-.btn-sm { height: 34px; padding: 0 14px; border-radius: 6px; font-size: 12px; font-family: var(--font); cursor: pointer; border: 0.5px solid var(--sep); background: var(--bg2); color: var(--text2); transition: background .15s; }
-.btn-sm:active { background: var(--bg3); }
-.btn-sm-accent { background: var(--accent); color: white; border-color: var(--accent); }
-
-/* TOAST */
-.toast {
-  position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(20px);
-  background: var(--green); color: white; font-size: 13px;
-  padding: 10px 20px; border-radius: 100px; z-index: 300;
-  opacity: 0; transition: all .3s; white-space: nowrap;
-  pointer-events: none;
-}
-.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
 /* PAGE */
 .page { display: none; }
 .page.active { display: block; }
 
-/* DATE INPUT */
-input[type="date"], input[type="time"] {
-  -webkit-appearance: none; appearance: none;
-}
+/* LABELS */
+.sec-label { font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: var(--text3); font-weight: 500; margin-bottom: 10px; margin-top: 20px; }
+.sec-label:first-child { margin-top: 4px; }
 
-/* CHIP */
-.chip-group { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
-.chip { padding: 6px 12px; border-radius: 100px; font-size: 12px; font-family: var(--font); border: 0.5px solid var(--sep); background: var(--white); color: var(--text2); cursor: pointer; transition: all .15s; }
+/* BUFFER BAR */
+.buffer-bar { background: var(--white); border: 0.5px solid var(--sep); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 4px; }
+.buffer-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.buffer-label { font-size: 11px; color: var(--text3); letter-spacing: .08em; text-transform: uppercase; }
+.buffer-nums { font-family: var(--font-num); font-size: 14px; color: var(--text2); letter-spacing: .04em; }
+.buffer-nums span { color: var(--accent); }
+.buffer-track { height: 4px; background: var(--bg3); border-radius: 2px; overflow: hidden; }
+.buffer-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width .4s; }
+.buffer-fill.warn { background: #E8433A; }
+
+/* NEXT ACTION */
+.next-action { background: var(--accent); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 4px; display: flex; align-items: center; gap: 12px; cursor: pointer; }
+.next-action-label { font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: rgba(255,255,255,.6); margin-bottom: 4px; }
+.next-action-title { font-size: 15px; font-weight: 500; color: white; }
+.next-action-meta { font-size: 11px; color: rgba(255,255,255,.7); margin-top: 2px; }
+.next-action-icon { width: 36px; height: 36px; background: rgba(255,255,255,.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+/* GOALS */
+.goals-wrap { display: flex; flex-direction: column; gap: 6px; }
+.goal-card { background: var(--white); border: 0.5px solid var(--sep); border-radius: var(--radius-sm); padding: 10px 12px; display: flex; align-items: center; gap: 10px; }
+.goal-circle { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--bg3); flex-shrink: 0; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all .2s; }
+.goal-circle.done { background: var(--accent); border-color: var(--accent); }
+.goal-text { font-size: 13px; color: var(--text); flex: 1; line-height: 1.4; }
+.goal-text.done { color: var(--text3); text-decoration: line-through; }
+.goal-del { width: 16px; height: 16px; cursor: pointer; opacity: .25; flex-shrink: 0; }
+.goal-add { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: var(--radius-sm); border: 0.5px dashed var(--bg3); cursor: pointer; margin-top: 6px; transition: background .15s; }
+.goal-add:hover { background: var(--bg2); }
+.goal-add-text { font-size: 13px; color: var(--text3); }
+
+/* SCHEDULE */
+.sched-row { display: flex; gap: 12px; align-items: flex-start; padding: 4px 0; }
+.sched-time { font-family: var(--font-num); font-size: 13px; color: var(--text3); width: 44px; flex-shrink: 0; padding-top: 3px; letter-spacing: .04em; }
+.sched-line { display: flex; flex-direction: column; align-items: center; padding-top: 5px; }
+.sched-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+.sched-dot.block-dot { background: var(--text3); }
+.sched-connector { width: 1px; background: var(--sep); flex: 1; min-height: 20px; margin-top: 3px; }
+.sched-content { flex: 1; padding-bottom: 8px; }
+
+/* TASK CARD */
+.task-card { background: var(--white); border: 0.5px solid var(--sep); border-radius: var(--radius); padding: 11px 13px; margin-bottom: 8px; cursor: pointer; transition: background .15s; }
+.task-card:active { background: var(--bg2); }
+.task-card.done { opacity: .45; }
+.task-card.block-card { background: var(--bg2); cursor: default; }
+.task-card-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.task-card-left { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
+.task-type-badge { font-size: 9px; letter-spacing: .08em; text-transform: uppercase; padding: 2px 7px; border-radius: 4px; flex-shrink: 0; font-weight: 500; }
+.type-routine { background: #2D3B2E12; color: #2D3B2E; }
+.type-unknown { background: #C4603A16; color: #C4603A; }
+.type-judgment { background: #4A6FA516; color: #4A6FA5; }
+.type-dependent { background: #B5566A16; color: #B5566A; }
+.type-block { background: var(--bg3); color: var(--text3); }
+.task-title { font-size: 13px; color: var(--text); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.task-time { font-family: var(--font-num); font-size: 13px; color: var(--text3); letter-spacing: .04em; flex-shrink: 0; }
+.task-card-bottom { display: flex; align-items: center; gap: 8px; margin-top: 5px; }
+.task-min { font-size: 11px; color: var(--text3); }
+.task-deadline { font-size: 11px; color: var(--accent); }
+
+/* SUBTASK */
+.subtask-list { margin-top: 8px; padding-top: 8px; border-top: 0.5px solid var(--sep); display: flex; flex-direction: column; gap: 4px; }
+.subtask-item { display: flex; align-items: center; gap: 8px; padding: 5px 8px; border-radius: 6px; background: var(--bg); }
+.subtask-check { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid var(--bg3); flex-shrink: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .2s; }
+.subtask-check.done { background: var(--accent); border-color: var(--accent); }
+.subtask-title { font-size: 12px; color: var(--text2); flex: 1; }
+.subtask-title.done { color: var(--text3); text-decoration: line-through; }
+.subtask-min { font-size: 11px; color: var(--text3); font-family: var(--font-num); }
+
+/* MODAL */
+.modal-overlay { position: fixed; inset: 0; background: rgba(45,59,46,.18); display: flex; align-items: flex-end; z-index: 200; opacity: 0; pointer-events: none; transition: opacity .25s; }
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal { background: var(--bg); width: 100%; max-width: 480px; margin: 0 auto; border-radius: 20px 20px 0 0; padding: 0 20px calc(24px + env(safe-area-inset-bottom)); transform: translateY(100%); transition: transform .3s cubic-bezier(.32,1,.23,1); max-height: 92vh; overflow-y: auto; }
+.modal-overlay.open .modal { transform: translateY(0); }
+.modal-handle { width: 36px; height: 4px; background: var(--bg3); border-radius: 2px; margin: 12px auto 20px; }
+.modal-title { font-size: 15px; font-weight: 500; margin-bottom: 20px; }
+
+/* INPUT MODE TABS */
+.mode-tabs { display: flex; background: var(--bg2); border-radius: var(--radius-sm); padding: 3px; gap: 3px; margin-bottom: 20px; }
+.mode-tab { flex: 1; height: 36px; border: none; border-radius: 6px; font-size: 13px; font-family: var(--font); cursor: pointer; background: none; color: var(--text3); font-weight: 500; transition: all .2s; }
+.mode-tab.active { background: var(--white); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+
+/* QUICK INPUT */
+.quick-wrap { display: flex; flex-direction: column; gap: 12px; }
+.quick-input-row { display: flex; gap: 8px; }
+.quick-input { flex: 1; height: 48px; border: 0.5px solid var(--bg3); border-radius: var(--radius-sm); background: var(--white); padding: 0 14px; font-size: 15px; font-family: var(--font); color: var(--text); outline: none; transition: border-color .2s; }
+.quick-input:focus { border-color: var(--accent); }
+.btn-ai { height: 48px; padding: 0 18px; background: var(--accent); color: white; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; font-family: var(--font); cursor: pointer; white-space: nowrap; transition: opacity .2s; display: flex; align-items: center; gap: 6px; }
+.btn-ai:active { opacity: .8; }
+.ai-result { background: var(--white); border: 0.5px solid var(--sep); border-radius: var(--radius); padding: 14px; }
+.ai-result-title { font-size: 11px; color: var(--text3); letter-spacing: .1em; text-transform: uppercase; margin-bottom: 12px; }
+.ai-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 0.5px solid var(--sep); }
+.ai-row:last-of-type { border-bottom: none; }
+.ai-row-label { font-size: 12px; color: var(--text3); }
+.ai-row-val { font-size: 13px; color: var(--text); font-weight: 500; }
+.ai-subtasks { margin-top: 10px; padding-top: 10px; border-top: 0.5px solid var(--sep); }
+.ai-subtask-item { font-size: 12px; color: var(--text2); padding: 4px 0; display: flex; justify-content: space-between; }
+.ai-actions { display: flex; gap: 8px; margin-top: 14px; }
+.btn-ok { flex: 1; height: 44px; background: var(--accent); color: white; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; font-family: var(--font); cursor: pointer; }
+.btn-edit { height: 44px; padding: 0 18px; background: var(--white); border: 0.5px solid var(--sep); border-radius: var(--radius-sm); font-size: 14px; font-family: var(--font); color: var(--text2); cursor: pointer; }
+.ai-loading { display: flex; align-items: center; gap: 10px; padding: 16px; color: var(--text3); font-size: 13px; }
+.spinner { width: 18px; height: 18px; border: 2px solid var(--bg3); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; flex-shrink: 0; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* WIZARD */
+.wiz-q { font-size: 16px; font-weight: 500; margin-bottom: 6px; line-height: 1.5; }
+.wiz-sub { font-size: 13px; color: var(--text3); margin-bottom: 20px; line-height: 1.5; }
+.wiz-options { display: flex; flex-direction: column; gap: 8px; }
+.wiz-opt { background: var(--white); border: 0.5px solid var(--sep); border-radius: var(--radius-sm); padding: 12px 14px; cursor: pointer; transition: all .15s; display: flex; align-items: center; gap: 10px; }
+.wiz-opt:active, .wiz-opt.sel { background: var(--bg2); border-color: var(--accent); }
+.wiz-opt-text { font-size: 14px; font-weight: 500; }
+.wiz-opt-sub { font-size: 12px; color: var(--text3); margin-top: 1px; }
+.wiz-input-wrap { margin-bottom: 14px; }
+.wiz-label { font-size: 11px; color: var(--text3); letter-spacing: .1em; text-transform: uppercase; margin-bottom: 6px; display: block; }
+.wiz-input { width: 100%; height: 44px; border: 0.5px solid var(--bg3); border-radius: var(--radius-sm); background: var(--white); padding: 0 12px; font-size: 14px; font-family: var(--font); color: var(--text); outline: none; transition: border-color .2s; }
+.wiz-input:focus { border-color: var(--accent); }
+.wiz-input-lg { height: auto; padding: 10px 12px; resize: none; }
+.wiz-row { display: flex; gap: 10px; }
+.wiz-row .wiz-input-wrap { flex: 1; }
+.wiz-nav { display: flex; gap: 8px; margin-top: 20px; }
+.btn-back { height: 44px; padding: 0 18px; border: 0.5px solid var(--bg3); border-radius: var(--radius-sm); background: var(--white); font-size: 14px; font-family: var(--font); color: var(--text2); cursor: pointer; }
+.btn-next { flex: 1; height: 44px; background: var(--accent); color: white; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; font-family: var(--font); cursor: pointer; }
+.decompose-preview { background: var(--white); border: 0.5px solid var(--sep); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 14px; }
+.decompose-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 0.5px solid var(--sep); font-size: 13px; color: var(--text); }
+.decompose-item:last-child { border-bottom: none; }
+.decompose-min { font-size: 12px; color: var(--text3); font-family: var(--font-num); }
+
+/* TIME SLOTS */
+.time-slots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 14px; }
+.time-slot { background: var(--white); border: 0.5px solid var(--sep); border-radius: var(--radius-sm); padding: 8px 6px; cursor: pointer; text-align: center; transition: all .15s; }
+.time-slot:hover, .time-slot.selected { border-color: var(--accent); background: var(--accent-light); }
+.time-slot-time { font-family: var(--font-num); font-size: 15px; color: var(--accent); }
+.time-slot-label { font-size: 10px; color: var(--text3); margin-top: 1px; }
+.time-slot.taken { opacity: .4; cursor: not-allowed; }
+.time-slot.taken:hover { border-color: var(--sep); background: var(--white); }
+
+/* DETAIL MODAL */
+.detail-actions { display: flex; gap: 8px; margin-top: 16px; }
+.btn-done { flex: 1; height: 44px; background: var(--accent); color: white; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; font-family: var(--font); cursor: pointer; }
+.btn-carry { flex: 1; height: 44px; background: var(--white); border: 0.5px solid var(--sep); border-radius: var(--radius-sm); font-size: 14px; font-family: var(--font); color: var(--text2); cursor: pointer; }
+.btn-delete { height: 44px; padding: 0 14px; background: none; border: 0.5px solid #C4603A35; border-radius: var(--radius-sm); font-size: 13px; font-family: var(--font); color: var(--accent); cursor: pointer; }
+
+/* CHIPS */
+.chip-group { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.chip { padding: 5px 12px; border-radius: 100px; font-size: 12px; font-family: var(--font); border: 0.5px solid var(--sep); background: var(--white); color: var(--text2); cursor: pointer; transition: all .15s; }
 .chip.selected { background: var(--accent); color: white; border-color: var(--accent); }
+
+/* REVIEW */
+.review-card { background: var(--white); border: 0.5px solid var(--sep); border-radius: var(--radius); padding: 13px; margin-bottom: 8px; }
+.review-card-title { font-size: 13px; font-weight: 500; margin-bottom: 3px; }
+.review-card-sub { font-size: 12px; color: var(--text3); }
+.review-action { display: flex; gap: 6px; margin-top: 10px; }
+.btn-sm { height: 32px; padding: 0 12px; border-radius: 6px; font-size: 12px; font-family: var(--font); cursor: pointer; border: 0.5px solid var(--sep); background: var(--bg2); color: var(--text2); }
+.btn-sm-accent { background: var(--accent); color: white; border-color: var(--accent); }
+
+/* EMPTY */
+.empty { text-align: center; padding: 36px 20px; color: var(--text3); font-size: 13px; line-height: 1.8; }
+
+/* TOAST */
+.toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(16px); background: var(--green); color: white; font-size: 13px; padding: 10px 20px; border-radius: 100px; z-index: 300; opacity: 0; transition: all .3s; white-space: nowrap; pointer-events: none; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 </style>
 </head>
 <body>
@@ -287,20 +229,11 @@ input[type="date"], input[type="time"] {
   <div class="auth-sub">仕事を、システムで回す</div>
   <div class="auth-card">
     <div class="auth-title" id="auth-mode-title">ログイン</div>
-    <div class="field">
-      <label>メールアドレス</label>
-      <input type="email" id="auth-email" placeholder="example@email.com">
-    </div>
-    <div class="field">
-      <label>パスワード</label>
-      <input type="password" id="auth-password" placeholder="••••••••">
-    </div>
+    <div class="field"><label>メールアドレス</label><input type="email" id="auth-email" placeholder="example@email.com"></div>
+    <div class="field"><label>パスワード</label><input type="password" id="auth-password" placeholder="••••••••"></div>
     <button class="btn-primary" id="auth-btn">ログイン</button>
     <div class="auth-err" id="auth-err"></div>
-    <div class="auth-toggle">
-      <span id="auth-toggle-text">アカウントがない方は</span>
-      <a id="auth-toggle-link">新規登録</a>
-    </div>
+    <div class="auth-toggle"><span id="auth-toggle-text">アカウントがない方は</span> <a id="auth-toggle-link">新規登録</a></div>
   </div>
 </div>
 
@@ -313,34 +246,54 @@ input[type="date"], input[type="time"] {
       <button class="btn-logout" id="logout-btn">ログアウト</button>
     </div>
   </div>
-
   <div class="main" id="main-content">
+
     <!-- 今日 -->
     <div class="page active" id="page-today">
+      <div id="next-action-wrap"></div>
+      <div id="buffer-wrap"></div>
       <div class="sec-label">今日の3つ</div>
       <div class="goals-wrap" id="goals-list"></div>
       <div class="goal-add" id="goal-add-btn">
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-          <line x1="7" y1="2" x2="7" y2="12" stroke="#9AA59B" stroke-width="1.5" stroke-linecap="round"/>
-          <line x1="2" y1="7" x2="12" y2="7" stroke="#9AA59B" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="7" y1="2" x2="7" y2="12" stroke="#9AA59B" stroke-width="1.5" stroke-linecap="round"/><line x1="2" y1="7" x2="12" y2="7" stroke="#9AA59B" stroke-width="1.5" stroke-linecap="round"/></svg>
         <span class="goal-add-text">完了条件を追加</span>
       </div>
       <div class="sec-label">今日のスケジュール</div>
-      <div class="schedule-wrap" id="schedule-list"></div>
+      <div id="schedule-list"></div>
     </div>
 
     <!-- 追加 -->
     <div class="page" id="page-add">
-      <div class="sec-label">タスクを追加</div>
-      <div id="wizard-container"></div>
+      <div class="sec-label" style="margin-top:4px;">タスクを追加</div>
+      <div class="mode-tabs">
+        <button class="mode-tab active" id="tab-quick">🤖 クイック入力</button>
+        <button class="mode-tab" id="tab-detail">詳細入力</button>
+      </div>
+      <div id="quick-panel">
+        <div class="quick-wrap">
+          <div>
+            <label class="wiz-label">タスク名を入れてAIに任せる</label>
+            <div class="quick-input-row">
+              <input class="quick-input" id="quick-title" placeholder="例：来月キャンペーン企画" maxlength="60">
+              <button class="btn-ai" id="quick-ai-btn">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="white" stroke-width="1.5"/><path d="M5 8 C5 6.3 6.3 5 8 5 C9.7 5 11 6.3 11 8" stroke="white" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="10" r="1" fill="white"/></svg>
+                AI分析
+              </button>
+            </div>
+          </div>
+          <div id="quick-result"></div>
+        </div>
+      </div>
+      <div id="detail-panel" style="display:none;">
+        <div id="wizard-container"></div>
+      </div>
     </div>
 
     <!-- 一覧 -->
     <div class="page" id="page-list">
-      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; margin-top:4px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;margin-bottom:10px;">
         <div class="sec-label" style="margin:0;">すべてのタスク</div>
-        <button class="btn-sm" id="review-btn" style="font-size:11px;">週次レビュー</button>
+        <button class="btn-sm" id="review-btn">週次レビュー</button>
       </div>
       <div class="chip-group" id="filter-chips">
         <div class="chip selected" data-filter="all">すべて</div>
@@ -355,118 +308,85 @@ input[type="date"], input[type="time"] {
 
     <!-- 明日の準備 -->
     <div class="page" id="page-tomorrow">
+      <div class="sec-label" style="margin-top:4px;">固定ブロック（会議・MTG）</div>
+      <div id="block-list"></div>
+      <button class="btn-sm btn-sm-accent" id="add-block-btn" style="margin-bottom:16px;">+ 会議・MTGを追加</button>
       <div class="sec-label">今日の持ち越し</div>
       <div id="carried-list"></div>
-      <div class="sec-label">新規タスク（随時入力）</div>
-      <div id="tomorrow-new-list"></div>
-      <button class="btn-primary" id="plot-tomorrow-btn" style="margin-top:16px;">翌日にプロット</button>
+      <div class="sec-label">未スケジュールのタスク</div>
+      <div id="unscheduled-list"></div>
+      <button class="btn-primary" id="plot-tomorrow-btn" style="margin-top:16px;">翌日に自動プロット</button>
     </div>
-  </div>
 
-  <nav class="nav" id="main-nav">
+  </div>
+  <nav class="nav">
     <div class="nav-item active" data-page="today">
-      <svg class="nav-icon" viewBox="0 0 22 22" fill="none">
-        <rect x="3" y="11" width="4" height="8" rx="1.5" fill="#C4603A"/>
-        <rect x="9" y="7" width="4" height="12" rx="1.5" fill="#C4603A" opacity=".55"/>
-        <rect x="15" y="3" width="4" height="16" rx="1.5" fill="#C4603A" opacity=".3"/>
-      </svg>
+      <svg class="nav-icon" viewBox="0 0 22 22" fill="none"><rect x="3" y="11" width="4" height="8" rx="1.5" fill="#C4603A"/><rect x="9" y="7" width="4" height="12" rx="1.5" fill="#C4603A" opacity=".5"/><rect x="15" y="3" width="4" height="16" rx="1.5" fill="#C4603A" opacity=".28"/></svg>
       <span class="nav-label">今日</span>
     </div>
     <div class="nav-item" data-page="add">
-      <svg class="nav-icon" viewBox="0 0 22 22" fill="none">
-        <circle cx="11" cy="11" r="8" stroke="#9AA59B" stroke-width="1.5"/>
-        <line x1="11" y1="7" x2="11" y2="15" stroke="#9AA59B" stroke-width="1.5" stroke-linecap="round"/>
-        <line x1="7" y1="11" x2="15" y2="11" stroke="#9AA59B" stroke-width="1.5" stroke-linecap="round"/>
-      </svg>
+      <svg class="nav-icon" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="8" stroke="#9AA59B" stroke-width="1.5"/><line x1="11" y1="7" x2="11" y2="15" stroke="#9AA59B" stroke-width="1.5" stroke-linecap="round"/><line x1="7" y1="11" x2="15" y2="11" stroke="#9AA59B" stroke-width="1.5" stroke-linecap="round"/></svg>
       <span class="nav-label">追加</span>
     </div>
     <div class="nav-item" data-page="list">
-      <svg class="nav-icon" viewBox="0 0 22 22" fill="none">
-        <line x1="4" y1="6" x2="18" y2="6" stroke="#9AA59B" stroke-width="1.5" stroke-linecap="round"/>
-        <line x1="4" y1="11" x2="18" y2="11" stroke="#9AA59B" stroke-width="1.5" stroke-linecap="round"/>
-        <line x1="4" y1="16" x2="13" y2="16" stroke="#9AA59B" stroke-width="1.5" stroke-linecap="round"/>
-      </svg>
+      <svg class="nav-icon" viewBox="0 0 22 22" fill="none"><line x1="4" y1="6" x2="18" y2="6" stroke="#9AA59B" stroke-width="1.5" stroke-linecap="round"/><line x1="4" y1="11" x2="18" y2="11" stroke="#9AA59B" stroke-width="1.5" stroke-linecap="round"/><line x1="4" y1="16" x2="13" y2="16" stroke="#9AA59B" stroke-width="1.5" stroke-linecap="round"/></svg>
       <span class="nav-label">一覧</span>
     </div>
     <div class="nav-item" data-page="tomorrow">
-      <svg class="nav-icon" viewBox="0 0 22 22" fill="none">
-        <path d="M11 3 C7 3 3.5 6.5 3.5 11 C3.5 15.5 7 19 11 19" stroke="#9AA59B" stroke-width="1.5" stroke-linecap="round"/>
-        <path d="M11 19 C15 19 18.5 15.5 18.5 11" stroke="#9AA59B" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="2.5 2"/>
-        <polyline points="14,7.5 18.5,11 14,14.5" stroke="#9AA59B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-      </svg>
+      <svg class="nav-icon" viewBox="0 0 22 22" fill="none"><path d="M11 3 C7 3 3.5 6.5 3.5 11 C3.5 15.5 7 19 11 19" stroke="#9AA59B" stroke-width="1.5" stroke-linecap="round"/><path d="M11 19 C15 19 18.5 15.5 18.5 11" stroke="#9AA59B" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="2.5 2"/><polyline points="14,7.5 18.5,11 14,14.5" stroke="#9AA59B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
       <span class="nav-label">明日</span>
     </div>
   </nav>
 </div>
 
-<!-- TASK DETAIL MODAL -->
-<div class="modal-overlay" id="detail-modal">
-  <div class="modal" id="detail-modal-content">
-    <div class="modal-handle"></div>
-    <div id="detail-body"></div>
-  </div>
-</div>
-
-<!-- GOAL ADD MODAL -->
-<div class="modal-overlay" id="goal-modal">
+<!-- MODALS -->
+<div class="modal-overlay" id="detail-modal"><div class="modal"><div class="modal-handle"></div><div id="detail-body"></div></div></div>
+<div class="modal-overlay" id="goal-modal"><div class="modal"><div class="modal-handle"></div><div class="modal-title">完了条件を追加</div><div class="wiz-input-wrap"><label class="wiz-label">今日これが終わればOK</label><input class="wiz-input" id="goal-input" placeholder="例：企画たたき台1枚を上司に送る" maxlength="60"></div><button class="btn-next" id="goal-save-btn">追加する</button></div></div>
+<div class="modal-overlay" id="review-modal"><div class="modal"><div class="modal-handle"></div><div class="modal-title">週次レビュー</div><div id="review-body"></div></div></div>
+<div class="modal-overlay" id="block-modal">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div class="modal-title">完了条件を追加</div>
-    <div class="wiz-input-wrap">
-      <label class="wiz-label">今日これが終わればOK</label>
-      <input class="wiz-input" id="goal-input" placeholder="例：企画たたき台1枚を上司に送る" maxlength="60">
+    <div class="modal-title">会議・MTGを追加</div>
+    <div class="wiz-input-wrap"><label class="wiz-label">内容</label><input class="wiz-input" id="block-title" placeholder="例：週次MTG" maxlength="40"></div>
+    <div class="wiz-row">
+      <div class="wiz-input-wrap"><label class="wiz-label">開始</label><input class="wiz-input" type="time" id="block-start" value="10:00"></div>
+      <div class="wiz-input-wrap"><label class="wiz-label">終了</label><input class="wiz-input" type="time" id="block-end" value="11:00"></div>
     </div>
-    <button class="btn-next" id="goal-save-btn">追加する</button>
+    <div class="wiz-input-wrap"><label class="wiz-label">日付</label><input class="wiz-input" type="date" id="block-date"></div>
+    <button class="btn-next" id="block-save-btn">追加する</button>
   </div>
 </div>
-
-<!-- WEEKLY REVIEW MODAL -->
-<div class="modal-overlay" id="review-modal">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title">週次レビュー</div>
-    <div id="review-body"></div>
-  </div>
-</div>
-
 <div class="toast" id="toast"></div>
 
 <script>
 const SUPABASE_URL = 'https://ohqgpmtkhhixvnkrjbvb.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ocWdwbXRraGhpeHZua3JqYnZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzMDE4MjEsImV4cCI6MjA5MTg3NzgyMX0.tkm8eT9FCWGmKXPPVeDV6L6STEQ_jVnrNkcGDbRtSCg';
-const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-  auth: { autoRefreshToken: true, persistSession: true, detectSessionInUrl: false }
-});
+const GEMINI_KEY = 'AIzaSyCMSvy9yyPLruxvDUPcWot6qg0Gzn3QZ-g';
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { autoRefreshToken: true, persistSession: true, detectSessionInUrl: false } });
 
-let currentUser = null;
-let allTasks = [];
-let allSubtasks = [];
-let todayGoals = [];
-let currentFilter = 'all';
-let wizardData = {};
-
+let currentUser = null, allTasks = [], allSubtasks = [], allBlocks = [], todayGoals = [], currentFilter = 'all', wizardData = {}, aiResult = null;
 const TODAY = new Date();
 const TODAY_STR = TODAY.toISOString().split('T')[0];
 const DAYS = ['日','月','火','水','木','金','土'];
 
-// ---- UTILS ----
-function fmt(date) {
-  return `${date.getMonth()+1}/${date.getDate()} (${DAYS[date.getDay()]})`;
-}
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2200);
-}
-function openModal(id) {
-  document.getElementById(id).classList.add('open');
-}
-function closeModal(id) {
-  document.getElementById(id).classList.remove('open');
-}
+const DECOMPOSE_PATTERNS = {
+  research: [{ title: '情報・事例リサーチ', minutes: 30 }, { title: '情報整理', minutes: 15 }, { title: '作成', minutes: 45 }],
+  confirm: [{ title: '確認事項をまとめる', minutes: 15 }, { title: '確認依頼を送る', minutes: 5 }, { title: '返信待ち・作成', minutes: 45 }],
+  find_resource: [{ title: '過去資料・テンプレを探す', minutes: 15 }, { title: '作成', minutes: 45 }],
+  fully_unknown: [{ title: 'わからないことを洗い出す', minutes: 30 }, { title: '分解・計画を立てる', minutes: 10 }, { title: '実行', minutes: 45 }],
+  multi_person: [{ title: '担当整理・タスク切り出し', minutes: 15 }, { title: '依頼を送る', minutes: 10 }, { title: '自分のパート実行', minutes: 45 }],
+  approval: [{ title: '作成', minutes: 45 }, { title: '確認依頼', minutes: 5 }, { title: '修正対応（バッファ）', minutes: 20 }, { title: '承認待ち', minutes: 5 }],
+  material: [{ title: '素材・データ収集', minutes: 20 }, { title: '作成', minutes: 45 }],
+  judgment: [{ title: '判断材料を整理する', minutes: 20 }, { title: '意思決定', minutes: 10 }, { title: '実行', minutes: 30 }]
+};
 
-// ---- AUTH ----
+function fmt(d) { return `${d.getMonth()+1}/${d.getDate()} (${DAYS[d.getDay()]})`; }
+function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2200); }
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function typeLabel(type) { return { routine: 'ルーティン', unknown: '初めて', judgment: '判断', dependent: '他者依存', block: '固定' }[type] || type; }
+
+// AUTH
 let authMode = 'login';
 document.getElementById('auth-btn').addEventListener('click', async () => {
   const email = document.getElementById('auth-email').value.trim();
@@ -476,7 +396,7 @@ document.getElementById('auth-btn').addEventListener('click', async () => {
   if (!email || !pw) { err.textContent = 'メールアドレスとパスワードを入力してください'; return; }
   if (authMode === 'login') {
     const { error } = await db.auth.signInWithPassword({ email, password: pw });
-    if (error) err.textContent = 'メールアドレスまたはパスワードが違います';
+    if (error) err.textContent = 'ログインに失敗しました';
   } else {
     const { error } = await db.auth.signUp({ email, password: pw });
     if (error) err.textContent = error.message;
@@ -490,15 +410,14 @@ document.getElementById('auth-toggle-link').addEventListener('click', () => {
   document.getElementById('auth-toggle-text').textContent = authMode === 'login' ? 'アカウントがない方は' : 'すでにアカウントがある方は';
   document.getElementById('auth-toggle-link').textContent = authMode === 'login' ? '新規登録' : 'ログイン';
 });
-document.getElementById('logout-btn').addEventListener('click', async () => {
-  await db.auth.signOut();
-});
+document.getElementById('logout-btn').addEventListener('click', () => db.auth.signOut());
 db.auth.onAuthStateChange((event, session) => {
   if (session) {
     currentUser = session.user;
     document.getElementById('auth-screen').style.display = 'none';
     document.getElementById('app').style.display = 'flex';
     document.getElementById('header-date').textContent = fmt(TODAY);
+    document.getElementById('block-date').value = TODAY_STR;
     loadAll();
   } else {
     currentUser = null;
@@ -507,7 +426,19 @@ db.auth.onAuthStateChange((event, session) => {
   }
 });
 
-// ---- NAVIGATION ----
+// LOAD
+async function loadAll() {
+  const [{ data: tasks }, { data: subtasks }, { data: blocks }, { data: goals }] = await Promise.all([
+    db.from('tasks').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false }),
+    db.from('subtasks').select('*').order('sort_order'),
+    db.from('blocks').select('*').eq('user_id', currentUser.id).order('start_time'),
+    db.from('daily_goals').select('*').eq('user_id', currentUser.id).eq('date', TODAY_STR).order('sort_order')
+  ]);
+  allTasks = tasks || []; allSubtasks = subtasks || []; allBlocks = blocks || []; todayGoals = goals || [];
+  renderToday();
+}
+
+// NAV
 document.querySelectorAll('.nav-item').forEach(item => {
   item.addEventListener('click', () => {
     const page = item.dataset.page;
@@ -515,30 +446,68 @@ document.querySelectorAll('.nav-item').forEach(item => {
     item.classList.add('active');
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.getElementById('page-' + page).classList.add('active');
-    if (page === 'add') initWizard();
+    if (page === 'add') { initAddPage(); }
     if (page === 'list') renderTaskList();
     if (page === 'tomorrow') renderTomorrow();
     if (page === 'today') renderToday();
   });
 });
 
-// ---- LOAD ----
-async function loadAll() {
-  const [{ data: tasks }, { data: subtasks }, { data: goals }] = await Promise.all([
-    db.from('tasks').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false }),
-    db.from('subtasks').select('*').order('sort_order'),
-    db.from('daily_goals').select('*').eq('user_id', currentUser.id).eq('date', TODAY_STR).order('sort_order')
-  ]);
-  allTasks = tasks || [];
-  allSubtasks = subtasks || [];
-  todayGoals = goals || [];
-  renderToday();
-}
-
-// ---- TODAY ----
+// TODAY
 function renderToday() {
+  renderNextAction();
+  renderBuffer();
   renderGoals();
   renderSchedule();
+}
+
+function renderNextAction() {
+  const wrap = document.getElementById('next-action-wrap');
+  const now = new Date();
+  const nowStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  const upcoming = allTasks.filter(t => t.scheduled_date === TODAY_STR && t.status === 'pending').sort((a,b) => (a.scheduled_time||'99:99').localeCompare(b.scheduled_time||'99:99'));
+  const next = upcoming.find(t => !t.scheduled_time || t.scheduled_time.slice(0,5) >= nowStr) || upcoming[0];
+  if (!next) { wrap.innerHTML = ''; return; }
+  const subs = allSubtasks.filter(s => s.task_id === next.id);
+  const nextSub = subs.find(s => s.status === 'pending');
+  wrap.innerHTML = `
+    <div class="next-action" id="next-action-card" data-id="${next.id}">
+      <div class="next-action-icon">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><polyline points="4,9 8,13 14,5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div class="next-action-label">NEXT ACTION</div>
+        <div class="next-action-title">${nextSub ? nextSub.title : next.title}</div>
+        <div class="next-action-meta">${next.title}${next.scheduled_time ? ' · '+next.scheduled_time.slice(0,5) : ''} · ${next.estimated_minutes}min</div>
+      </div>
+    </div>
+  `;
+  document.getElementById('next-action-card').addEventListener('click', () => openDetail(next.id));
+}
+
+function renderBuffer() {
+  const wrap = document.getElementById('buffer-wrap');
+  const todayTasks = allTasks.filter(t => t.scheduled_date === TODAY_STR && t.status !== 'done');
+  const todayBlocks = allBlocks.filter(b => b.date === TODAY_STR);
+  const totalTaskMin = todayTasks.reduce((a,t) => a + (t.estimated_minutes||0), 0);
+  const totalBlockMin = todayBlocks.reduce((b,bl) => {
+    const [sh,sm] = bl.start_time.split(':').map(Number);
+    const [eh,em] = bl.end_time.split(':').map(Number);
+    return b + (eh*60+em - sh*60-sm);
+  }, 0);
+  const workMin = 8 * 60;
+  const usedMin = totalTaskMin + totalBlockMin;
+  const pct = Math.min(100, Math.round(usedMin / workMin * 100));
+  const remaining = workMin - usedMin;
+  wrap.innerHTML = `
+    <div class="buffer-bar">
+      <div class="buffer-top">
+        <span class="buffer-label">今日の使用時間</span>
+        <span class="buffer-nums"><span>${usedMin}</span>/${workMin}min</span>
+      </div>
+      <div class="buffer-track"><div class="buffer-fill ${pct > 85 ? 'warn' : ''}" style="width:${pct}%"></div></div>
+    </div>
+  `;
 }
 
 function renderGoals() {
@@ -546,7 +515,7 @@ function renderGoals() {
   list.innerHTML = '';
   todayGoals.forEach(g => {
     const task = allTasks.find(t => t.id === g.task_id);
-    const title = task ? task.title : g.task_id;
+    const title = task ? task.title : (g.memo || g.task_id);
     const done = task ? task.status === 'done' : false;
     const div = document.createElement('div');
     div.className = 'goal-card';
@@ -555,438 +524,386 @@ function renderGoals() {
         ${done ? `<svg width="8" height="8" viewBox="0 0 8 8"><polyline points="1,4 3,6 7,2" stroke="white" stroke-width="1.5" fill="none"/></svg>` : ''}
       </div>
       <span class="goal-text ${done ? 'done' : ''}">${title}</span>
-      <svg class="goal-del" data-goal-id="${g.id}" viewBox="0 0 18 18" fill="none">
-        <line x1="4" y1="4" x2="14" y2="14" stroke="#9AA59B" stroke-width="1.5" stroke-linecap="round"/>
-        <line x1="14" y1="4" x2="4" y2="14" stroke="#9AA59B" stroke-width="1.5" stroke-linecap="round"/>
-      </svg>
+      <svg class="goal-del" data-goal-id="${g.id}" viewBox="0 0 16 16" fill="none"><line x1="3" y1="3" x2="13" y2="13" stroke="#9AA59B" stroke-width="1.5" stroke-linecap="round"/><line x1="13" y1="3" x2="3" y2="13" stroke="#9AA59B" stroke-width="1.5" stroke-linecap="round"/></svg>
     `;
-    div.querySelector('.goal-circle').addEventListener('click', () => toggleTask(g.task_id));
+    if (task) div.querySelector('.goal-circle').addEventListener('click', () => toggleTask(g.task_id));
     div.querySelector('.goal-del').addEventListener('click', () => deleteGoal(g.id));
     list.appendChild(div);
   });
-  const addBtn = document.getElementById('goal-add-btn');
-  addBtn.style.display = todayGoals.length >= 3 ? 'none' : 'flex';
+  document.getElementById('goal-add-btn').style.display = todayGoals.length >= 3 ? 'none' : 'flex';
 }
 
 function renderSchedule() {
   const wrap = document.getElementById('schedule-list');
-  const todayTasks = allTasks.filter(t => t.scheduled_date === TODAY_STR && t.status !== 'done');
-  todayTasks.sort((a, b) => (a.scheduled_time || '99:99').localeCompare(b.scheduled_time || '99:99'));
-  if (!todayTasks.length) {
-    wrap.innerHTML = '<div class="empty"><div class="empty-icon">📋</div>今日のタスクはまだありません<br>右下の追加ボタンからどうぞ</div>';
-    return;
-  }
+  const todayTasks = allTasks.filter(t => t.scheduled_date === TODAY_STR && t.status !== 'done').sort((a,b) => (a.scheduled_time||'99:99').localeCompare(b.scheduled_time||'99:99'));
+  const todayBlocks = allBlocks.filter(b => b.date === TODAY_STR).sort((a,b) => a.start_time.localeCompare(b.start_time));
+  const items = [
+    ...todayBlocks.map(b => ({ type: 'block', time: b.start_time, data: b })),
+    ...todayTasks.map(t => ({ type: 'task', time: t.scheduled_time || '99:99', data: t }))
+  ].sort((a,b) => a.time.localeCompare(b.time));
+  if (!items.length) { wrap.innerHTML = '<div class="empty">今日のスケジュールはまだありません<br>追加タブからタスクを入れてみましょう</div>'; return; }
   wrap.innerHTML = '';
-  todayTasks.forEach((t, i) => {
-    const subs = allSubtasks.filter(s => s.task_id === t.id);
+  items.forEach((item, i) => {
     const row = document.createElement('div');
     row.className = 'sched-row';
-    const timeStr = t.scheduled_time ? t.scheduled_time.slice(0,5) : '--:--';
-    row.innerHTML = `
-      <div class="sched-time">${timeStr}</div>
-      <div class="sched-line">
-        <div class="sched-dot"></div>
-        ${i < todayTasks.length - 1 ? '<div class="sched-connector"></div>' : ''}
-      </div>
-      <div class="sched-content">
-        <div class="task-card" data-id="${t.id}">
-          <div class="task-card-top">
-            <div class="task-card-left">
-              <div class="task-type-badge type-${t.type}">${typeLabel(t.type)}</div>
-              <span class="task-title">${t.title}</span>
-            </div>
-            <div class="task-card-right">
-              <span class="task-time">${t.estimated_minutes}min</span>
+    const timeStr = item.time === '99:99' ? '--:--' : item.time.slice(0,5);
+    const isLast = i === items.length - 1;
+    if (item.type === 'block') {
+      const b = item.data;
+      row.innerHTML = `
+        <div class="sched-time">${timeStr}</div>
+        <div class="sched-line"><div class="sched-dot block-dot"></div>${!isLast ? '<div class="sched-connector"></div>' : ''}</div>
+        <div class="sched-content">
+          <div class="task-card block-card">
+            <div class="task-card-top">
+              <div class="task-card-left">
+                <div class="task-type-badge type-block">固定</div>
+                <span class="task-title">${b.title}</span>
+              </div>
+              <span class="task-time">${b.start_time.slice(0,5)}〜${b.end_time.slice(0,5)}</span>
             </div>
           </div>
-          ${subs.length ? `<div class="subtask-list">${subs.map(s => `
-            <div class="subtask-item">
-              <div class="subtask-check ${s.status==='done'?'done':''}" data-sub-id="${s.id}">
-                ${s.status==='done'?`<svg width="7" height="7" viewBox="0 0 7 7"><polyline points="1,3.5 2.8,5.5 6,1.5" stroke="white" stroke-width="1.5" fill="none"/></svg>`:''}
-              </div>
-              <span class="subtask-title ${s.status==='done'?'done':''}">${s.title}</span>
-              <span class="subtask-min">${s.estimated_minutes}min</span>
-            </div>`).join('')}</div>` : ''}
         </div>
-      </div>
-    `;
-    row.querySelector('.task-card').addEventListener('click', () => openDetail(t.id));
-    row.querySelectorAll('.subtask-check').forEach(el => {
-      el.addEventListener('click', (e) => { e.stopPropagation(); toggleSubtask(el.dataset.subId); });
-    });
+      `;
+    } else {
+      const t = item.data;
+      const subs = allSubtasks.filter(s => s.task_id === t.id);
+      row.innerHTML = `
+        <div class="sched-time">${timeStr}</div>
+        <div class="sched-line"><div class="sched-dot"></div>${!isLast ? '<div class="sched-connector"></div>' : ''}</div>
+        <div class="sched-content">
+          <div class="task-card" data-id="${t.id}">
+            <div class="task-card-top">
+              <div class="task-card-left">
+                <div class="task-type-badge type-${t.type}">${typeLabel(t.type)}</div>
+                <span class="task-title">${t.title}</span>
+              </div>
+              <span class="task-time">${t.estimated_minutes}min</span>
+            </div>
+            ${subs.length ? `<div class="subtask-list">${subs.map(s => `
+              <div class="subtask-item">
+                <div class="subtask-check ${s.status==='done'?'done':''}" data-sub-id="${s.id}">
+                  ${s.status==='done'?`<svg width="7" height="7" viewBox="0 0 7 7"><polyline points="1,3.5 2.8,5.5 6,1.5" stroke="white" stroke-width="1.5" fill="none"/></svg>`:''}
+                </div>
+                <span class="subtask-title ${s.status==='done'?'done':''}">${s.title}</span>
+                <span class="subtask-min">${s.estimated_minutes}min</span>
+              </div>`).join('')}</div>` : ''}
+          </div>
+        </div>
+      `;
+      row.querySelector('.task-card').addEventListener('click', () => openDetail(t.id));
+      row.querySelectorAll('.subtask-check').forEach(el => {
+        el.addEventListener('click', e => { e.stopPropagation(); toggleSubtask(el.dataset.subId); });
+      });
+    }
     wrap.appendChild(row);
   });
 }
 
-function typeLabel(type) {
-  return { routine: 'ルーティン', unknown: '初めて', judgment: '判断', dependent: '他者依存' }[type] || type;
-}
-
-// ---- GOALS ----
+// GOALS
 document.getElementById('goal-add-btn').addEventListener('click', () => openModal('goal-modal'));
 document.getElementById('goal-save-btn').addEventListener('click', async () => {
-  const input = document.getElementById('goal-input');
-  const val = input.value.trim();
+  const val = document.getElementById('goal-input').value.trim();
   if (!val) return;
-  const pendingTask = allTasks.find(t => t.title.includes(val) && t.status === 'pending');
-  const taskId = pendingTask ? pendingTask.id : val;
-  const { data } = await db.from('daily_goals').insert({
-    user_id: currentUser.id, date: TODAY_STR,
-    task_id: pendingTask ? taskId : null,
-    sort_order: todayGoals.length
-  }).select().single();
-  if (!pendingTask) {
-    const fake = { id: data.id, task_id: null, title: val };
-    todayGoals.push({ ...data });
-    allTasks.push({ id: data.id, title: val, status: 'pending', type: 'judgment' });
-  } else {
-    todayGoals.push(data);
-  }
-  input.value = '';
+  const task = allTasks.find(t => t.title.includes(val) && t.status === 'pending');
+  const { data } = await db.from('daily_goals').insert({ user_id: currentUser.id, date: TODAY_STR, task_id: task ? task.id : null, memo: val, sort_order: todayGoals.length }).select().single();
+  if (data) todayGoals.push(data);
+  document.getElementById('goal-input').value = '';
   closeModal('goal-modal');
   renderGoals();
   showToast('完了条件を追加しました');
 });
-async function deleteGoal(goalId) {
-  await db.from('daily_goals').delete().eq('id', goalId);
-  todayGoals = todayGoals.filter(g => g.id !== goalId);
+async function deleteGoal(id) {
+  await db.from('daily_goals').delete().eq('id', id);
+  todayGoals = todayGoals.filter(g => g.id !== id);
   renderGoals();
 }
 
-// ---- TOGGLE ----
+// TOGGLE
 async function toggleTask(taskId) {
   const task = allTasks.find(t => t.id === taskId);
   if (!task) return;
-  const newStatus = task.status === 'done' ? 'pending' : 'done';
-  await db.from('tasks').update({ status: newStatus }).eq('id', taskId);
-  task.status = newStatus;
+  const ns = task.status === 'done' ? 'pending' : 'done';
+  await db.from('tasks').update({ status: ns }).eq('id', taskId);
+  task.status = ns;
   renderToday();
-  if (newStatus === 'done') showToast('完了！');
+  if (ns === 'done') showToast('完了！🐯');
 }
 async function toggleSubtask(subId) {
   const sub = allSubtasks.find(s => s.id === subId);
   if (!sub) return;
-  const newStatus = sub.status === 'done' ? 'pending' : 'done';
-  await db.from('subtasks').update({ status: newStatus }).eq('id', subId);
-  sub.status = newStatus;
+  const ns = sub.status === 'done' ? 'pending' : 'done';
+  await db.from('subtasks').update({ status: ns }).eq('id', subId);
+  sub.status = ns;
   renderToday();
 }
 
-// ---- DETAIL MODAL ----
-function openDetail(taskId) {
-  const task = allTasks.find(t => t.id === taskId);
-  if (!task) return;
-  const subs = allSubtasks.filter(s => s.task_id === taskId);
-  const body = document.getElementById('detail-body');
-  body.innerHTML = `
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
-      <div class="task-type-badge type-${task.type}">${typeLabel(task.type)}</div>
-      <span style="font-size:16px;font-weight:500;color:var(--text);">${task.title}</span>
-    </div>
-    <div style="display:flex;gap:16px;margin-bottom:14px;">
-      <div>
-        <div style="font-size:9px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px;">所要時間</div>
-        <div style="font-family:var(--font-num);font-size:20px;color:var(--accent);">${task.estimated_minutes}<span style="font-size:11px;margin-left:2px;">min</span></div>
-      </div>
-      ${task.scheduled_time ? `<div>
-        <div style="font-size:9px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px;">開始時刻</div>
-        <div style="font-family:var(--font-num);font-size:20px;color:var(--text2);">${task.scheduled_time.slice(0,5)}</div>
-      </div>` : ''}
-      ${task.deadline ? `<div>
-        <div style="font-size:9px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px;">期限</div>
-        <div style="font-size:13px;color:var(--accent);margin-top:4px;">${task.deadline}</div>
-      </div>` : ''}
-    </div>
-    ${subs.length ? `
-      <div style="font-size:9px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;">サブタスク</div>
-      <div class="subtask-list" style="margin-top:0;padding-top:0;border-top:none;">
-        ${subs.map(s => `
-          <div class="subtask-item">
-            <div class="subtask-check ${s.status==='done'?'done':''}" data-sub-id="${s.id}">
-              ${s.status==='done'?`<svg width="7" height="7" viewBox="0 0 7 7"><polyline points="1,3.5 2.8,5.5 6,1.5" stroke="white" stroke-width="1.5" fill="none"/></svg>`:''}
-            </div>
-            <span class="subtask-title ${s.status==='done'?'done':''}">${s.title}</span>
-            <span class="subtask-min">${s.estimated_minutes}min</span>
-          </div>`).join('')}
-      </div>` : ''}
-    ${task.memo ? `<div style="margin-top:12px;font-size:13px;color:var(--text2);line-height:1.6;background:var(--bg2);border-radius:8px;padding:10px 12px;">${task.memo}</div>` : ''}
-    <div class="detail-actions">
-      <button class="btn-done" id="detail-done-btn">完了</button>
-      <button class="btn-carry" id="detail-carry-btn">持ち越し</button>
-      <button class="btn-delete" id="detail-del-btn">削除</button>
-    </div>
-  `;
-  body.querySelectorAll('.subtask-check').forEach(el => {
-    el.addEventListener('click', () => toggleSubtask(el.dataset.subId));
+// AUTO PLOT - 空き枠を計算してタスクを配置
+function getAvailableSlots(date) {
+  const WORK_START = 9 * 60, WORK_END = 18 * 60;
+  const blockedRanges = allBlocks.filter(b => b.date === date).map(b => {
+    const [sh,sm] = b.start_time.split(':').map(Number);
+    const [eh,em] = b.end_time.split(':').map(Number);
+    return { start: sh*60+sm, end: eh*60+em };
   });
-  document.getElementById('detail-done-btn').addEventListener('click', async () => {
-    await toggleTask(taskId); closeModal('detail-modal');
+  const scheduled = allTasks.filter(t => t.scheduled_date === date && t.scheduled_time && t.status !== 'done').map(t => {
+    const [h,m] = t.scheduled_time.split(':').map(Number);
+    return { start: h*60+m, end: h*60+m+(t.estimated_minutes||30) };
   });
-  document.getElementById('detail-carry-btn').addEventListener('click', async () => {
-    const tomorrow = new Date(TODAY); tomorrow.setDate(tomorrow.getDate() + 1);
-    const tStr = tomorrow.toISOString().split('T')[0];
-    await db.from('tasks').update({ status: 'carried', scheduled_date: tStr }).eq('id', taskId);
-    const t = allTasks.find(x => x.id === taskId);
-    if (t) { t.status = 'carried'; t.scheduled_date = tStr; }
-    closeModal('detail-modal'); renderToday(); showToast('明日に持ち越しました');
-  });
-  document.getElementById('detail-del-btn').addEventListener('click', async () => {
-    if (!confirm('削除しますか？')) return;
-    await db.from('tasks').delete().eq('id', taskId);
-    allTasks = allTasks.filter(t => t.id !== taskId);
-    allSubtasks = allSubtasks.filter(s => s.task_id !== taskId);
-    closeModal('detail-modal'); renderToday(); showToast('削除しました');
-  });
-  openModal('detail-modal');
+  const busy = [...blockedRanges, ...scheduled].sort((a,b) => a.start - b.start);
+  const slots = [];
+  let cursor = WORK_START;
+  for (const b of busy) {
+    if (cursor < b.start) slots.push({ start: cursor, end: b.start });
+    cursor = Math.max(cursor, b.end);
+  }
+  if (cursor < WORK_END) slots.push({ start: cursor, end: WORK_END });
+  return slots;
 }
-document.getElementById('detail-modal').addEventListener('click', function(e) {
-  if (e.target === this) closeModal('detail-modal');
-});
-document.getElementById('goal-modal').addEventListener('click', function(e) {
-  if (e.target === this) closeModal('goal-modal');
-});
 
-// ---- WIZARD ----
-const DECOMPOSE_PATTERNS = {
-  research: [
-    { title: '情報・事例リサーチ', minutes: 30 },
-    { title: '情報整理', minutes: 15 },
-    { title: '作成', minutes: 45 }
-  ],
-  confirm: [
-    { title: '確認事項をまとめる', minutes: 15 },
-    { title: '確認依頼を送る', minutes: 5 },
-    { title: '返信待ち・作成', minutes: 45 }
-  ],
-  find_resource: [
-    { title: '過去資料・テンプレを探す', minutes: 15 },
-    { title: '作成', minutes: 45 }
-  ],
-  fully_unknown: [
-    { title: 'わからないことを洗い出す', minutes: 30 },
-    { title: '分解・計画を立てる', minutes: 10 },
-    { title: '実行', minutes: 45 }
-  ],
-  multi_person: [
-    { title: '担当整理・タスク切り出し', minutes: 15 },
-    { title: '依頼を送る', minutes: 10 },
-    { title: '自分のパート実行', minutes: 45 }
-  ],
-  approval: [
-    { title: '作成', minutes: 45 },
-    { title: '確認依頼', minutes: 5 },
-    { title: '修正対応（バッファ）', minutes: 20 },
-    { title: '承認待ち', minutes: 5 }
-  ],
-  material: [
-    { title: '素材・データ収集', minutes: 20 },
-    { title: '作成', minutes: 45 }
-  ],
-  judgment: [
-    { title: '判断材料を整理する', minutes: 20 },
-    { title: '意思決定', minutes: 10 },
-    { title: '実行', minutes: 30 }
-  ]
-};
+function autoPlotTime(type, estimatedMin, date) {
+  const slots = getAvailableSlots(date);
+  // 集中枠（16:00以降）優先：unknown, judgment
+  const prefersConcentration = ['unknown', 'judgment'].includes(type);
+  const CONCENTRATION_START = 16 * 60;
+  const candidates = prefersConcentration
+    ? [...slots.filter(s => s.start >= CONCENTRATION_START), ...slots.filter(s => s.start < CONCENTRATION_START)]
+    : slots;
+  for (const slot of candidates) {
+    if (slot.end - slot.start >= estimatedMin) {
+      const h = Math.floor(slot.start / 60);
+      const m = slot.start % 60;
+      return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+    }
+  }
+  return '09:00';
+}
 
-const TIME_SLOTS = [
-  { time: '09:00', label: '朝イチ' },
-  { time: '09:30', label: '朝' },
-  { time: '10:00', label: '午前' },
-  { time: '10:30', label: '午前' },
-  { time: '11:00', label: '午前' },
-  { time: '13:00', label: '昼後' },
-  { time: '14:00', label: '午後' },
-  { time: '15:00', label: '午後' },
-  { time: '16:00', label: '集中枠' },
-  { time: '16:30', label: '集中枠' },
-  { time: '17:00', label: '集中枠' },
-  { time: '17:30', label: '集中枠' },
-];
+// GEMINI AI
+async function analyzeWithGemini(title) {
+  const prompt = `あなたは仕事タスク分析の専門家です。以下のタスクを分析して、JSON形式で返してください。
 
-function initWizard() {
+タスク名：「${title}」
+
+以下のJSON形式のみを返してください（説明不要）：
+{
+  "type": "routine" | "unknown" | "judgment" | "dependent",
+  "estimated_minutes": 数値（5〜240）,
+  "decompose_pattern": null | "research" | "confirm" | "find_resource" | "fully_unknown" | "multi_person" | "approval" | "material" | "judgment",
+  "subtasks": [{"title": "サブタスク名", "minutes": 数値}],
+  "reason": "判断理由を一文で"
+}
+
+判断基準：
+- routine: 毎回同じ手順で繰り返す作業（報告書作成、定期連絡など）
+- unknown: 初めてまたは初めて要素がある（企画、新規提案など）
+- judgment: 意思決定が主目的（方針決定、選定など）
+- dependent: 他者のアクションが必要（承認依頼、確認待ちなど）
+subtasksはdecompose_patternがnullでない場合のみ設定。`;
+
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+  });
+  const data = await res.json();
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  const clean = text.replace(/```json|```/g, '').trim();
+  return JSON.parse(clean);
+}
+
+// ADD PAGE
+function initAddPage() {
+  document.getElementById('quick-title').value = '';
+  document.getElementById('quick-result').innerHTML = '';
+  aiResult = null;
   wizardData = {};
-  renderWizardStep(1);
+  showQuickPanel();
 }
+
+function showQuickPanel() {
+  document.getElementById('quick-panel').style.display = 'block';
+  document.getElementById('detail-panel').style.display = 'none';
+  document.getElementById('tab-quick').classList.add('active');
+  document.getElementById('tab-detail').classList.remove('active');
+}
+function showDetailPanel() {
+  document.getElementById('quick-panel').style.display = 'none';
+  document.getElementById('detail-panel').style.display = 'block';
+  document.getElementById('tab-quick').classList.remove('active');
+  document.getElementById('tab-detail').classList.add('active');
+  initWizard();
+}
+
+document.getElementById('tab-quick').addEventListener('click', showQuickPanel);
+document.getElementById('tab-detail').addEventListener('click', showDetailPanel);
+
+document.getElementById('quick-ai-btn').addEventListener('click', async () => {
+  const title = document.getElementById('quick-title').value.trim();
+  if (!title) { showToast('タスク名を入力してください'); return; }
+  const resultDiv = document.getElementById('quick-result');
+  resultDiv.innerHTML = `<div class="ai-loading"><div class="spinner"></div>AIが分析中...</div>`;
+  try {
+    aiResult = await analyzeWithGemini(title);
+    aiResult.title = title;
+    const autoTime = autoPlotTime(aiResult.type, aiResult.estimated_minutes, TODAY_STR);
+    aiResult.scheduled_time = autoTime;
+    aiResult.scheduled_date = TODAY_STR;
+    resultDiv.innerHTML = `
+      <div class="ai-result">
+        <div class="ai-result-title">AI分析結果</div>
+        <div class="ai-row"><span class="ai-row-label">種類</span><span class="ai-row-val"><span class="task-type-badge type-${aiResult.type}">${typeLabel(aiResult.type)}</span></span></div>
+        <div class="ai-row"><span class="ai-row-label">所要時間</span><span class="ai-row-val" style="font-family:var(--font-num);color:var(--accent);font-size:16px;">${aiResult.estimated_minutes}min</span></div>
+        <div class="ai-row"><span class="ai-row-label">プロット時刻</span><span class="ai-row-val" style="font-family:var(--font-num);font-size:16px;">${autoTime}</span></div>
+        <div class="ai-row" style="border:none;"><span class="ai-row-label">判断理由</span><span class="ai-row-val" style="font-size:12px;color:var(--text2);">${aiResult.reason}</span></div>
+        ${aiResult.subtasks?.length ? `
+          <div class="ai-subtasks">
+            <div style="font-size:9px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;">分解ステップ</div>
+            ${aiResult.subtasks.map(s => `<div class="ai-subtask-item"><span>${s.title}</span><span style="font-family:var(--font-num);color:var(--text3);">${s.minutes}min</span></div>`).join('')}
+          </div>` : ''}
+        <div class="ai-actions">
+          <button class="btn-ok" id="ai-ok-btn">このままプロット</button>
+          <button class="btn-edit" id="ai-edit-btn">編集する</button>
+        </div>
+      </div>
+    `;
+    document.getElementById('ai-ok-btn').addEventListener('click', () => saveFromAI());
+    document.getElementById('ai-edit-btn').addEventListener('click', () => {
+      wizardData = {
+        title: aiResult.title,
+        type: aiResult.type,
+        estimated_minutes: aiResult.estimated_minutes,
+        subtasks: aiResult.subtasks || [],
+        scheduled_time: aiResult.scheduled_time,
+        scheduled_date: aiResult.scheduled_date
+      };
+      showDetailPanel();
+    });
+  } catch(e) {
+    resultDiv.innerHTML = `<div style="font-size:13px;color:var(--accent);padding:12px;">AI分析に失敗しました。詳細入力をお試しください。</div>`;
+  }
+});
+
+async function saveFromAI() {
+  if (!aiResult) return;
+  await saveTask({
+    title: aiResult.title,
+    type: aiResult.type,
+    estimated_minutes: aiResult.estimated_minutes,
+    scheduled_date: aiResult.scheduled_date,
+    scheduled_time: aiResult.scheduled_time,
+    subtasks: aiResult.subtasks || []
+  });
+}
+
+// WIZARD
+function initWizard() { wizardData = {}; renderWizardStep(1); }
 
 function renderWizardStep(step) {
-  const container = document.getElementById('wizard-container');
-  container.innerHTML = '';
-
+  const c = document.getElementById('wizard-container');
+  c.innerHTML = '';
   if (step === 1) {
-    container.innerHTML = `
-      <div class="wiz-input-wrap">
-        <label class="wiz-label">タスク名</label>
-        <input class="wiz-input" id="wiz-title" placeholder="例：来月キャンペーン企画" value="${wizardData.title||''}">
-      </div>
-      <div class="wiz-input-wrap">
-        <label class="wiz-label">メモ（任意）</label>
-        <textarea class="wiz-input wiz-input-lg" id="wiz-memo" rows="2" placeholder="詳細・背景など">${wizardData.memo||''}</textarea>
-      </div>
-      <button class="btn-next" id="wiz-next-1">次へ →</button>
+    c.innerHTML = `
+      <div class="wiz-input-wrap"><label class="wiz-label">タスク名</label><input class="wiz-input" id="wiz-title" placeholder="例：来月キャンペーン企画" value="${wizardData.title||''}"></div>
+      <div class="wiz-input-wrap"><label class="wiz-label">メモ（任意）</label><textarea class="wiz-input wiz-input-lg" id="wiz-memo" rows="2" placeholder="詳細など">${wizardData.memo||''}</textarea></div>
+      <button class="btn-next" id="wn1">次へ →</button>
     `;
-    document.getElementById('wiz-next-1').addEventListener('click', () => {
+    document.getElementById('wn1').addEventListener('click', () => {
       const t = document.getElementById('wiz-title').value.trim();
       if (!t) { showToast('タスク名を入力してください'); return; }
-      wizardData.title = t;
-      wizardData.memo = document.getElementById('wiz-memo').value.trim();
+      wizardData.title = t; wizardData.memo = document.getElementById('wiz-memo').value.trim();
       renderWizardStep(2);
     });
-
   } else if (step === 2) {
-    container.innerHTML = `
+    c.innerHTML = `
       <div class="wiz-q">「${wizardData.title}」<br>以前やったことがありますか？</div>
       <div class="wiz-sub">同じ手順で繰り返しているものはルーティンです</div>
       <div class="wiz-options">
-        <div class="wiz-opt" data-val="yes">
-          <svg class="wiz-opt-icon" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="#4A7C59" stroke-width="1.5"/><polyline points="6,10 9,13 14,7" stroke="#4A7C59" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
-          <div><div class="wiz-opt-text">ある（ルーティン）</div><div class="wiz-opt-sub">毎回同じ手順で完結する</div></div>
-        </div>
-        <div class="wiz-opt" data-val="no">
-          <svg class="wiz-opt-icon" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="#C4603A" stroke-width="1.5"/><line x1="10" y1="7" x2="10" y2="11" stroke="#C4603A" stroke-width="1.5" stroke-linecap="round"/><circle cx="10" cy="13.5" r=".8" fill="#C4603A"/></svg>
-          <div><div class="wiz-opt-text">ない・よくわからない</div><div class="wiz-opt-sub">初めてや新しい要素がある</div></div>
-        </div>
+        <div class="wiz-opt" data-val="yes"><div><div class="wiz-opt-text">ある（ルーティン）</div><div class="wiz-opt-sub">毎回同じ手順で完結する</div></div></div>
+        <div class="wiz-opt" data-val="no"><div><div class="wiz-opt-text">ない・よくわからない</div><div class="wiz-opt-sub">初めてや新しい要素がある</div></div></div>
       </div>
-      <div class="wiz-nav"><button class="btn-back" id="wiz-back-2">戻る</button></div>
+      <div class="wiz-nav"><button class="btn-back" id="wb2">戻る</button></div>
     `;
-    container.querySelectorAll('.wiz-opt').forEach(opt => {
-      opt.addEventListener('click', () => {
-        wizardData.isRoutine = opt.dataset.val === 'yes';
-        if (wizardData.isRoutine) {
-          wizardData.type = 'routine';
-          renderWizardStep(5);
-        } else {
-          renderWizardStep(3);
-        }
-      });
-    });
-    document.getElementById('wiz-back-2').addEventListener('click', () => renderWizardStep(1));
-
+    c.querySelectorAll('.wiz-opt').forEach(o => o.addEventListener('click', () => {
+      wizardData.isRoutine = o.dataset.val === 'yes';
+      if (wizardData.isRoutine) { wizardData.type = 'routine'; renderWizardStep(5); }
+      else renderWizardStep(3);
+    }));
+    document.getElementById('wb2').addEventListener('click', () => renderWizardStep(1));
   } else if (step === 3) {
-    container.innerHTML = `
+    c.innerHTML = `
       <div class="wiz-q">誰かのアクションや<br>情報が必要ですか？</div>
-      <div class="wiz-sub">返信待ち・承認待ちなど、自分だけでは完結しない場合</div>
+      <div class="wiz-sub">返信待ち・承認待ちなど自分だけでは完結しない場合</div>
       <div class="wiz-options">
-        <div class="wiz-opt" data-val="yes">
-          <svg class="wiz-opt-icon" viewBox="0 0 20 20" fill="none"><path d="M4 14 C4 11 7 9 10 9 C13 9 16 11 16 14" stroke="#B5566A" stroke-width="1.5" stroke-linecap="round"/><circle cx="10" cy="6" r="3" stroke="#B5566A" stroke-width="1.5"/></svg>
-          <div><div class="wiz-opt-text">ある（他者依存）</div><div class="wiz-opt-sub">誰かに頼む・返信を待つ</div></div>
-        </div>
-        <div class="wiz-opt" data-val="no">
-          <svg class="wiz-opt-icon" viewBox="0 0 20 20" fill="none"><rect x="4" y="4" width="12" height="12" rx="2" stroke="#4A6FA5" stroke-width="1.5"/><line x1="7" y1="10" x2="13" y2="10" stroke="#4A6FA5" stroke-width="1.5" stroke-linecap="round"/></svg>
-          <div><div class="wiz-opt-text">ない（自分で完結）</div><div class="wiz-opt-sub">自分だけで進められる</div></div>
-        </div>
+        <div class="wiz-opt" data-val="yes"><div><div class="wiz-opt-text">ある（他者依存）</div><div class="wiz-opt-sub">誰かに頼む・返信を待つ</div></div></div>
+        <div class="wiz-opt" data-val="no"><div><div class="wiz-opt-text">ない（自分で完結）</div><div class="wiz-opt-sub">自分だけで進められる</div></div></div>
       </div>
-      <div class="wiz-nav"><button class="btn-back" id="wiz-back-3">戻る</button></div>
+      <div class="wiz-nav"><button class="btn-back" id="wb3">戻る</button></div>
     `;
-    container.querySelectorAll('.wiz-opt').forEach(opt => {
-      opt.addEventListener('click', () => {
-        if (opt.dataset.val === 'yes') {
-          wizardData.type = 'dependent';
-          renderWizardStep(4);
-        } else {
-          renderWizardStep(3.5);
-        }
-      });
-    });
-    document.getElementById('wiz-back-3').addEventListener('click', () => renderWizardStep(2));
-
+    c.querySelectorAll('.wiz-opt').forEach(o => o.addEventListener('click', () => {
+      if (o.dataset.val === 'yes') { wizardData.type = 'dependent'; renderWizardStep(4); }
+      else renderWizardStep(3.5);
+    }));
+    document.getElementById('wb3').addEventListener('click', () => renderWizardStep(2));
   } else if (step === 3.5) {
-    container.innerHTML = `
+    const patterns = [
+      { key: 'research', label: 'リサーチが必要', sub: '情報・事例・他社動向が不明' },
+      { key: 'confirm', label: '社内確認が必要', sub: '誰かに確認しないと進められない' },
+      { key: 'find_resource', label: '過去資料を探す必要がある', sub: '前例・テンプレが存在しそう' },
+      { key: 'fully_unknown', label: '全部不明（完全初めて）', sub: '何がわからないかもわからない' },
+      { key: 'multi_person', label: '複数人が関わる', sub: '分担・すり合わせが必要' },
+      { key: 'approval', label: '承認フローがある', sub: '上司・他部署の承認が必要' },
+      { key: 'material', label: '素材・データが必要', sub: '画像・数字・原稿などが手元にない' },
+      { key: 'judgment', label: '判断が必要（自分で決める）', sub: '意思決定してから進む' },
+      { key: 'none', label: '特になし・そのまま進める', sub: '揃えるものは特にない' },
+    ];
+    let sel = [];
+    c.innerHTML = `
       <div class="wiz-q">やり始める前に<br>何か揃えるものがありますか？</div>
-      <div class="wiz-sub">分解が必要なパターンを選んでください（複数でもOK）</div>
-      <div class="wiz-options" id="decompose-opts">
-        <div class="wiz-opt" data-pattern="research"><div><div class="wiz-opt-text">リサーチが必要</div><div class="wiz-opt-sub">情報・事例・他社動向が不明</div></div></div>
-        <div class="wiz-opt" data-pattern="confirm"><div><div class="wiz-opt-text">社内確認が必要</div><div class="wiz-opt-sub">誰かに確認しないと進められない</div></div></div>
-        <div class="wiz-opt" data-pattern="find_resource"><div><div class="wiz-opt-text">過去資料を探す必要がある</div><div class="wiz-opt-sub">前例・テンプレが存在しそう</div></div></div>
-        <div class="wiz-opt" data-pattern="fully_unknown"><div><div class="wiz-opt-text">全部不明（完全初めて）</div><div class="wiz-opt-sub">何がわからないかもわからない</div></div></div>
-        <div class="wiz-opt" data-pattern="multi_person"><div><div class="wiz-opt-text">複数人が関わる</div><div class="wiz-opt-sub">分担・すり合わせが必要</div></div></div>
-        <div class="wiz-opt" data-pattern="approval"><div><div class="wiz-opt-text">承認フローがある</div><div class="wiz-opt-sub">上司・他部署の承認が必要</div></div></div>
-        <div class="wiz-opt" data-pattern="material"><div><div class="wiz-opt-text">素材・データが必要</div><div class="wiz-opt-sub">画像・数字・原稿などが手元にない</div></div></div>
-        <div class="wiz-opt" data-pattern="judgment"><div><div class="wiz-opt-text">判断が必要（自分で決める）</div><div class="wiz-opt-sub">意思決定してから進む</div></div></div>
-        <div class="wiz-opt" data-pattern="none"><div><div class="wiz-opt-text">特になし・そのまま進める</div><div class="wiz-opt-sub">揃えるものは特にない</div></div></div>
-      </div>
-      <div class="wiz-nav">
-        <button class="btn-back" id="wiz-back-35">戻る</button>
-        <button class="btn-next" id="wiz-next-35">次へ →</button>
-      </div>
+      <div class="wiz-options">${patterns.map(p => `<div class="wiz-opt" data-pattern="${p.key}"><div><div class="wiz-opt-text">${p.label}</div><div class="wiz-opt-sub">${p.sub}</div></div></div>`).join('')}</div>
+      <div class="wiz-nav"><button class="btn-back" id="wb35">戻る</button><button class="btn-next" id="wn35">次へ →</button></div>
     `;
-    let selectedPatterns = [];
-    container.querySelectorAll('.wiz-opt').forEach(opt => {
-      opt.addEventListener('click', () => {
-        const p = opt.dataset.pattern;
-        if (p === 'none') {
-          selectedPatterns = ['none'];
-          container.querySelectorAll('.wiz-opt').forEach(o => o.style.background = '');
-          opt.style.background = 'var(--bg2)';
-          opt.style.borderColor = 'var(--accent)';
-        } else {
-          selectedPatterns = selectedPatterns.filter(x => x !== 'none');
-          if (selectedPatterns.includes(p)) {
-            selectedPatterns = selectedPatterns.filter(x => x !== p);
-            opt.style.background = '';
-            opt.style.borderColor = '';
-          } else {
-            selectedPatterns.push(p);
-            opt.style.background = 'var(--bg2)';
-            opt.style.borderColor = 'var(--accent)';
-          }
-        }
-      });
-    });
-    document.getElementById('wiz-back-35').addEventListener('click', () => renderWizardStep(3));
-    document.getElementById('wiz-next-35').addEventListener('click', () => {
-      if (!selectedPatterns.length) { showToast('選択してください'); return; }
-      wizardData.patterns = selectedPatterns;
-      if (selectedPatterns[0] === 'none') {
-        wizardData.type = 'judgment';
-        wizardData.subtasks = [];
-        renderWizardStep(5);
-      } else {
+    c.querySelectorAll('.wiz-opt').forEach(o => o.addEventListener('click', () => {
+      const p = o.dataset.pattern;
+      if (p === 'none') { sel = ['none']; c.querySelectorAll('.wiz-opt').forEach(x => x.classList.remove('sel')); o.classList.add('sel'); }
+      else {
+        sel = sel.filter(x => x !== 'none');
+        if (sel.includes(p)) { sel = sel.filter(x => x !== p); o.classList.remove('sel'); }
+        else { sel.push(p); o.classList.add('sel'); }
+      }
+    }));
+    document.getElementById('wb35').addEventListener('click', () => renderWizardStep(3));
+    document.getElementById('wn35').addEventListener('click', () => {
+      if (!sel.length) { showToast('選択してください'); return; }
+      wizardData.patterns = sel;
+      if (sel[0] === 'none') { wizardData.type = 'judgment'; wizardData.subtasks = []; renderWizardStep(5); }
+      else {
         wizardData.type = 'unknown';
-        const subs = [];
-        selectedPatterns.forEach(p => {
-          (DECOMPOSE_PATTERNS[p] || []).forEach(s => subs.push({ ...s }));
-        });
+        const subs = []; sel.forEach(p => (DECOMPOSE_PATTERNS[p]||[]).forEach(s => subs.push({...s})));
         wizardData.subtasks = subs;
         renderWizardStep(4);
       }
     });
-
   } else if (step === 4) {
     const subs = wizardData.subtasks || [];
-    const totalMin = subs.reduce((a, b) => a + b.minutes, 0) || 30;
-    wizardData.estimated_minutes = totalMin;
-    container.innerHTML = `
+    const total = subs.reduce((a,s) => a + s.minutes, 0) || 30;
+    wizardData.estimated_minutes = total;
+    c.innerHTML = `
       <div class="wiz-q">分解結果</div>
-      <div class="wiz-sub">タスクをこのステップに分解します</div>
-      ${subs.length ? `<div class="decompose-preview">
-        ${subs.map(s => `<div class="decompose-item">
-          <span class="decompose-title">${s.title}</span>
-          <span class="decompose-min">${s.minutes}min</span>
-        </div>`).join('')}
-        <div style="text-align:right;font-size:12px;color:var(--accent);margin-top:8px;font-family:var(--font-num);">合計 ${totalMin}min</div>
-      </div>` : '<div style="font-size:13px;color:var(--text3);margin-bottom:16px;">サブタスクなし</div>'}
-      <div class="wiz-nav">
-        <button class="btn-back" id="wiz-back-4">戻る</button>
-        <button class="btn-next" id="wiz-next-4">次へ →</button>
-      </div>
+      <div class="wiz-sub">このステップで進めます</div>
+      ${subs.length ? `<div class="decompose-preview">${subs.map(s => `<div class="decompose-item"><span>${s.title}</span><span class="decompose-min">${s.minutes}min</span></div>`).join('')}<div style="text-align:right;font-size:12px;color:var(--accent);margin-top:8px;font-family:var(--font-num);">合計 ${total}min</div></div>` : ''}
+      <div class="wiz-nav"><button class="btn-back" id="wb4">戻る</button><button class="btn-next" id="wn4">次へ →</button></div>
     `;
-    document.getElementById('wiz-back-4').addEventListener('click', () => renderWizardStep(wizardData.type === 'dependent' ? 3 : 3.5));
-    document.getElementById('wiz-next-4').addEventListener('click', () => renderWizardStep(5));
-
+    document.getElementById('wb4').addEventListener('click', () => renderWizardStep(wizardData.type === 'dependent' ? 3 : 3.5));
+    document.getElementById('wn4').addEventListener('click', () => renderWizardStep(5));
   } else if (step === 5) {
-    const defaultMin = wizardData.type === 'routine' ? 30 : (wizardData.estimated_minutes || 30);
-    container.innerHTML = `
-      <div class="wiz-q">詳細設定</div>
+    const defMin = wizardData.estimated_minutes || (wizardData.type === 'routine' ? 30 : 45);
+    const autoTime = autoPlotTime(wizardData.type || 'judgment', defMin, TODAY_STR);
+    c.innerHTML = `
+      <div class="wiz-q">スケジュール設定</div>
       <div class="wiz-row">
-        <div class="wiz-input-wrap">
-          <label class="wiz-label">所要時間（分）</label>
-          <input class="wiz-input" type="number" id="wiz-min" value="${defaultMin}" min="5" max="480" step="5">
-        </div>
-        <div class="wiz-input-wrap">
-          <label class="wiz-label">期限（任意）</label>
-          <input class="wiz-input" type="date" id="wiz-deadline" value="${wizardData.deadline||''}">
-        </div>
+        <div class="wiz-input-wrap"><label class="wiz-label">所要時間（分）</label><input class="wiz-input" type="number" id="wiz-min" value="${defMin}" min="5" max="480" step="5"></div>
+        <div class="wiz-input-wrap"><label class="wiz-label">期限（任意）</label><input class="wiz-input" type="date" id="wiz-deadline" value="${wizardData.deadline||''}"></div>
       </div>
       <div class="wiz-input-wrap">
         <label class="wiz-label">今日やる？</label>
@@ -995,67 +912,62 @@ function renderWizardStep(step) {
           <option value="no">後日やる（一覧に追加）</option>
         </select>
       </div>
-      <div id="time-slot-section">
-        <label class="wiz-label">開始時刻</label>
-        <div class="time-slots" id="time-slots-grid"></div>
+      <div id="slot-section">
+        <label class="wiz-label">開始時刻（自動: ${autoTime}）</label>
+        <div class="time-slots" id="slot-grid"></div>
       </div>
-      <div class="wiz-nav">
-        <button class="btn-back" id="wiz-back-5">戻る</button>
-        <button class="btn-next" id="wiz-next-5">保存する</button>
-      </div>
+      <div class="wiz-nav"><button class="btn-back" id="wb5">戻る</button><button class="btn-next" id="wn5">保存する</button></div>
     `;
-    const slotsGrid = document.getElementById('time-slots-grid');
-    TIME_SLOTS.forEach(slot => {
-      const div = document.createElement('div');
-      div.className = 'time-slot';
-      if (wizardData.scheduled_time === slot.time) div.classList.add('selected');
-      div.innerHTML = `<div class="time-slot-time">${slot.time}</div><div class="time-slot-label">${slot.label}</div>`;
-      div.addEventListener('click', () => {
-        document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
-        div.classList.add('selected');
-        wizardData.scheduled_time = slot.time;
+    wizardData.scheduled_time = autoTime;
+    const takenTimes = allTasks.filter(t => t.scheduled_date === TODAY_STR && t.scheduled_time).map(t => t.scheduled_time.slice(0,5));
+    const slots = ['09:00','09:30','10:00','10:30','11:00','11:30','13:00','14:00','15:00','16:00','16:30','17:00','17:30'];
+    const grid = document.getElementById('slot-grid');
+    slots.forEach(s => {
+      const d = document.createElement('div');
+      const isTaken = takenTimes.includes(s);
+      d.className = `time-slot${isTaken ? ' taken' : ''}${s === autoTime ? ' selected' : ''}`;
+      const [h] = s.split(':');
+      const label = parseInt(h) < 12 ? '午前' : parseInt(h) < 16 ? '午後' : '集中枠';
+      d.innerHTML = `<div class="time-slot-time">${s}</div><div class="time-slot-label">${label}</div>`;
+      if (!isTaken) d.addEventListener('click', () => {
+        document.querySelectorAll('.time-slot').forEach(x => x.classList.remove('selected'));
+        d.classList.add('selected');
+        wizardData.scheduled_time = s;
       });
-      slotsGrid.appendChild(div);
+      grid.appendChild(d);
     });
     document.getElementById('wiz-today-flag').addEventListener('change', function() {
-      document.getElementById('time-slot-section').style.display = this.value === 'yes' ? 'block' : 'none';
+      document.getElementById('slot-section').style.display = this.value === 'yes' ? 'block' : 'none';
     });
-    const backStep = wizardData.type === 'routine' ? 2 : (wizardData.subtasks && wizardData.subtasks.length ? 4 : 3.5);
-    document.getElementById('wiz-back-5').addEventListener('click', () => renderWizardStep(backStep));
-    document.getElementById('wiz-next-5').addEventListener('click', async () => {
+    const backStep = wizardData.type === 'routine' ? 2 : (wizardData.subtasks?.length ? 4 : 3.5);
+    document.getElementById('wb5').addEventListener('click', () => renderWizardStep(backStep));
+    document.getElementById('wn5').addEventListener('click', async () => {
       wizardData.estimated_minutes = parseInt(document.getElementById('wiz-min').value) || 30;
       wizardData.deadline = document.getElementById('wiz-deadline').value || null;
       const todayFlag = document.getElementById('wiz-today-flag').value;
       wizardData.scheduled_date = todayFlag === 'yes' ? TODAY_STR : null;
-      await saveTask();
+      if (todayFlag !== 'yes') wizardData.scheduled_time = null;
+      await saveTask(wizardData);
     });
   }
 }
 
-async function saveTask() {
+async function saveTask(data) {
   const { data: task, error } = await db.from('tasks').insert({
-    user_id: currentUser.id,
-    title: wizardData.title,
-    type: wizardData.type || 'judgment',
-    status: 'pending',
-    estimated_minutes: wizardData.estimated_minutes || 30,
-    deadline: wizardData.deadline || null,
-    scheduled_date: wizardData.scheduled_date || null,
-    scheduled_time: wizardData.scheduled_time || null,
-    memo: wizardData.memo || null
+    user_id: currentUser.id, title: data.title, type: data.type || 'judgment',
+    status: 'pending', estimated_minutes: data.estimated_minutes || 30,
+    deadline: data.deadline || null, scheduled_date: data.scheduled_date || null,
+    scheduled_time: data.scheduled_time || null, memo: data.memo || null
   }).select().single();
   if (error) { showToast('保存に失敗しました'); return; }
   allTasks.unshift(task);
-  if (wizardData.subtasks && wizardData.subtasks.length) {
-    const subs = wizardData.subtasks.map((s, i) => ({
-      task_id: task.id, title: s.title, estimated_minutes: s.minutes,
-      status: 'pending', sort_order: i
-    }));
-    const { data: savedSubs } = await db.from('subtasks').insert(subs).select();
-    if (savedSubs) allSubtasks.push(...savedSubs);
+  if (data.subtasks?.length) {
+    const subs = data.subtasks.map((s, i) => ({ task_id: task.id, title: s.title, estimated_minutes: s.minutes || s.estimated_minutes || 30, status: 'pending', sort_order: i }));
+    const { data: saved } = await db.from('subtasks').insert(subs).select();
+    if (saved) allSubtasks.push(...saved);
   }
-  showToast('タスクを追加しました🐯');
-  wizardData = {};
+  showToast('タスクを追加しました 🐯');
+  aiResult = null; wizardData = {};
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.querySelector('[data-page="today"]').classList.add('active');
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -1063,170 +975,156 @@ async function saveTask() {
   renderToday();
 }
 
-// ---- TASK LIST ----
+// DETAIL MODAL
+function openDetail(taskId) {
+  const task = allTasks.find(t => t.id === taskId);
+  if (!task) return;
+  const subs = allSubtasks.filter(s => s.task_id === taskId);
+  const body = document.getElementById('detail-body');
+  body.innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+      <div class="task-type-badge type-${task.type}">${typeLabel(task.type)}</div>
+      <span style="font-size:16px;font-weight:500;">${task.title}</span>
+    </div>
+    <div style="display:flex;gap:16px;margin-bottom:14px;">
+      <div><div style="font-size:9px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px;">所要時間</div><div style="font-family:var(--font-num);font-size:22px;color:var(--accent);">${task.estimated_minutes}<span style="font-size:11px;">min</span></div></div>
+      ${task.scheduled_time ? `<div><div style="font-size:9px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px;">開始時刻</div><div style="font-family:var(--font-num);font-size:22px;color:var(--text2);">${task.scheduled_time.slice(0,5)}</div></div>` : ''}
+      ${task.deadline ? `<div><div style="font-size:9px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px;">期限</div><div style="font-size:13px;color:var(--accent);margin-top:6px;">${task.deadline}</div></div>` : ''}
+    </div>
+    ${subs.length ? `<div style="font-size:9px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;">サブタスク</div><div class="subtask-list" style="margin-top:0;padding-top:0;border-top:none;">${subs.map(s => `<div class="subtask-item"><div class="subtask-check ${s.status==='done'?'done':''}" data-sub-id="${s.id}">${s.status==='done'?`<svg width="7" height="7" viewBox="0 0 7 7"><polyline points="1,3.5 2.8,5.5 6,1.5" stroke="white" stroke-width="1.5" fill="none"/></svg>`:''}</div><span class="subtask-title ${s.status==='done'?'done':''}">${s.title}</span><span class="subtask-min">${s.estimated_minutes}min</span></div>`).join('')}</div>` : ''}
+    ${task.memo ? `<div style="margin-top:12px;font-size:13px;color:var(--text2);line-height:1.6;background:var(--bg2);border-radius:8px;padding:10px 12px;">${task.memo}</div>` : ''}
+    <div class="detail-actions">
+      <button class="btn-done" id="dd-btn">完了</button>
+      <button class="btn-carry" id="dc-btn">明日に持ち越し</button>
+      <button class="btn-delete" id="ddel-btn">削除</button>
+    </div>
+  `;
+  body.querySelectorAll('.subtask-check').forEach(el => el.addEventListener('click', () => toggleSubtask(el.dataset.subId)));
+  document.getElementById('dd-btn').addEventListener('click', async () => { await toggleTask(taskId); closeModal('detail-modal'); });
+  document.getElementById('dc-btn').addEventListener('click', async () => {
+    const tm = new Date(TODAY); tm.setDate(tm.getDate()+1);
+    const tStr = tm.toISOString().split('T')[0];
+    const autoTime = autoPlotTime(task.type, task.estimated_minutes, tStr);
+    await db.from('tasks').update({ status: 'carried', scheduled_date: tStr, scheduled_time: autoTime }).eq('id', taskId);
+    const t = allTasks.find(x => x.id === taskId);
+    if (t) { t.status = 'carried'; t.scheduled_date = tStr; t.scheduled_time = autoTime; }
+    closeModal('detail-modal'); renderToday(); showToast('明日に持ち越しました');
+  });
+  document.getElementById('ddel-btn').addEventListener('click', async () => {
+    if (!confirm('削除しますか？')) return;
+    await db.from('tasks').delete().eq('id', taskId);
+    allTasks = allTasks.filter(t => t.id !== taskId);
+    allSubtasks = allSubtasks.filter(s => s.task_id !== taskId);
+    closeModal('detail-modal'); renderToday(); showToast('削除しました');
+  });
+  openModal('detail-modal');
+}
+
+// BLOCKS
+document.getElementById('add-block-btn').addEventListener('click', () => openModal('block-modal'));
+document.getElementById('block-save-btn').addEventListener('click', async () => {
+  const title = document.getElementById('block-title').value.trim();
+  const start = document.getElementById('block-start').value;
+  const end = document.getElementById('block-end').value;
+  const date = document.getElementById('block-date').value;
+  if (!title || !start || !end) { showToast('内容・時間を入力してください'); return; }
+  const { data } = await db.from('blocks').insert({ user_id: currentUser.id, title, start_time: start+':00', end_time: end+':00', date }).select().single();
+  if (data) allBlocks.push(data);
+  closeModal('block-modal');
+  renderTomorrow();
+  renderToday();
+  showToast('固定ブロックを追加しました');
+});
+
+function renderTomorrow() {
+  const tm = new Date(TODAY); tm.setDate(tm.getDate()+1);
+  const tStr = tm.toISOString().split('T')[0];
+  const blockList = document.getElementById('block-list');
+  const todayBlocks = allBlocks.filter(b => b.date === TODAY_STR);
+  blockList.innerHTML = todayBlocks.length ? todayBlocks.map(b => `
+    <div class="task-card block-card" style="margin-bottom:6px;">
+      <div class="task-card-top">
+        <div class="task-card-left"><div class="task-type-badge type-block">固定</div><span class="task-title">${b.title}</span></div>
+        <span class="task-time">${b.start_time.slice(0,5)}〜${b.end_time.slice(0,5)}</span>
+      </div>
+    </div>`).join('') : '<div style="font-size:13px;color:var(--text3);padding:8px 0 12px;">固定ブロックなし</div>';
+  const carried = allTasks.filter(t => t.status === 'carried' || (t.status === 'pending' && t.scheduled_date === TODAY_STR));
+  const unscheduled = allTasks.filter(t => !t.scheduled_date && t.status === 'pending');
+  const carriedList = document.getElementById('carried-list');
+  carriedList.innerHTML = carried.length ? carried.map(t => `<div class="task-card" style="margin-bottom:6px;"><div class="task-card-top"><div class="task-card-left"><div class="task-type-badge type-${t.type}">${typeLabel(t.type)}</div><span class="task-title">${t.title}</span></div><span class="task-time">${t.estimated_minutes}min</span></div></div>`).join('') : '<div style="font-size:13px;color:var(--text3);padding:8px 0;">持ち越しなし 🎉</div>';
+  const unList = document.getElementById('unscheduled-list');
+  unList.innerHTML = unscheduled.length ? unscheduled.map(t => `<div class="task-card" style="margin-bottom:6px;"><div class="task-card-top"><div class="task-card-left"><div class="task-type-badge type-${t.type}">${typeLabel(t.type)}</div><span class="task-title">${t.title}</span></div><span class="task-time">${t.estimated_minutes}min</span></div></div>`).join('') : '<div style="font-size:13px;color:var(--text3);padding:8px 0;">なし</div>';
+  document.getElementById('plot-tomorrow-btn').onclick = async () => {
+    const targets = [...carried, ...unscheduled];
+    if (!targets.length) { showToast('プロット対象なし'); return; }
+    await Promise.all(targets.map(t => {
+      const autoTime = autoPlotTime(t.type, t.estimated_minutes, tStr);
+      db.from('tasks').update({ scheduled_date: tStr, scheduled_time: autoTime, status: 'pending' }).eq('id', t.id);
+      t.scheduled_date = tStr; t.scheduled_time = autoTime; t.status = 'pending';
+    }));
+    showToast(`${targets.length}件を明日に自動プロットしました`);
+    renderTomorrow();
+  };
+}
+
+// TASK LIST
 function renderTaskList() {
   const list = document.getElementById('task-list');
   let tasks = [...allTasks];
   if (currentFilter === 'pending') tasks = tasks.filter(t => t.status === 'pending');
   else if (['routine','unknown','judgment','dependent'].includes(currentFilter)) tasks = tasks.filter(t => t.type === currentFilter);
-  if (!tasks.length) {
-    list.innerHTML = '<div class="empty"><div class="empty-icon">📋</div>タスクがありません</div>';
-    return;
-  }
+  if (!tasks.length) { list.innerHTML = '<div class="empty">タスクがありません</div>'; return; }
   list.innerHTML = '';
   tasks.forEach(t => {
     const subs = allSubtasks.filter(s => s.task_id === t.id);
     const card = document.createElement('div');
-    card.className = `task-card ${t.status === 'done' ? 'done' : ''}`;
-    card.innerHTML = `
-      <div class="task-card-top">
-        <div class="task-card-left">
-          <div class="task-type-badge type-${t.type}">${typeLabel(t.type)}</div>
-          <span class="task-title">${t.title}</span>
-        </div>
-        <div class="task-card-right">
-          <span class="task-time">${t.estimated_minutes}min</span>
-        </div>
-      </div>
-      <div class="task-card-bottom">
-        ${t.scheduled_date ? `<span class="task-min">${t.scheduled_date}</span>` : ''}
-        ${t.deadline ? `<span class="task-deadline">期限 ${t.deadline}</span>` : ''}
-        ${subs.length ? `<span class="task-min">サブタスク ${subs.filter(s=>s.status==='done').length}/${subs.length}</span>` : ''}
-      </div>
-    `;
+    card.className = `task-card${t.status==='done'?' done':''}`;
+    card.innerHTML = `<div class="task-card-top"><div class="task-card-left"><div class="task-type-badge type-${t.type}">${typeLabel(t.type)}</div><span class="task-title">${t.title}</span></div><span class="task-time">${t.estimated_minutes}min</span></div><div class="task-card-bottom">${t.scheduled_date?`<span class="task-min">${t.scheduled_date}</span>`:''}${t.deadline?`<span class="task-deadline">期限 ${t.deadline}</span>`:''}${subs.length?`<span class="task-min">サブ ${subs.filter(s=>s.status==='done').length}/${subs.length}</span>`:''}</div>`;
     card.addEventListener('click', () => openDetail(t.id));
     list.appendChild(card);
   });
 }
+document.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => {
+  document.querySelectorAll('.chip').forEach(x => x.classList.remove('selected'));
+  c.classList.add('selected');
+  currentFilter = c.dataset.filter;
+  renderTaskList();
+}));
 
-document.querySelectorAll('.chip').forEach(chip => {
-  chip.addEventListener('click', () => {
-    document.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
-    chip.classList.add('selected');
-    currentFilter = chip.dataset.filter;
-    renderTaskList();
-  });
-});
-
-// ---- TOMORROW ----
-function renderTomorrow() {
-  const tomorrow = new Date(TODAY);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const tStr = tomorrow.toISOString().split('T')[0];
-  const carried = allTasks.filter(t => t.status === 'carried' || (t.status === 'pending' && t.scheduled_date === TODAY_STR));
-  const newTasks = allTasks.filter(t => t.scheduled_date === null && t.status === 'pending');
-  const carriedList = document.getElementById('carried-list');
-  const newList = document.getElementById('tomorrow-new-list');
-  if (!carried.length) {
-    carriedList.innerHTML = '<div class="empty" style="padding:16px 0;"><span style="font-size:13px;color:var(--text3);">持ち越しタスクなし 🎉</span></div>';
-  } else {
-    carriedList.innerHTML = '';
-    carried.forEach(t => {
-      const card = document.createElement('div');
-      card.className = 'task-card';
-      card.innerHTML = `
-        <div class="task-card-top">
-          <div class="task-card-left">
-            <div class="task-type-badge type-${t.type}">${typeLabel(t.type)}</div>
-            <span class="task-title">${t.title}</span>
-          </div>
-          <span class="task-time">${t.estimated_minutes}min</span>
-        </div>
-      `;
-      card.addEventListener('click', () => openDetail(t.id));
-      carriedList.appendChild(card);
-    });
-  }
-  if (!newTasks.length) {
-    newList.innerHTML = '<div style="font-size:13px;color:var(--text3);padding:8px 0;">未スケジュールのタスクなし</div>';
-  } else {
-    newList.innerHTML = '';
-    newTasks.forEach(t => {
-      const card = document.createElement('div');
-      card.className = 'task-card';
-      card.innerHTML = `
-        <div class="task-card-top">
-          <div class="task-card-left">
-            <div class="task-type-badge type-${t.type}">${typeLabel(t.type)}</div>
-            <span class="task-title">${t.title}</span>
-          </div>
-          <span class="task-time">${t.estimated_minutes}min</span>
-        </div>
-      `;
-      card.addEventListener('click', () => openDetail(t.id));
-      newList.appendChild(card);
-    });
-  }
-  document.getElementById('plot-tomorrow-btn').addEventListener('click', async () => {
-    const targets = [...carried, ...newTasks];
-    if (!targets.length) { showToast('プロット対象なし'); return; }
-    await Promise.all(targets.map(t =>
-      db.from('tasks').update({ scheduled_date: tStr, status: 'pending' }).eq('id', t.id)
-    ));
-    targets.forEach(t => { t.scheduled_date = tStr; t.status = 'pending'; });
-    showToast(`${targets.length}件を明日にプロットしました`);
-    renderTomorrow();
-  });
-}
-
-// ---- WEEKLY REVIEW ----
+// WEEKLY REVIEW
 document.getElementById('review-btn').addEventListener('click', () => {
+  const pending = allTasks.filter(t => t.status === 'pending' || t.status === 'carried');
   const body = document.getElementById('review-body');
-  const lastWeekPending = allTasks.filter(t => t.status === 'pending' || t.status === 'carried');
-  body.innerHTML = `
-    <div style="font-size:13px;color:var(--text2);margin-bottom:16px;line-height:1.6;">
-      未完了タスク <strong>${lastWeekPending.length}件</strong> を確認します
-    </div>
-    ${lastWeekPending.slice(0,10).map(t => `
-      <div class="review-card">
-        <div class="review-card-title">${t.title}</div>
-        <div class="review-card-sub">${typeLabel(t.type)} · ${t.estimated_minutes}min${t.scheduled_date ? ' · '+t.scheduled_date : ''}</div>
-        <div class="review-action">
-          <button class="btn-sm" onclick="moveToNextWeek('${t.id}')">来週に移す</button>
-          <button class="btn-sm btn-sm-accent" onclick="keepTask('${t.id}')">今週継続</button>
-          <button class="btn-sm" style="color:var(--accent);" onclick="dropTask('${t.id}')">不要・削除</button>
-        </div>
-      </div>
-    `).join('')}
-    ${lastWeekPending.length === 0 ? '<div class="empty"><div class="empty-icon">🎉</div>未完了タスクなし！完璧な週でした</div>' : ''}
-  `;
+  body.innerHTML = `<div style="font-size:13px;color:var(--text2);margin-bottom:16px;">未完了 <strong>${pending.length}件</strong> を確認します</div>` +
+    (pending.length ? pending.slice(0,15).map(t => `<div class="review-card"><div class="review-card-title">${t.title}</div><div class="review-card-sub">${typeLabel(t.type)} · ${t.estimated_minutes}min</div><div class="review-action"><button class="btn-sm" onclick="moveNextWeek('${t.id}')">来週に移す</button><button class="btn-sm btn-sm-accent" onclick="keepTask('${t.id}')">今週継続</button><button class="btn-sm" style="color:var(--accent);" onclick="dropTask('${t.id}')">削除</button></div></div>`).join('') : '<div class="empty">未完了タスクなし 🎉</div>');
   openModal('review-modal');
 });
-document.getElementById('review-modal').addEventListener('click', function(e) {
-  if (e.target === this) closeModal('review-modal');
-});
-
-window.moveToNextWeek = async function(taskId) {
-  const nextMonday = new Date(TODAY);
-  nextMonday.setDate(TODAY.getDate() + (8 - TODAY.getDay()) % 7 || 7);
-  const nStr = nextMonday.toISOString().split('T')[0];
-  await db.from('tasks').update({ scheduled_date: nStr, status: 'pending' }).eq('id', taskId);
-  const t = allTasks.find(x => x.id === taskId);
+window.moveNextWeek = async (id) => {
+  const nm = new Date(TODAY); nm.setDate(TODAY.getDate() + (8-TODAY.getDay())%7||7);
+  const nStr = nm.toISOString().split('T')[0];
+  await db.from('tasks').update({ scheduled_date: nStr, status: 'pending' }).eq('id', id);
+  const t = allTasks.find(x => x.id === id);
   if (t) { t.scheduled_date = nStr; t.status = 'pending'; }
   showToast('来週に移しました');
   document.getElementById('review-btn').click();
 };
-window.keepTask = function(taskId) {
-  showToast('今週継続します');
-};
-window.dropTask = async function(taskId) {
+window.keepTask = () => showToast('今週継続します');
+window.dropTask = async (id) => {
   if (!confirm('削除しますか？')) return;
-  await db.from('tasks').delete().eq('id', taskId);
-  allTasks = allTasks.filter(t => t.id !== taskId);
+  await db.from('tasks').delete().eq('id', id);
+  allTasks = allTasks.filter(t => t.id !== id);
   showToast('削除しました');
   document.getElementById('review-btn').click();
 };
 
-// swipe to close modals
-document.querySelectorAll('.modal').forEach(modal => {
-  let startY = 0;
-  modal.addEventListener('touchstart', e => { startY = e.touches[0].clientY; }, { passive: true });
-  modal.addEventListener('touchend', e => {
-    if (e.changedTouches[0].clientY - startY > 80) {
-      const overlay = modal.closest('.modal-overlay');
-      if (overlay) overlay.classList.remove('open');
-    }
-  }, { passive: true });
+// MODALS CLOSE
+['detail-modal','goal-modal','review-modal','block-modal'].forEach(id => {
+  document.getElementById(id).addEventListener('click', function(e) { if (e.target === this) closeModal(id); });
+});
+document.querySelectorAll('.modal').forEach(m => {
+  let sy = 0;
+  m.addEventListener('touchstart', e => { sy = e.touches[0].clientY; }, { passive: true });
+  m.addEventListener('touchend', e => { if (e.changedTouches[0].clientY - sy > 80) { const o = m.closest('.modal-overlay'); if (o) o.classList.remove('open'); } }, { passive: true });
 });
 </script>
 </body>
