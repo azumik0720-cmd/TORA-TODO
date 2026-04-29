@@ -6,6 +6,7 @@
 <title>TORA TODO</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
 <style>
 :root {
   --bg: #FDFAF7; --bg2: #F2EDE6; --bg3: #EBE5DC;
@@ -439,9 +440,9 @@ kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); b
 <div class="toast" id="toast"></div>
 
 <script>
-const SUPABASE_URL = 'https://ohqgpmtkhhixvnkrjbvb.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ocWdwbXRraGhpeHZua3JqYnZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzMDE4MjEsImV4cCI6MjA5MTg3NzgyMX0.tkm8eT9FCWGmKXPPVeDV6L6STEQ_jVnrNkcGDbRtSCg';
-const GEMINI_KEY = 'AIzaSyAAa3HNHJpAxZ-wqLYan7JIvq62XGKdZz0';
+const SUPABASE_URL = window._SUPABASE_URL || '';
+const SUPABASE_KEY = window._SUPABASE_KEY || '';
+const GEMINI_KEY = window._GEMINI_KEY || '';
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { autoRefreshToken: true, persistSession: true, detectSessionInUrl: false } });
 
 let currentUser = null, allTasks = [], allSubtasks = [], allBlocks = [], todayGoals = [], currentFilter = 'all', wizardData = {}, aiResult = null;
@@ -992,7 +993,7 @@ async function handleQuickAI() {
   } catch(e) {
     resultDiv.innerHTML = `<div style="font-size:13px;color:var(--accent);padding:12px;">AI分析に失敗しました。詳細入力をお試しください。</div>`;
   }
-});
+}
 
 async function saveFromAI() {
   if (!aiResult) return;
