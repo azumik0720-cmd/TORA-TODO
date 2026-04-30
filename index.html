@@ -20,49 +20,6 @@
 html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--font); }
 body { display: flex; flex-direction: column; margin: 0 auto; }
 
-/* PC LAYOUT */
-.pc-layout { display: flex; flex-direction: column; height: 100vh; }
-@media (min-width: 900px) {
-  #app { flex-direction: column; }
-  .app-body { display: grid; grid-template-columns: 1fr 320px; flex: 1; overflow: hidden; }
-  .main { padding: 20px 24px 24px; overflow-y: auto; }
-  .right-panel { border-left: 0.5px solid var(--sep); background: var(--white); overflow-y: auto; padding: 20px 20px 24px; }
-  .nav { display: none; }
-  .pc-nav { display: flex !important; }
-  .main { padding-bottom: 24px; }
-}
-.pc-nav { display: none; gap: 4px; }
-.pc-nav-item { display: flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 13px; color: var(--text3); font-weight: 500; transition: all .15s; border: none; background: none; font-family: var(--font); }
-.pc-nav-item:hover { background: var(--bg2); color: var(--text); }
-.pc-nav-item.active { background: var(--accent-light); color: var(--accent); }
-.pc-nav-item svg { width: 16px; height: 16px; flex-shrink: 0; }
-
-/* WEEK VIEW */
-.week-view { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 4px; }
-.week-day-col { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.week-day-header { font-size: 10px; font-weight: 500; text-align: center; padding: 5px 0; border-radius: 6px; color: var(--text3); letter-spacing: .04em; }
-.week-day-header.today { background: var(--accent-light); color: var(--accent); }
-.week-task-block { border-radius: 5px; padding: 4px 6px; font-size: 10px; line-height: 1.3; cursor: pointer; transition: opacity .15s; }
-.week-task-block:hover { opacity: .8; }
-.week-task-block.wt-unknown { background: #C4603A16; color: #C4603A; border-left: 2px solid #C4603A; }
-.week-task-block.wt-routine { background: #2D3B2E10; color: #2D3B2E; border-left: 2px solid #2D3B2E; }
-.week-task-block.wt-judgment { background: #4A6FA514; color: #4A6FA5; border-left: 2px solid #4A6FA5; }
-.week-task-block.wt-dependent { background: #B5566A14; color: #B5566A; border-left: 2px solid #B5566A; }
-.week-task-block.wt-block { background: var(--bg3); color: var(--text3); border-left: 2px solid var(--text3); }
-.week-empty { font-size: 11px; color: var(--text3); text-align: center; padding: 8px 0; opacity: .5; }
-
-/* CONFLICT BANNER */
-.conflict-banner { background: #FFF3E0; border: 0.5px solid #FFCC80; border-radius: var(--radius-sm); padding: 10px 14px; margin-bottom: 12px; display: flex; align-items: flex-start; gap: 10px; }
-.conflict-banner-text { font-size: 13px; color: #E65100; flex: 1; line-height: 1.5; }
-.conflict-banner-actions { display: flex; gap: 6px; margin-top: 6px; }
-.btn-conflict { font-size: 12px; padding: 4px 12px; border-radius: 6px; cursor: pointer; font-family: var(--font); border: 0.5px solid; }
-.btn-conflict-move { background: #E65100; color: white; border-color: #E65100; }
-.btn-conflict-keep { background: var(--white); color: #E65100; border-color: #FFCC80; }
-
-/* SHORTCUT HINT */
-.shortcut-hint { font-size: 10px; color: var(--text3); letter-spacing: .06em; margin-top: 4px; }
-kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); border-radius: 3px; font-size: 10px; font-family: var(--font); background: var(--bg2); color: var(--text2); }
-
 /* AUTH */
 #auth-screen { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 24px; }
 .auth-logo { font-family: var(--font-num); font-size: 44px; color: var(--accent); letter-spacing: .05em; margin-bottom: 4px; }
@@ -81,15 +38,33 @@ kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); b
 
 /* APP */
 #app { display: none; flex-direction: column; height: 100vh; }
-.header { position: sticky; top: 0; z-index: 100; background: rgba(253,250,247,.9); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 0.5px solid var(--sep); padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; }
+.header { position: sticky; top: 0; z-index: 100; background: rgba(253,250,247,.92); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 0.5px solid var(--sep); padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; }
 .header-logo { font-family: var(--font-num); font-size: 22px; color: var(--accent); letter-spacing: .06em; }
 .header-right { display: flex; align-items: center; gap: 12px; }
 .header-date { font-size: 11px; color: var(--text3); }
 .btn-logout { font-size: 11px; color: var(--text3); background: none; border: none; cursor: pointer; font-family: var(--font); }
-.main { flex: 1; overflow-y: auto; padding: 16px 20px 100px; }
-.app-body { display: flex; flex: 1; overflow: hidden; }
 
-/* NAV */
+/* PC NAV */
+.pc-nav { display: none; gap: 4px; }
+.pc-nav-item { display: flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 13px; color: var(--text3); font-weight: 500; transition: all .15s; border: none; background: none; font-family: var(--font); }
+.pc-nav-item:hover { background: var(--bg2); color: var(--text); }
+.pc-nav-item.active { background: var(--accent-light); color: var(--accent); }
+.pc-nav-item svg { width: 16px; height: 16px; flex-shrink: 0; }
+kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); border-radius: 3px; font-size: 10px; font-family: var(--font); background: var(--bg2); color: var(--text2); }
+
+@media (min-width: 900px) {
+  .app-body { display: grid; grid-template-columns: 1fr 300px; flex: 1; overflow: hidden; }
+  .main { padding: 20px 24px 24px; overflow-y: auto; }
+  .right-panel { border-left: 0.5px solid var(--sep); background: var(--white); overflow-y: auto; padding: 20px; display: block !important; }
+  .nav { display: none; }
+  .pc-nav { display: flex !important; }
+}
+
+.app-body { display: flex; flex: 1; overflow: hidden; }
+.main { flex: 1; overflow-y: auto; padding: 16px 20px 100px; }
+.right-panel { display: none; }
+
+/* MOBILE NAV */
 .nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: rgba(242,237,230,.94); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-top: 0.5px solid var(--sep); display: flex; justify-content: space-around; padding: 8px 0 calc(8px + env(safe-area-inset-bottom)); z-index: 100; }
 .nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; padding: 4px 14px; border-radius: 8px; }
 .nav-item:active { background: var(--bg3); }
@@ -100,8 +75,6 @@ kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); b
 /* PAGE */
 .page { display: none; }
 .page.active { display: block; }
-
-/* LABELS */
 .sec-label { font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: var(--text3); font-weight: 500; margin-bottom: 10px; margin-top: 20px; }
 .sec-label:first-child { margin-top: 4px; }
 
@@ -122,17 +95,14 @@ kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); b
 .next-action-meta { font-size: 11px; color: rgba(255,255,255,.7); margin-top: 2px; }
 .next-action-icon { width: 36px; height: 36px; background: rgba(255,255,255,.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 
-/* GOALS */
+/* TODAY 3 GOALS */
 .goals-wrap { display: flex; flex-direction: column; gap: 6px; }
 .goal-card { background: var(--white); border: 0.5px solid var(--sep); border-radius: var(--radius-sm); padding: 10px 12px; display: flex; align-items: center; gap: 10px; }
 .goal-circle { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--bg3); flex-shrink: 0; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all .2s; }
 .goal-circle.done { background: var(--accent); border-color: var(--accent); }
 .goal-text { font-size: 13px; color: var(--text); flex: 1; line-height: 1.4; }
 .goal-text.done { color: var(--text3); text-decoration: line-through; }
-.goal-del { width: 16px; height: 16px; cursor: pointer; opacity: .25; flex-shrink: 0; }
-.goal-add { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: var(--radius-sm); border: 0.5px dashed var(--bg3); cursor: pointer; margin-top: 6px; transition: background .15s; }
-.goal-add:hover { background: var(--bg2); }
-.goal-add-text { font-size: 13px; color: var(--text3); }
+.goal-reason { font-size: 10px; color: var(--text3); margin-top: 2px; }
 
 /* SCHEDULE */
 .sched-row { display: flex; gap: 12px; align-items: flex-start; padding: 4px 0; }
@@ -158,9 +128,12 @@ kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); b
 .type-block { background: var(--bg3); color: var(--text3); }
 .task-title { font-size: 13px; color: var(--text); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .task-time { font-family: var(--font-num); font-size: 13px; color: var(--text3); letter-spacing: .04em; flex-shrink: 0; }
-.task-card-bottom { display: flex; align-items: center; gap: 8px; margin-top: 5px; }
+.task-card-bottom { display: flex; align-items: center; gap: 8px; margin-top: 5px; flex-wrap: wrap; }
 .task-min { font-size: 11px; color: var(--text3); }
 .task-deadline { font-size: 11px; color: var(--accent); }
+/* 秘書の判断理由 */
+.task-reason { font-size: 10px; color: var(--text3); margin-top: 4px; padding-top: 4px; border-top: 0.5px solid var(--sep); display: flex; align-items: center; gap: 4px; }
+.task-reason::before { content: '🐯'; font-size: 9px; }
 
 /* SUBTASK */
 .subtask-list { margin-top: 8px; padding-top: 8px; border-top: 0.5px solid var(--sep); display: flex; flex-direction: column; gap: 4px; }
@@ -171,6 +144,61 @@ kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); b
 .subtask-title.done { color: var(--text3); text-decoration: line-through; }
 .subtask-min { font-size: 11px; color: var(--text3); font-family: var(--font-num); }
 
+/* CONFLICT BANNER */
+.conflict-banner { background: #FFF3E0; border: 0.5px solid #FFCC80; border-radius: var(--radius-sm); padding: 10px 14px; margin-bottom: 12px; }
+.conflict-banner-text { font-size: 13px; color: #E65100; line-height: 1.5; }
+.conflict-banner-actions { display: flex; gap: 6px; margin-top: 6px; }
+.btn-conflict { font-size: 12px; padding: 4px 12px; border-radius: 6px; cursor: pointer; font-family: var(--font); border: 0.5px solid; }
+.btn-conflict-move { background: #E65100; color: white; border-color: #E65100; }
+.btn-conflict-keep { background: var(--white); color: #E65100; border-color: #FFCC80; }
+
+/* ADD PAGE - クイック入力 */
+.quick-wrap { display: flex; flex-direction: column; gap: 12px; }
+.quick-input-row { display: flex; gap: 8px; }
+.quick-input { flex: 1; height: 48px; border: 0.5px solid var(--bg3); border-radius: var(--radius-sm); background: var(--white); padding: 0 14px; font-size: 15px; font-family: var(--font); color: var(--text); outline: none; transition: border-color .2s; }
+.quick-input:focus { border-color: var(--accent); }
+.btn-ai { height: 48px; padding: 0 18px; background: var(--accent); color: white; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; font-family: var(--font); cursor: pointer; white-space: nowrap; transition: opacity .2s; display: flex; align-items: center; gap: 6px; }
+.btn-ai:active { opacity: .8; }
+
+/* AI RESULT + PILL UI */
+.ai-result { background: var(--white); border: 0.5px solid var(--sep); border-radius: var(--radius); padding: 16px; }
+.ai-result-title { font-size: 11px; color: var(--text3); letter-spacing: .1em; text-transform: uppercase; margin-bottom: 12px; }
+.ai-task-name { font-size: 16px; font-weight: 500; color: var(--text); margin-bottom: 14px; }
+.ai-reason-row { font-size: 12px; color: var(--text2); margin-bottom: 14px; padding: 8px 12px; background: var(--bg2); border-radius: 6px; line-height: 1.5; }
+.ai-reason-row::before { content: '🐯 '; }
+/* ピル群 */
+.pill-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.pill { display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: 100px; border: 0.5px solid var(--sep); background: var(--bg2); font-size: 12px; font-weight: 500; color: var(--text); cursor: pointer; transition: all .15s; user-select: none; }
+.pill:hover { border-color: var(--accent); background: var(--accent-light); }
+.pill svg { width: 10px; height: 10px; opacity: .4; }
+/* サブタスクプレビュー */
+.ai-subtasks { margin-bottom: 14px; }
+.ai-subtask-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 0.5px solid var(--sep); font-size: 12px; color: var(--text2); }
+.ai-subtask-item:last-child { border-bottom: none; }
+.ai-actions { display: flex; gap: 8px; }
+.btn-ok { flex: 1; height: 44px; background: var(--accent); color: white; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; font-family: var(--font); cursor: pointer; }
+.btn-ok:active { opacity: .8; }
+.ai-loading { display: flex; align-items: center; gap: 10px; padding: 16px; color: var(--text3); font-size: 13px; }
+.spinner { width: 18px; height: 18px; border: 2px solid var(--bg3); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; flex-shrink: 0; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* PILL POPOVER */
+.pill-popover { position: absolute; background: var(--white); border: 0.5px solid var(--sep); border-radius: var(--radius-sm); padding: 6px; box-shadow: 0 4px 20px rgba(0,0,0,.1); z-index: 150; min-width: 140px; }
+.pill-option { padding: 8px 12px; border-radius: 6px; font-size: 13px; color: var(--text); cursor: pointer; transition: background .12s; }
+.pill-option:hover { background: var(--bg2); }
+.pill-option.active { color: var(--accent); font-weight: 500; }
+.pill-number-row { display: flex; align-items: center; gap: 8px; padding: 8px 12px; }
+.pill-number-input { width: 70px; height: 36px; border: 0.5px solid var(--bg3); border-radius: 6px; padding: 0 10px; font-size: 14px; font-family: var(--font-num); color: var(--text); background: var(--bg); outline: none; text-align: center; }
+.pill-number-input:focus { border-color: var(--accent); }
+.btn-pill-apply { height: 36px; padding: 0 12px; background: var(--accent); color: white; border: none; border-radius: 6px; font-size: 13px; font-family: var(--font); cursor: pointer; }
+
+/* 時刻ピル専用 */
+.time-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 4px; padding: 8px; }
+.time-option { padding: 7px 4px; text-align: center; border-radius: 6px; font-family: var(--font-num); font-size: 13px; color: var(--text); cursor: pointer; transition: background .12s; }
+.time-option:hover { background: var(--bg2); }
+.time-option.active { background: var(--accent-light); color: var(--accent); }
+.time-option.taken { opacity: .35; pointer-events: none; }
+
 /* MODAL */
 .modal-overlay { position: fixed; inset: 0; background: rgba(45,59,46,.18); display: flex; align-items: flex-end; z-index: 200; opacity: 0; pointer-events: none; transition: opacity .25s; }
 .modal-overlay.open { opacity: 1; pointer-events: all; }
@@ -178,65 +206,6 @@ kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); b
 .modal-overlay.open .modal { transform: translateY(0); }
 .modal-handle { width: 36px; height: 4px; background: var(--bg3); border-radius: 2px; margin: 12px auto 20px; }
 .modal-title { font-size: 15px; font-weight: 500; margin-bottom: 20px; }
-
-/* INPUT MODE TABS */
-.mode-tabs { display: flex; background: var(--bg2); border-radius: var(--radius-sm); padding: 3px; gap: 3px; margin-bottom: 20px; }
-.mode-tab { flex: 1; height: 36px; border: none; border-radius: 6px; font-size: 13px; font-family: var(--font); cursor: pointer; background: none; color: var(--text3); font-weight: 500; transition: all .2s; }
-.mode-tab.active { background: var(--white); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.08); }
-
-/* QUICK INPUT */
-.quick-wrap { display: flex; flex-direction: column; gap: 12px; }
-.quick-input-row { display: flex; gap: 8px; }
-.quick-input { flex: 1; height: 48px; border: 0.5px solid var(--bg3); border-radius: var(--radius-sm); background: var(--white); padding: 0 14px; font-size: 15px; font-family: var(--font); color: var(--text); outline: none; transition: border-color .2s; }
-.quick-input:focus { border-color: var(--accent); }
-.btn-ai { height: 48px; padding: 0 18px; background: var(--accent); color: white; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; font-family: var(--font); cursor: pointer; white-space: nowrap; transition: opacity .2s; display: flex; align-items: center; gap: 6px; }
-.btn-ai:active { opacity: .8; }
-.ai-result { background: var(--white); border: 0.5px solid var(--sep); border-radius: var(--radius); padding: 14px; }
-.ai-result-title { font-size: 11px; color: var(--text3); letter-spacing: .1em; text-transform: uppercase; margin-bottom: 12px; }
-.ai-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 0.5px solid var(--sep); }
-.ai-row:last-of-type { border-bottom: none; }
-.ai-row-label { font-size: 12px; color: var(--text3); }
-.ai-row-val { font-size: 13px; color: var(--text); font-weight: 500; }
-.ai-subtasks { margin-top: 10px; padding-top: 10px; border-top: 0.5px solid var(--sep); }
-.ai-subtask-item { font-size: 12px; color: var(--text2); padding: 4px 0; display: flex; justify-content: space-between; }
-.ai-actions { display: flex; gap: 8px; margin-top: 14px; }
-.btn-ok { flex: 1; height: 44px; background: var(--accent); color: white; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; font-family: var(--font); cursor: pointer; }
-.btn-edit { height: 44px; padding: 0 18px; background: var(--white); border: 0.5px solid var(--sep); border-radius: var(--radius-sm); font-size: 14px; font-family: var(--font); color: var(--text2); cursor: pointer; }
-.ai-loading { display: flex; align-items: center; gap: 10px; padding: 16px; color: var(--text3); font-size: 13px; }
-.spinner { width: 18px; height: 18px; border: 2px solid var(--bg3); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; flex-shrink: 0; }
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* WIZARD */
-.wiz-q { font-size: 16px; font-weight: 500; margin-bottom: 6px; line-height: 1.5; }
-.wiz-sub { font-size: 13px; color: var(--text3); margin-bottom: 20px; line-height: 1.5; }
-.wiz-options { display: flex; flex-direction: column; gap: 8px; }
-.wiz-opt { background: var(--white); border: 0.5px solid var(--sep); border-radius: var(--radius-sm); padding: 12px 14px; cursor: pointer; transition: all .15s; display: flex; align-items: center; gap: 10px; }
-.wiz-opt:active, .wiz-opt.sel { background: var(--bg2); border-color: var(--accent); }
-.wiz-opt-text { font-size: 14px; font-weight: 500; }
-.wiz-opt-sub { font-size: 12px; color: var(--text3); margin-top: 1px; }
-.wiz-input-wrap { margin-bottom: 14px; }
-.wiz-label { font-size: 11px; color: var(--text3); letter-spacing: .1em; text-transform: uppercase; margin-bottom: 6px; display: block; }
-.wiz-input { width: 100%; height: 44px; border: 0.5px solid var(--bg3); border-radius: var(--radius-sm); background: var(--white); padding: 0 12px; font-size: 14px; font-family: var(--font); color: var(--text); outline: none; transition: border-color .2s; }
-.wiz-input:focus { border-color: var(--accent); }
-.wiz-input-lg { height: auto; padding: 10px 12px; resize: none; }
-.wiz-row { display: flex; gap: 10px; }
-.wiz-row .wiz-input-wrap { flex: 1; }
-.wiz-nav { display: flex; gap: 8px; margin-top: 20px; }
-.btn-back { height: 44px; padding: 0 18px; border: 0.5px solid var(--bg3); border-radius: var(--radius-sm); background: var(--white); font-size: 14px; font-family: var(--font); color: var(--text2); cursor: pointer; }
-.btn-next { flex: 1; height: 44px; background: var(--accent); color: white; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; font-family: var(--font); cursor: pointer; }
-.decompose-preview { background: var(--white); border: 0.5px solid var(--sep); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 14px; }
-.decompose-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 0.5px solid var(--sep); font-size: 13px; color: var(--text); }
-.decompose-item:last-child { border-bottom: none; }
-.decompose-min { font-size: 12px; color: var(--text3); font-family: var(--font-num); }
-
-/* TIME SLOTS */
-.time-slots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 14px; }
-.time-slot { background: var(--white); border: 0.5px solid var(--sep); border-radius: var(--radius-sm); padding: 8px 6px; cursor: pointer; text-align: center; transition: all .15s; }
-.time-slot:hover, .time-slot.selected { border-color: var(--accent); background: var(--accent-light); }
-.time-slot-time { font-family: var(--font-num); font-size: 15px; color: var(--accent); }
-.time-slot-label { font-size: 10px; color: var(--text3); margin-top: 1px; }
-.time-slot.taken { opacity: .4; cursor: not-allowed; }
-.time-slot.taken:hover { border-color: var(--sep); background: var(--white); }
 
 /* DETAIL MODAL */
 .detail-actions { display: flex; gap: 8px; margin-top: 16px; }
@@ -257,12 +226,29 @@ kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); b
 .btn-sm { height: 32px; padding: 0 12px; border-radius: 6px; font-size: 12px; font-family: var(--font); cursor: pointer; border: 0.5px solid var(--sep); background: var(--bg2); color: var(--text2); }
 .btn-sm-accent { background: var(--accent); color: white; border-color: var(--accent); }
 
-/* EMPTY */
-.empty { text-align: center; padding: 36px 20px; color: var(--text3); font-size: 13px; line-height: 1.8; }
+/* TOMORROW PAGE */
+.tomorrow-load-bar { background: var(--white); border: 0.5px solid var(--sep); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 16px; }
+.tomorrow-load-label { font-size: 11px; color: var(--text3); letter-spacing: .08em; text-transform: uppercase; margin-bottom: 8px; display: flex; justify-content: space-between; }
+.tomorrow-load-nums { font-family: var(--font-num); font-size: 14px; color: var(--text2); }
+.tomorrow-load-nums span { color: var(--accent); }
 
-/* TOAST */
+/* BLOCK MODAL */
+.wiz-input-wrap { margin-bottom: 14px; }
+.wiz-label { font-size: 11px; color: var(--text3); letter-spacing: .1em; text-transform: uppercase; margin-bottom: 6px; display: block; }
+.wiz-input { width: 100%; height: 44px; border: 0.5px solid var(--bg3); border-radius: var(--radius-sm); background: var(--white); padding: 0 12px; font-size: 14px; font-family: var(--font); color: var(--text); outline: none; transition: border-color .2s; }
+.wiz-input:focus { border-color: var(--accent); }
+.wiz-row { display: flex; gap: 10px; }
+.wiz-row .wiz-input-wrap { flex: 1; }
+.btn-next { flex: 1; height: 44px; background: var(--accent); color: white; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; font-family: var(--font); cursor: pointer; }
+
+/* EMPTY / TOAST */
+.empty { text-align: center; padding: 36px 20px; color: var(--text3); font-size: 13px; line-height: 1.8; }
 .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(16px); background: var(--green); color: white; font-size: 13px; padding: 10px 20px; border-radius: 100px; z-index: 300; opacity: 0; transition: all .3s; white-space: nowrap; pointer-events: none; }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* RIGHT PANEL */
+.right-panel-sec { margin-bottom: 20px; }
+.right-panel-title { font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: var(--text3); font-weight: 500; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
 </style>
 </head>
 <body>
@@ -311,7 +297,6 @@ kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); b
 
   <div class="app-body">
     <div class="main" id="main-content">
-
       <!-- 今日 -->
       <div class="page active" id="page-today">
         <div id="conflict-area"></div>
@@ -319,38 +304,25 @@ kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); b
         <div id="buffer-wrap"></div>
         <div class="sec-label">今日の3つ</div>
         <div class="goals-wrap" id="goals-list"></div>
-        <div class="goal-add" id="goal-add-btn">
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="7" y1="2" x2="7" y2="12" stroke="#9AA59B" stroke-width="1.5" stroke-linecap="round"/><line x1="2" y1="7" x2="12" y2="7" stroke="#9AA59B" stroke-width="1.5" stroke-linecap="round"/></svg>
-          <span class="goal-add-text">完了条件を追加</span>
-        </div>
         <div class="sec-label" style="margin-top:20px;">今日のスケジュール</div>
         <div id="schedule-list"></div>
       </div>
 
       <!-- 追加 -->
       <div class="page" id="page-add">
-        <div class="sec-label" style="margin-top:4px;">タスクを追加 <span class="shortcut-hint" style="margin-left:8px;">Enterで送信</span></div>
-        <div class="mode-tabs">
-          <button class="mode-tab active" id="tab-quick">AI クイック入力</button>
-          <button class="mode-tab" id="tab-detail">詳細入力</button>
-        </div>
-        <div id="quick-panel">
-          <div class="quick-wrap">
-            <div>
-              <label class="wiz-label">タスク名を入れてAIに任せる</label>
-              <div class="quick-input-row">
-                <input class="quick-input" id="quick-title" placeholder="例：来月キャンペーン企画" maxlength="60">
-                <button class="btn-ai" id="quick-ai-btn">
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="white" stroke-width="1.5"/><path d="M5 8 C5 6.3 6.3 5 8 5 C9.7 5 11 6.3 11 8" stroke="white" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="10" r="1" fill="white"/></svg>
-                  AI分析
-                </button>
-              </div>
+        <div class="sec-label" style="margin-top:4px;">タスクを追加</div>
+        <div class="quick-wrap">
+          <div>
+            <label class="wiz-label">タスク名を入れてAIに任せる</label>
+            <div class="quick-input-row">
+              <input class="quick-input" id="quick-title" placeholder="例：来月キャンペーン企画" maxlength="60">
+              <button class="btn-ai" id="quick-ai-btn">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="white" stroke-width="1.5"/><path d="M5 8 C5 6.3 6.3 5 8 5 C9.7 5 11 6.3 11 8" stroke="white" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="10" r="1" fill="white"/></svg>
+                AI分析
+              </button>
             </div>
-            <div id="quick-result"></div>
           </div>
-        </div>
-        <div id="detail-panel" style="display:none;">
-          <div id="wizard-container"></div>
+          <div id="quick-result"></div>
         </div>
       </div>
 
@@ -371,30 +343,32 @@ kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); b
         <div id="task-list"></div>
       </div>
 
-      <!-- 明日の準備 -->
+      <!-- 明日 -->
       <div class="page" id="page-tomorrow">
+        <div id="tomorrow-load-wrap"></div>
         <div class="sec-label" style="margin-top:4px;">固定ブロック（会議・MTG）</div>
         <div id="block-list"></div>
         <button class="btn-sm btn-sm-accent" id="add-block-btn" style="margin-bottom:16px;">+ 会議・MTGを追加</button>
-        <div class="sec-label">今日の持ち越し</div>
-        <div id="carried-list"></div>
-        <div class="sec-label">未スケジュールのタスク</div>
+        <div class="sec-label">明日のタスク</div>
+        <div id="tomorrow-task-list"></div>
+        <div class="sec-label">未スケジュール</div>
         <div id="unscheduled-list"></div>
         <button class="btn-primary" id="plot-tomorrow-btn" style="margin-top:16px;">明日に自動プロット</button>
       </div>
-
     </div>
 
-    <!-- PC右パネル：週間タイムライン -->
-    <div class="right-panel" id="right-panel" style="display:none;">
-      <div class="sec-label" style="margin-top:0;">今週</div>
-      <div class="week-view" id="week-view"></div>
-      <div style="margin-top:16px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-          <div class="sec-label" style="margin:0;">会議・MTG</div>
+    <!-- PC右パネル -->
+    <div class="right-panel" id="right-panel">
+      <div class="right-panel-sec">
+        <div class="right-panel-title">
+          <span>今日の会議・MTG</span>
           <button class="btn-sm" id="add-block-right-btn" style="font-size:11px;">+ 追加</button>
         </div>
         <div id="block-list-right"></div>
+      </div>
+      <div class="right-panel-sec">
+        <div class="right-panel-title">明日の負荷</div>
+        <div id="tomorrow-mini-load"></div>
       </div>
     </div>
   </div>
@@ -421,7 +395,6 @@ kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); b
 
 <!-- MODALS -->
 <div class="modal-overlay" id="detail-modal"><div class="modal"><div class="modal-handle"></div><div id="detail-body"></div></div></div>
-<div class="modal-overlay" id="goal-modal"><div class="modal"><div class="modal-handle"></div><div class="modal-title">完了条件を追加</div><div class="wiz-input-wrap"><label class="wiz-label">今日これが終わればOK</label><input class="wiz-input" id="goal-input" placeholder="例：企画たたき台1枚を上司に送る" maxlength="60"></div><button class="btn-next" id="goal-save-btn">追加する</button></div></div>
 <div class="modal-overlay" id="review-modal"><div class="modal"><div class="modal-handle"></div><div class="modal-title">週次レビュー</div><div id="review-body"></div></div></div>
 <div class="modal-overlay" id="block-modal">
   <div class="modal">
@@ -436,6 +409,8 @@ kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); b
     <button class="btn-next" id="block-save-btn">追加する</button>
   </div>
 </div>
+<!-- ピルポップオーバー -->
+<div id="pill-popover" class="pill-popover" style="display:none;"></div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -444,29 +419,160 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const GEMINI_KEY = 'AIzaSyD4raUNFiMB11DrgxU5iWZxQaBdpV1dVr4';
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { autoRefreshToken: true, persistSession: true, detectSessionInUrl: false } });
 
-let currentUser = null, allTasks = [], allSubtasks = [], allBlocks = [], todayGoals = [], currentFilter = 'all', wizardData = {}, aiResult = null;
+let currentUser = null, allTasks = [], allSubtasks = [], allBlocks = [], currentFilter = 'all', aiResult = null;
 const TODAY = new Date();
 const TODAY_STR = TODAY.toISOString().split('T')[0];
+const TOMORROW = new Date(TODAY); TOMORROW.setDate(TODAY.getDate()+1);
+const TOMORROW_STR = TOMORROW.toISOString().split('T')[0];
 const DAYS = ['日','月','火','水','木','金','土'];
 
-const DECOMPOSE_PATTERNS = {
-  research: [{ title: '情報・事例リサーチ', minutes: 30 }, { title: '情報整理', minutes: 15 }, { title: '作成', minutes: 45 }],
-  confirm: [{ title: '確認事項をまとめる', minutes: 15 }, { title: '確認依頼を送る', minutes: 5 }, { title: '返信待ち・作成', minutes: 45 }],
-  find_resource: [{ title: '過去資料・テンプレを探す', minutes: 15 }, { title: '作成', minutes: 45 }],
-  fully_unknown: [{ title: 'わからないことを洗い出す', minutes: 30 }, { title: '分解・計画を立てる', minutes: 10 }, { title: '実行', minutes: 45 }],
-  multi_person: [{ title: '担当整理・タスク切り出し', minutes: 15 }, { title: '依頼を送る', minutes: 10 }, { title: '自分のパート実行', minutes: 45 }],
-  approval: [{ title: '作成', minutes: 45 }, { title: '確認依頼', minutes: 5 }, { title: '修正対応（バッファ）', minutes: 20 }, { title: '承認待ち', minutes: 5 }],
-  material: [{ title: '素材・データ収集', minutes: 20 }, { title: '作成', minutes: 45 }],
-  judgment: [{ title: '判断材料を整理する', minutes: 20 }, { title: '意思決定', minutes: 10 }, { title: '実行', minutes: 30 }]
-};
+// ============================================================
+// 虎の巻ルール
+// ============================================================
+// タイプ別デフォルト時間
+const DEFAULT_MINUTES = { routine: 30, unknown: 30, judgment: 25, dependent: 15 };
+// タイプ別配置枠
+// routine/dependent → 日中(9:00-16:00)
+// unknown/judgment → 午前優先(9:00-12:00)、なければ日中
+// 企画・資料系(unknown) → 16:00以降の集中枠も候補
+const BUFFER_LIMIT = 340; // 480分の約30%引き = 340分を実稼働上限
+// バッファ付き時間（タイプ別）
+const TYPE_BUFFER = { routine: 0, unknown: 15, judgment: 10, dependent: 5 };
 
+function typeLabel(type) {
+  return { routine: 'ルーティン', unknown: '初めて', judgment: '判断', dependent: '他者依存', block: '固定' }[type] || type;
+}
+
+// ============================================================
+// 優先度スコアリング（虎の巻準拠）
+// ============================================================
+function calcPriorityScore(task) {
+  let score = 0;
+  // 期限スコア: 期限近いほど高い
+  if (task.deadline) {
+    const daysLeft = Math.ceil((new Date(task.deadline) - TODAY) / (1000*60*60*24));
+    if (daysLeft <= 0) score += 100;
+    else if (daysLeft === 1) score += 80;
+    else if (daysLeft <= 3) score += 50;
+    else if (daysLeft <= 7) score += 20;
+  }
+  // タイプスコア: 判断・初めては脳リソース高いうちに
+  const typeScore = { judgment: 30, unknown: 25, dependent: 20, routine: 10 };
+  score += typeScore[task.type] || 10;
+  // 所要時間スコア: 短いタスクは詰め込みやすい
+  if ((task.estimated_minutes || 30) <= 15) score += 10;
+  return score;
+}
+
+// 秘書の判断理由を生成
+function buildReason(task) {
+  const parts = [];
+  if (task.deadline) {
+    const daysLeft = Math.ceil((new Date(task.deadline) - TODAY) / (1000*60*60*24));
+    if (daysLeft <= 0) parts.push('期限超過');
+    else if (daysLeft === 1) parts.push('期限明日');
+    else if (daysLeft <= 3) parts.push(`期限${daysLeft}日`);
+  }
+  if (task.type === 'judgment' || task.type === 'unknown') parts.push('午前の脳リソースで対応');
+  if (task.type === 'dependent') parts.push('早めにボールを渡す');
+  if (task.type === 'routine') parts.push('テンプレで流す');
+  if (task.scheduled_time) {
+    const h = parseInt(task.scheduled_time.split(':')[0]);
+    if (h >= 16) parts.push('集中枠に配置');
+    else if (h < 12) parts.push('午前枠に配置');
+  }
+  return parts.join(' · ') || '標準スケジュール';
+}
+
+// ============================================================
+// 空き枠計算（虎の巻: 上限340分）
+// ============================================================
+function getAvailableSlots(date) {
+  const WORK_START = 9 * 60, WORK_END = 18 * 60;
+  const blockedRanges = allBlocks.filter(b => b.date === date).map(b => {
+    const [sh,sm] = b.start_time.split(':').map(Number);
+    const [eh,em] = b.end_time.split(':').map(Number);
+    return { start: sh*60+sm, end: eh*60+em };
+  });
+  const scheduled = allTasks.filter(t => t.scheduled_date === date && t.scheduled_time && t.status !== 'done').map(t => {
+    const [h,m] = t.scheduled_time.split(':').map(Number);
+    const mins = t.estimated_minutes || 30;
+    return { start: h*60+m, end: h*60+m+mins };
+  });
+  const busy = [...blockedRanges, ...scheduled].sort((a,b) => a.start - b.start);
+  const slots = [];
+  let cursor = WORK_START;
+  for (const b of busy) {
+    if (cursor < b.start) slots.push({ start: cursor, end: b.start });
+    cursor = Math.max(cursor, b.end);
+  }
+  if (cursor < WORK_END) slots.push({ start: cursor, end: WORK_END });
+  return slots;
+}
+
+function autoPlotTime(type, estimatedMin, date) {
+  const slots = getAvailableSlots(date);
+  const needed = estimatedMin + (TYPE_BUFFER[type] || 0);
+  // 判断・初めて → 午前優先(9:00-12:00)
+  const NOON = 12 * 60;
+  const CONC = 16 * 60; // 集中枠開始
+  let candidates;
+  if (type === 'judgment' || type === 'unknown') {
+    // 午前 → 集中枠 → 日中の順
+    candidates = [
+      ...slots.filter(s => s.start < NOON),
+      ...slots.filter(s => s.start >= CONC),
+      ...slots.filter(s => s.start >= NOON && s.start < CONC)
+    ];
+  } else if (type === 'routine' || type === 'dependent') {
+    // 日中優先(午前〜16時)
+    candidates = [
+      ...slots.filter(s => s.start >= 9*60 && s.start < CONC),
+      ...slots.filter(s => s.start >= CONC)
+    ];
+  } else {
+    candidates = slots;
+  }
+  for (const slot of candidates) {
+    if (slot.end - slot.start >= needed) {
+      const h = Math.floor(slot.start / 60);
+      const m = slot.start % 60;
+      return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+    }
+  }
+  // フォールバック: 最初の空き枠
+  if (slots.length) {
+    const h = Math.floor(slots[0].start / 60);
+    const m = slots[0].start % 60;
+    return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+  }
+  return '09:00';
+}
+
+// 今日の総使用時間を計算
+function calcUsedMinutes(date) {
+  const taskMin = allTasks.filter(t => t.scheduled_date === date && t.status !== 'done').reduce((a,t) => a+(t.estimated_minutes||0),0);
+  const blockMin = allBlocks.filter(b => b.date === date).reduce((a,b) => {
+    const [sh,sm] = b.start_time.split(':').map(Number);
+    const [eh,em] = b.end_time.split(':').map(Number);
+    return a + (eh*60+em - sh*60-sm);
+  }, 0);
+  return taskMin + blockMin;
+}
+
+// ============================================================
+// ユーティリティ
+// ============================================================
 function fmt(d) { return `${d.getMonth()+1}/${d.getDate()} (${DAYS[d.getDay()]})`; }
-function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2200); }
+function showToast(msg) { const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2200); }
 function openModal(id) { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-function typeLabel(type) { return { routine: 'ルーティン', unknown: '初めて', judgment: '判断', dependent: '他者依存', block: '固定' }[type] || type; }
+// scheduled_dateを'YYYY-MM-DD'に正規化（Supabaseが返すISO形式に対応）
+function normalizeDate(d) { if(!d) return null; return String(d).slice(0,10); }
 
+// ============================================================
 // AUTH
+// ============================================================
 let authMode = 'login';
 document.getElementById('auth-btn').addEventListener('click', async () => {
   const email = document.getElementById('auth-email').value.trim();
@@ -497,7 +603,7 @@ db.auth.onAuthStateChange((event, session) => {
     document.getElementById('auth-screen').style.display = 'none';
     document.getElementById('app').style.display = 'flex';
     document.getElementById('header-date').textContent = fmt(TODAY);
-    document.getElementById('block-date').value = TODAY_STR;
+    document.getElementById('block-date').value = TOMORROW_STR;
     loadAll();
   } else {
     currentUser = null;
@@ -506,26 +612,32 @@ db.auth.onAuthStateChange((event, session) => {
   }
 });
 
+// ============================================================
 // LOAD
+// ============================================================
 async function loadAll() {
-  const [{ data: tasks }, { data: subtasks }, { data: blocks }, { data: goals }] = await Promise.all([
+  const [{ data: tasks }, { data: subtasks }, { data: blocks }] = await Promise.all([
     db.from('tasks').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false }),
     db.from('subtasks').select('*').order('sort_order'),
-    db.from('blocks').select('*').eq('user_id', currentUser.id).order('start_time'),
-    db.from('daily_goals').select('*').eq('user_id', currentUser.id).eq('date', TODAY_STR).order('sort_order')
+    db.from('blocks').select('*').eq('user_id', currentUser.id).order('start_time')
   ]);
-  allTasks = tasks || []; allSubtasks = subtasks || []; allBlocks = blocks || []; todayGoals = goals || [];
-  checkPCLayout();
+  // scheduled_dateを正規化
+  allTasks = (tasks || []).map(t => ({ ...t, scheduled_date: normalizeDate(t.scheduled_date) }));
+  allSubtasks = subtasks || [];
+  allBlocks = blocks || [];
   renderToday();
+  renderRightPanel();
 }
 
-// NAV（モバイル＋PC共通）
+// ============================================================
+// NAV
+// ============================================================
 function navigateTo(page) {
   document.querySelectorAll('.nav-item, .pc-nav-item').forEach(n => n.classList.remove('active'));
   document.querySelectorAll(`[data-page="${page}"]`).forEach(n => n.classList.add('active'));
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-' + page).classList.add('active');
-  if (page === 'add') { initAddPage(); }
+  if (page === 'add') initAddPage();
   if (page === 'list') renderTaskList();
   if (page === 'tomorrow') renderTomorrow();
   if (page === 'today') renderToday();
@@ -533,150 +645,50 @@ function navigateTo(page) {
 document.querySelectorAll('.nav-item, .pc-nav-item').forEach(item => {
   item.addEventListener('click', () => navigateTo(item.dataset.page));
 });
-
-// PCレイアウト検知
-function checkPCLayout() {
-  const isPC = window.innerWidth >= 900;
-  const rightPanel = document.getElementById('right-panel');
-  rightPanel.style.display = isPC ? 'block' : 'none';
-  const mainContent = document.getElementById('main-content');
-  mainContent.style.maxWidth = isPC ? 'none' : '480px';
-  if (isPC) renderWeekView();
-}
-window.addEventListener('resize', checkPCLayout);
-
-// 週間ビュー
-function renderWeekView() {
-  const wrap = document.getElementById('week-view');
-  if (!wrap) return;
-  const mon = new Date(TODAY);
-  mon.setDate(TODAY.getDate() - ((TODAY.getDay() + 6) % 7));
-  wrap.innerHTML = '';
-  for (let i = 0; i < 5; i++) {
-    const day = new Date(mon);
-    day.setDate(mon.getDate() + i);
-    const dStr = day.toISOString().split('T')[0];
-    const isToday = dStr === TODAY_STR;
-    const dayTasks = allTasks.filter(t => t.scheduled_date === dStr && t.status !== 'done');
-    const dayBlocks = allBlocks.filter(b => b.date === dStr);
-    const col = document.createElement('div');
-    col.className = 'week-day-col';
-    col.innerHTML = `<div class="week-day-header${isToday ? ' today' : ''}">${DAYS[day.getDay()]} ${day.getDate()}</div>`;
-    dayBlocks.forEach(b => {
-      const div = document.createElement('div');
-      div.className = 'week-task-block wt-block';
-      div.textContent = b.title;
-      col.appendChild(div);
-    });
-    if (!dayTasks.length && !dayBlocks.length) {
-      const emp = document.createElement('div');
-      emp.className = 'week-empty'; emp.textContent = '−';
-      col.appendChild(emp);
-    }
-    dayTasks.forEach(t => {
-      const div = document.createElement('div');
-      div.className = `week-task-block wt-${t.type}`;
-      div.textContent = t.title;
-      div.addEventListener('click', () => openDetail(t.id));
-      col.appendChild(div);
-    });
-    wrap.appendChild(col);
-  }
-  renderBlockListRight();
-}
-
-function renderBlockListRight() {
-  const wrap = document.getElementById('block-list-right');
-  if (!wrap) return;
-  const todayBlocks = allBlocks.filter(b => b.date === TODAY_STR);
-  wrap.innerHTML = todayBlocks.length
-    ? todayBlocks.map(b => `<div class="task-card block-card" style="margin-bottom:6px;cursor:default;"><div class="task-card-top"><div class="task-card-left"><div class="task-type-badge type-block">固定</div><span class="task-title">${b.title}</span></div><span class="task-time">${b.start_time.slice(0,5)}〜${b.end_time.slice(0,5)}</span></div></div>`).join('')
-    : '<div style="font-size:12px;color:var(--text3);padding:4px 0;">今日の会議なし</div>';
-}
-
-document.getElementById('add-block-right-btn')?.addEventListener('click', () => {
-  document.getElementById('block-date').value = TODAY_STR;
-  openModal('block-modal');
-});
-
-// 衝突検知・提案
-function checkConflicts() {
-  const area = document.getElementById('conflict-area');
-  if (!area) return;
-  const conflicts = [];
-  allTasks.filter(t => t.scheduled_date === TODAY_STR && t.scheduled_time && t.status === 'pending').forEach(task => {
-    const [th, tm] = task.scheduled_time.split(':').map(Number);
-    const taskStart = th * 60 + tm;
-    const taskEnd = taskStart + (task.estimated_minutes || 30);
-    allBlocks.filter(b => b.date === TODAY_STR).forEach(block => {
-      const [bsh, bsm] = block.start_time.split(':').map(Number);
-      const [beh, bem] = block.end_time.split(':').map(Number);
-      const blockStart = bsh * 60 + bsm;
-      const blockEnd = beh * 60 + bem;
-      if (taskStart < blockEnd && taskEnd > blockStart) {
-        conflicts.push({ task, block });
-      }
-    });
-  });
-  if (!conflicts.length) { area.innerHTML = ''; return; }
-  area.innerHTML = conflicts.map(({ task, block }) => `
-    <div class="conflict-banner">
-      <div style="flex:1;">
-        <div class="conflict-banner-text">「${task.title}」が「${block.title}」(${block.start_time.slice(0,5)}〜${block.end_time.slice(0,5)})と重なっています</div>
-        <div class="conflict-banner-actions">
-          <button class="btn-conflict btn-conflict-move" onclick="moveConflictTask('${task.id}')">空き枠に移動</button>
-          <button class="btn-conflict btn-conflict-keep" onclick="dismissConflict(this)">このままにする</button>
-        </div>
-      </div>
-    </div>
-  `).join('');
-}
-
-window.moveConflictTask = async function(taskId) {
-  const task = allTasks.find(t => t.id === taskId);
-  if (!task) return;
-  const newTime = autoPlotTime(task.type, task.estimated_minutes, TODAY_STR);
-  await db.from('tasks').update({ scheduled_time: newTime }).eq('id', taskId);
-  task.scheduled_time = newTime;
-  renderToday();
-  showToast(`${task.title}を${newTime}に移動しました`);
-};
-window.dismissConflict = function(btn) {
-  btn.closest('.conflict-banner').remove();
-};
-
-// キーボードショートカット
 document.addEventListener('keydown', e => {
-  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   switch(e.key.toLowerCase()) {
-    case 'n': navigateTo('add'); setTimeout(() => document.getElementById('quick-title')?.focus(), 100); break;
+    case 'n': navigateTo('add'); setTimeout(()=>document.getElementById('quick-title')?.focus(),100); break;
     case 'd': navigateTo('today'); break;
     case 'l': navigateTo('list'); break;
     case 'm': navigateTo('tomorrow'); break;
-    case 'escape': ['detail-modal','goal-modal','review-modal','block-modal'].forEach(id => closeModal(id)); break;
+    case 'escape': ['detail-modal','review-modal','block-modal'].forEach(id=>closeModal(id)); hidePillPopover(); break;
   }
 });
 
+// ============================================================
 // TODAY
+// ============================================================
 function renderToday() {
   checkConflicts();
   renderNextAction();
   renderBuffer();
   renderGoals();
   renderSchedule();
-  if (window.innerWidth >= 900) renderWeekView();
+  renderRightPanel();
 }
 
 function renderNextAction() {
   const wrap = document.getElementById('next-action-wrap');
   const now = new Date();
-  const nowStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-  const upcoming = allTasks.filter(t => t.scheduled_date === TODAY_STR && t.status === 'pending').sort((a,b) => (a.scheduled_time||'99:99').localeCompare(b.scheduled_time||'99:99'));
-  const next = upcoming.find(t => !t.scheduled_time || t.scheduled_time.slice(0,5) >= nowStr) || upcoming[0];
+  const nowMin = now.getHours()*60 + now.getMinutes();
+  const todayPending = allTasks
+    .filter(t => t.scheduled_date === TODAY_STR && t.status === 'pending')
+    .sort((a,b) => {
+      const ta = a.scheduled_time ? parseInt(a.scheduled_time.split(':')[0])*60+parseInt(a.scheduled_time.split(':')[1]) : 9999;
+      const tb = b.scheduled_time ? parseInt(b.scheduled_time.split(':')[0])*60+parseInt(b.scheduled_time.split(':')[1]) : 9999;
+      return ta - tb;
+    });
+  const next = todayPending.find(t => {
+    if (!t.scheduled_time) return true;
+    const [h,m] = t.scheduled_time.split(':').map(Number);
+    return h*60+m >= nowMin;
+  }) || todayPending[0];
   if (!next) { wrap.innerHTML = ''; return; }
   const subs = allSubtasks.filter(s => s.task_id === next.id);
   const nextSub = subs.find(s => s.status === 'pending');
+  const reason = buildReason(next);
   wrap.innerHTML = `
     <div class="next-action" id="next-action-card" data-id="${next.id}">
       <div class="next-action-icon">
@@ -694,61 +706,68 @@ function renderNextAction() {
 
 function renderBuffer() {
   const wrap = document.getElementById('buffer-wrap');
-  const todayTasks = allTasks.filter(t => t.scheduled_date === TODAY_STR && t.status !== 'done');
-  const todayBlocks = allBlocks.filter(b => b.date === TODAY_STR);
-  const totalTaskMin = todayTasks.reduce((a,t) => a + (t.estimated_minutes||0), 0);
-  const totalBlockMin = todayBlocks.reduce((b,bl) => {
-    const [sh,sm] = bl.start_time.split(':').map(Number);
-    const [eh,em] = bl.end_time.split(':').map(Number);
-    return b + (eh*60+em - sh*60-sm);
-  }, 0);
-  const workMin = 8 * 60;
-  const usedMin = totalTaskMin + totalBlockMin;
-  const pct = Math.min(100, Math.round(usedMin / workMin * 100));
-  const remaining = workMin - usedMin;
+  const used = calcUsedMinutes(TODAY_STR);
+  const pct = Math.min(100, Math.round(used / 480 * 100));
+  const bufferPct = Math.round((480 - used) / 480 * 100);
   wrap.innerHTML = `
     <div class="buffer-bar">
       <div class="buffer-top">
         <span class="buffer-label">今日の使用時間</span>
-        <span class="buffer-nums"><span>${usedMin}</span>/${workMin}min</span>
+        <span class="buffer-nums"><span>${used}</span>/${BUFFER_LIMIT}min上限 · 空き${Math.max(0,BUFFER_LIMIT-used)}min</span>
       </div>
-      <div class="buffer-track"><div class="buffer-fill ${pct > 85 ? 'warn' : ''}" style="width:${pct}%"></div></div>
+      <div class="buffer-track"><div class="buffer-fill ${used > BUFFER_LIMIT ? 'warn' : ''}" style="width:${Math.min(100,Math.round(used/BUFFER_LIMIT*100))}%"></div></div>
     </div>
   `;
 }
 
+// 今日の3つ: 優先度上位3件を自動表示
 function renderGoals() {
   const list = document.getElementById('goals-list');
-  list.innerHTML = '';
-  todayGoals.forEach(g => {
-    const task = allTasks.find(t => t.id === g.task_id);
-    const title = task ? task.title : (g.memo || g.task_id);
-    const done = task ? task.status === 'done' : false;
-    const div = document.createElement('div');
-    div.className = 'goal-card';
-    div.innerHTML = `
-      <div class="goal-circle ${done ? 'done' : ''}" data-id="${g.task_id}">
-        ${done ? `<svg width="8" height="8" viewBox="0 0 8 8"><polyline points="1,4 3,6 7,2" stroke="white" stroke-width="1.5" fill="none"/></svg>` : ''}
+  const todayPending = allTasks
+    .filter(t => t.scheduled_date === TODAY_STR && t.status === 'pending')
+    .map(t => ({ ...t, score: calcPriorityScore(t) }))
+    .sort((a,b) => b.score - a.score)
+    .slice(0, 3);
+  if (!todayPending.length) {
+    list.innerHTML = '<div style="font-size:13px;color:var(--text3);padding:8px 0;">今日のタスクがまだありません</div>';
+    return;
+  }
+  list.innerHTML = todayPending.map(t => `
+    <div class="goal-card">
+      <div class="goal-circle ${t.status==='done'?'done':''}" data-id="${t.id}" style="cursor:pointer">
+        ${t.status==='done'?`<svg width="8" height="8" viewBox="0 0 8 8"><polyline points="1,4 3,6 7,2" stroke="white" stroke-width="1.5" fill="none"/></svg>`:''}
       </div>
-      <span class="goal-text ${done ? 'done' : ''}">${title}</span>
-      <svg class="goal-del" data-goal-id="${g.id}" viewBox="0 0 16 16" fill="none"><line x1="3" y1="3" x2="13" y2="13" stroke="#9AA59B" stroke-width="1.5" stroke-linecap="round"/><line x1="13" y1="3" x2="3" y2="13" stroke="#9AA59B" stroke-width="1.5" stroke-linecap="round"/></svg>
-    `;
-    if (task) div.querySelector('.goal-circle').addEventListener('click', () => toggleTask(g.task_id));
-    div.querySelector('.goal-del').addEventListener('click', () => deleteGoal(g.id));
-    list.appendChild(div);
+      <div style="flex:1;min-width:0;">
+        <div class="goal-text ${t.status==='done'?'done':''}">${t.title}</div>
+        <div class="goal-reason">${buildReason(t)}</div>
+      </div>
+    </div>
+  `).join('');
+  list.querySelectorAll('.goal-circle').forEach(el => {
+    el.addEventListener('click', () => toggleTask(el.dataset.id));
   });
-  document.getElementById('goal-add-btn').style.display = todayGoals.length >= 3 ? 'none' : 'flex';
 }
 
 function renderSchedule() {
   const wrap = document.getElementById('schedule-list');
-  const todayTasks = allTasks.filter(t => t.scheduled_date === TODAY_STR && t.status !== 'done').sort((a,b) => (a.scheduled_time||'99:99').localeCompare(b.scheduled_time||'99:99'));
+  const todayTasks = allTasks
+    .filter(t => t.scheduled_date === TODAY_STR && t.status !== 'done')
+    .map(t => ({ ...t, score: calcPriorityScore(t) }))
+    .sort((a,b) => {
+      const ta = a.scheduled_time ? parseInt(a.scheduled_time.split(':')[0])*60+parseInt(a.scheduled_time.split(':')[1]) : 9999;
+      const tb = b.scheduled_time ? parseInt(b.scheduled_time.split(':')[0])*60+parseInt(b.scheduled_time.split(':')[1]) : 9999;
+      return ta - tb;
+    });
   const todayBlocks = allBlocks.filter(b => b.date === TODAY_STR).sort((a,b) => a.start_time.localeCompare(b.start_time));
   const items = [
-    ...todayBlocks.map(b => ({ type: 'block', time: b.start_time, data: b })),
-    ...todayTasks.map(t => ({ type: 'task', time: t.scheduled_time || '99:99', data: t }))
+    ...todayBlocks.map(b => ({ type:'block', time: b.start_time, data: b })),
+    ...todayTasks.map(t => ({ type:'task', time: t.scheduled_time || '99:99', data: t }))
   ].sort((a,b) => a.time.localeCompare(b.time));
-  if (!items.length) { wrap.innerHTML = '<div class="empty">今日のスケジュールはまだありません<br>追加タブからタスクを入れてみましょう</div>'; return; }
+
+  if (!items.length) {
+    wrap.innerHTML = '<div class="empty">今日のスケジュールはまだありません<br>追加タブからタスクを入れてみましょう</div>';
+    return;
+  }
   wrap.innerHTML = '';
   items.forEach((item, i) => {
     const row = document.createElement('div');
@@ -759,14 +778,11 @@ function renderSchedule() {
       const b = item.data;
       row.innerHTML = `
         <div class="sched-time">${timeStr}</div>
-        <div class="sched-line"><div class="sched-dot block-dot"></div>${!isLast ? '<div class="sched-connector"></div>' : ''}</div>
+        <div class="sched-line"><div class="sched-dot block-dot"></div>${!isLast?'<div class="sched-connector"></div>':''}</div>
         <div class="sched-content">
           <div class="task-card block-card">
             <div class="task-card-top">
-              <div class="task-card-left">
-                <div class="task-type-badge type-block">固定</div>
-                <span class="task-title">${b.title}</span>
-              </div>
+              <div class="task-card-left"><div class="task-type-badge type-block">固定</div><span class="task-title">${b.title}</span></div>
               <span class="task-time">${b.start_time.slice(0,5)}〜${b.end_time.slice(0,5)}</span>
             </div>
           </div>
@@ -775,19 +791,17 @@ function renderSchedule() {
     } else {
       const t = item.data;
       const subs = allSubtasks.filter(s => s.task_id === t.id);
+      const reason = buildReason(t);
       row.innerHTML = `
         <div class="sched-time">${timeStr}</div>
-        <div class="sched-line"><div class="sched-dot"></div>${!isLast ? '<div class="sched-connector"></div>' : ''}</div>
+        <div class="sched-line"><div class="sched-dot"></div>${!isLast?'<div class="sched-connector"></div>':''}</div>
         <div class="sched-content">
           <div class="task-card" data-id="${t.id}">
             <div class="task-card-top">
-              <div class="task-card-left">
-                <div class="task-type-badge type-${t.type}">${typeLabel(t.type)}</div>
-                <span class="task-title">${t.title}</span>
-              </div>
+              <div class="task-card-left"><div class="task-type-badge type-${t.type}">${typeLabel(t.type)}</div><span class="task-title">${t.title}</span></div>
               <span class="task-time">${t.estimated_minutes}min</span>
             </div>
-            ${subs.length ? `<div class="subtask-list">${subs.map(s => `
+            ${subs.length ? `<div class="subtask-list">${subs.map(s=>`
               <div class="subtask-item">
                 <div class="subtask-check ${s.status==='done'?'done':''}" data-sub-id="${s.id}">
                   ${s.status==='done'?`<svg width="7" height="7" viewBox="0 0 7 7"><polyline points="1,3.5 2.8,5.5 6,1.5" stroke="white" stroke-width="1.5" fill="none"/></svg>`:''}
@@ -795,6 +809,7 @@ function renderSchedule() {
                 <span class="subtask-title ${s.status==='done'?'done':''}">${s.title}</span>
                 <span class="subtask-min">${s.estimated_minutes}min</span>
               </div>`).join('')}</div>` : ''}
+            <div class="task-reason">${reason}</div>
           </div>
         </div>
       `;
@@ -807,26 +822,347 @@ function renderSchedule() {
   });
 }
 
-// GOALS
-document.getElementById('goal-add-btn').addEventListener('click', () => openModal('goal-modal'));
-document.getElementById('goal-save-btn').addEventListener('click', async () => {
-  const val = document.getElementById('goal-input').value.trim();
-  if (!val) return;
-  const task = allTasks.find(t => t.title.includes(val) && t.status === 'pending');
-  const { data } = await db.from('daily_goals').insert({ user_id: currentUser.id, date: TODAY_STR, task_id: task ? task.id : null, memo: val, sort_order: todayGoals.length }).select().single();
-  if (data) todayGoals.push(data);
-  document.getElementById('goal-input').value = '';
-  closeModal('goal-modal');
-  renderGoals();
-  showToast('完了条件を追加しました');
-});
-async function deleteGoal(id) {
-  await db.from('daily_goals').delete().eq('id', id);
-  todayGoals = todayGoals.filter(g => g.id !== id);
-  renderGoals();
+// ============================================================
+// CONFLICT
+// ============================================================
+function checkConflicts() {
+  const area = document.getElementById('conflict-area');
+  if (!area) return;
+  const conflicts = [];
+  allTasks.filter(t => t.scheduled_date === TODAY_STR && t.scheduled_time && t.status === 'pending').forEach(task => {
+    const [th,tm] = task.scheduled_time.split(':').map(Number);
+    const taskStart = th*60+tm, taskEnd = taskStart+(task.estimated_minutes||30);
+    allBlocks.filter(b => b.date === TODAY_STR).forEach(block => {
+      const [bsh,bsm] = block.start_time.split(':').map(Number);
+      const [beh,bem] = block.end_time.split(':').map(Number);
+      if (taskStart < beh*60+bem && taskEnd > bsh*60+bsm) conflicts.push({ task, block });
+    });
+  });
+  if (!conflicts.length) { area.innerHTML = ''; return; }
+  area.innerHTML = conflicts.map(({ task, block }) => `
+    <div class="conflict-banner">
+      <div class="conflict-banner-text">「${task.title}」が「${block.title}」(${block.start_time.slice(0,5)}〜${block.end_time.slice(0,5)})と重なっています</div>
+      <div class="conflict-banner-actions">
+        <button class="btn-conflict btn-conflict-move" onclick="moveConflictTask('${task.id}')">空き枠に移動</button>
+        <button class="btn-conflict btn-conflict-keep" onclick="dismissConflict(this)">このままにする</button>
+      </div>
+    </div>
+  `).join('');
+}
+window.moveConflictTask = async function(taskId) {
+  const task = allTasks.find(t => t.id === taskId);
+  if (!task) return;
+  const newTime = autoPlotTime(task.type, task.estimated_minutes, TODAY_STR);
+  await db.from('tasks').update({ scheduled_time: newTime }).eq('id', taskId);
+  task.scheduled_time = newTime;
+  renderToday();
+  showToast(`${task.title}を${newTime}に移動しました`);
+};
+window.dismissConflict = function(btn) { btn.closest('.conflict-banner').remove(); };
+
+// ============================================================
+// GEMINI AI（虎の巻ルールをプロンプトに組み込む）
+// ============================================================
+async function analyzeWithGemini(title) {
+  const prompt = `あなたは「仕事の虎の巻」に従うタスク分析AIです。
+
+【虎の巻のルール】
+- タスク種類: routine(毎回同じ手順), unknown(初めて・新規), judgment(意思決定が主), dependent(他者のアクションが必要)
+- 所要時間デフォルト: メール返信5分, ルーティン30分, 資料作成45〜60分, 判断系25分, 初めて30分, 迷ったら30分
+- 分解の判断: 「やり始める前に何か揃えるものがあるか？」→ある場合のみサブタスクに分解
+
+タスク名：「${title}」
+
+以下のJSON形式のみを返してください（説明不要・コードブロック不要）:
+{
+  "type": "routine" | "unknown" | "judgment" | "dependent",
+  "estimated_minutes": 数値,
+  "subtasks": [{"title": "サブタスク名", "minutes": 数値}],
+  "reason": "虎の巻のどのルールに従って判断したか一文で"
 }
 
+subtasksは分解が必要な場合のみ設定（routineは原則空配列）。`;
+
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+  });
+  const data = await res.json();
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  const clean = text.replace(/```json|```/g, '').trim();
+  return JSON.parse(clean);
+}
+
+// ============================================================
+// ADD PAGE
+// ============================================================
+function initAddPage() {
+  document.getElementById('quick-title').value = '';
+  document.getElementById('quick-result').innerHTML = '';
+  aiResult = null;
+}
+
+document.getElementById('quick-ai-btn').addEventListener('click', handleQuickAI);
+document.getElementById('quick-title').addEventListener('keydown', e => { if (e.key === 'Enter') handleQuickAI(); });
+
+async function handleQuickAI() {
+  const title = document.getElementById('quick-title').value.trim();
+  if (!title) { showToast('タスク名を入力してください'); return; }
+  const resultDiv = document.getElementById('quick-result');
+  resultDiv.innerHTML = `<div class="ai-loading"><div class="spinner"></div>虎の巻に照らして分析中...</div>`;
+  try {
+    const geminiResult = await analyzeWithGemini(title);
+    const type = geminiResult.type || 'judgment';
+    const minutes = geminiResult.estimated_minutes || DEFAULT_MINUTES[type] || 30;
+    const scheduledTime = autoPlotTime(type, minutes, TODAY_STR);
+    aiResult = {
+      title,
+      type,
+      estimated_minutes: minutes,
+      subtasks: geminiResult.subtasks || [],
+      scheduled_date: TODAY_STR,
+      scheduled_time: scheduledTime,
+      deadline: null,
+      ai_reason: geminiResult.reason || ''
+    };
+    renderAIResult(resultDiv);
+  } catch(e) {
+    resultDiv.innerHTML = `<div style="font-size:13px;color:var(--accent);padding:12px;">AI分析に失敗しました。もう一度お試しください。</div>`;
+  }
+}
+
+function renderAIResult(container) {
+  if (!aiResult) return;
+  const takenTimes = allTasks.filter(t => t.scheduled_date === TODAY_STR && t.scheduled_time).map(t => t.scheduled_time.slice(0,5));
+  const timeSlots = ['09:00','09:30','10:00','10:30','11:00','11:30','12:00','13:00','14:00','15:00','16:00','16:30','17:00','17:30'];
+
+  container.innerHTML = `
+    <div class="ai-result">
+      <div class="ai-result-title">AI分析結果</div>
+      <div class="ai-task-name">${aiResult.title}</div>
+      <div class="ai-reason-row">${aiResult.ai_reason}</div>
+      <div class="pill-row" id="pill-row">
+        <div class="pill" id="pill-type" data-pill="type">
+          <span id="pill-type-label">${typeLabel(aiResult.type)}</span>
+          <svg viewBox="0 0 10 10" fill="none"><path d="M2 3L5 7L8 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </div>
+        <div class="pill" id="pill-minutes" data-pill="minutes">
+          <span id="pill-minutes-label">${aiResult.estimated_minutes}min</span>
+          <svg viewBox="0 0 10 10" fill="none"><path d="M2 3L5 7L8 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </div>
+        <div class="pill" id="pill-time" data-pill="time">
+          <span id="pill-time-label">${aiResult.scheduled_time || '未設定'}</span>
+          <svg viewBox="0 0 10 10" fill="none"><path d="M2 3L5 7L8 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </div>
+        <div class="pill" id="pill-deadline" data-pill="deadline">
+          <span id="pill-deadline-label">${aiResult.deadline || '期限なし'}</span>
+          <svg viewBox="0 0 10 10" fill="none"><path d="M2 3L5 7L8 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </div>
+      </div>
+      ${aiResult.subtasks.length ? `
+        <div class="ai-subtasks">
+          <div style="font-size:9px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;">分解ステップ</div>
+          ${aiResult.subtasks.map(s=>`<div class="ai-subtask-item"><span>${s.title}</span><span style="font-family:var(--font-num);color:var(--text3);">${s.minutes}min</span></div>`).join('')}
+        </div>` : ''}
+      <div class="ai-actions">
+        <button class="btn-ok" id="ai-plot-btn">今日にプロット</button>
+      </div>
+    </div>
+  `;
+
+  // ピルイベント
+  document.getElementById('pill-type').addEventListener('click', function(e) {
+    e.stopPropagation();
+    showPillPopover(this, 'type', [
+      { val:'routine', label:'ルーティン' },
+      { val:'unknown', label:'初めて' },
+      { val:'judgment', label:'判断' },
+      { val:'dependent', label:'他者依存' }
+    ], aiResult.type, (val) => {
+      aiResult.type = val;
+      aiResult.scheduled_time = autoPlotTime(val, aiResult.estimated_minutes, TODAY_STR);
+      document.getElementById('pill-type-label').textContent = typeLabel(val);
+      document.getElementById('pill-time-label').textContent = aiResult.scheduled_time;
+    });
+  });
+
+  document.getElementById('pill-minutes').addEventListener('click', function(e) {
+    e.stopPropagation();
+    showPillPopoverNumber(this, aiResult.estimated_minutes, (val) => {
+      aiResult.estimated_minutes = val;
+      aiResult.scheduled_time = autoPlotTime(aiResult.type, val, TODAY_STR);
+      document.getElementById('pill-minutes-label').textContent = val+'min';
+      document.getElementById('pill-time-label').textContent = aiResult.scheduled_time;
+    });
+  });
+
+  document.getElementById('pill-time').addEventListener('click', function(e) {
+    e.stopPropagation();
+    showPillPopoverTime(this, timeSlots, takenTimes, aiResult.scheduled_time, (val) => {
+      aiResult.scheduled_time = val;
+      document.getElementById('pill-time-label').textContent = val;
+    });
+  });
+
+  document.getElementById('pill-deadline').addEventListener('click', function(e) {
+    e.stopPropagation();
+    showPillPopoverDeadline(this, aiResult.deadline, (val) => {
+      aiResult.deadline = val || null;
+      document.getElementById('pill-deadline-label').textContent = val || '期限なし';
+    });
+  });
+
+  document.getElementById('ai-plot-btn').addEventListener('click', async () => {
+    await saveTask(aiResult);
+  });
+}
+
+// ============================================================
+// ピルポップオーバー
+// ============================================================
+let activePillBtn = null;
+function hidePillPopover() {
+  document.getElementById('pill-popover').style.display = 'none';
+  activePillBtn = null;
+}
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('#pill-popover') && !e.target.closest('.pill')) hidePillPopover();
+});
+
+function positionPopover(btn) {
+  const pop = document.getElementById('pill-popover');
+  pop.style.display = 'block';
+  const rect = btn.getBoundingClientRect();
+  const popH = pop.offsetHeight;
+  const spaceBelow = window.innerHeight - rect.bottom;
+  if (spaceBelow < popH + 8 && rect.top > popH + 8) {
+    pop.style.top = (rect.top + window.scrollY - popH - 6) + 'px';
+  } else {
+    pop.style.top = (rect.bottom + window.scrollY + 6) + 'px';
+  }
+  pop.style.left = Math.min(rect.left, window.innerWidth - 180) + 'px';
+}
+
+function showPillPopover(btn, type, options, current, onChange) {
+  if (activePillBtn === btn) { hidePillPopover(); return; }
+  activePillBtn = btn;
+  const pop = document.getElementById('pill-popover');
+  pop.innerHTML = options.map(o => `<div class="pill-option ${o.val===current?'active':''}" data-val="${o.val}">${o.label}</div>`).join('');
+  pop.querySelectorAll('.pill-option').forEach(el => {
+    el.addEventListener('click', e => { e.stopPropagation(); onChange(el.dataset.val); hidePillPopover(); });
+  });
+  positionPopover(btn);
+}
+
+function showPillPopoverNumber(btn, current, onChange) {
+  if (activePillBtn === btn) { hidePillPopover(); return; }
+  activePillBtn = btn;
+  const pop = document.getElementById('pill-popover');
+  const presets = [5,15,25,30,45,60,90,120];
+  pop.innerHTML = `
+    <div style="display:flex;flex-wrap:wrap;gap:4px;padding:8px;">
+      ${presets.map(p=>`<div class="pill-option" style="padding:5px 10px;" data-val="${p}">${p}min</div>`).join('')}
+    </div>
+    <div class="pill-number-row">
+      <input class="pill-number-input" type="number" id="custom-min-input" value="${current}" min="5" max="480" step="5">
+      <button class="btn-pill-apply" id="custom-min-apply">OK</button>
+    </div>
+  `;
+  pop.querySelectorAll('.pill-option').forEach(el => {
+    el.addEventListener('click', e => { e.stopPropagation(); onChange(parseInt(el.dataset.val)); hidePillPopover(); });
+  });
+  document.getElementById('custom-min-apply').addEventListener('click', e => {
+    e.stopPropagation();
+    const val = parseInt(document.getElementById('custom-min-input').value) || current;
+    onChange(val); hidePillPopover();
+  });
+  positionPopover(btn);
+}
+
+function showPillPopoverTime(btn, slots, takenTimes, current, onChange) {
+  if (activePillBtn === btn) { hidePillPopover(); return; }
+  activePillBtn = btn;
+  const pop = document.getElementById('pill-popover');
+  pop.innerHTML = `<div class="time-grid">${slots.map(s=>`<div class="time-option ${s===current?'active':''} ${takenTimes.includes(s)&&s!==current?'taken':''}" data-val="${s}">${s}</div>`).join('')}</div>`;
+  pop.querySelectorAll('.time-option:not(.taken)').forEach(el => {
+    el.addEventListener('click', e => { e.stopPropagation(); onChange(el.dataset.val); hidePillPopover(); });
+  });
+  positionPopover(btn);
+}
+
+function showPillPopoverDeadline(btn, current, onChange) {
+  if (activePillBtn === btn) { hidePillPopover(); return; }
+  activePillBtn = btn;
+  const pop = document.getElementById('pill-popover');
+  pop.innerHTML = `
+    <div style="padding:8px;">
+      <input type="date" class="wiz-input" id="deadline-input" value="${current||''}" style="margin-bottom:8px;">
+      <div style="display:flex;gap:6px;">
+        <button class="btn-pill-apply" id="deadline-apply" style="flex:1;">設定</button>
+        <button class="btn-pill-apply" id="deadline-clear" style="background:var(--bg3);color:var(--text2);">クリア</button>
+      </div>
+    </div>
+  `;
+  document.getElementById('deadline-apply').addEventListener('click', e => {
+    e.stopPropagation();
+    const val = document.getElementById('deadline-input').value;
+    onChange(val); hidePillPopover();
+  });
+  document.getElementById('deadline-clear').addEventListener('click', e => {
+    e.stopPropagation();
+    onChange(''); hidePillPopover();
+  });
+  positionPopover(btn);
+}
+
+// ============================================================
+// SAVE TASK
+// ============================================================
+async function saveTask(data) {
+  const usedMin = calcUsedMinutes(TODAY_STR);
+  if (data.scheduled_date === TODAY_STR && usedMin + (data.estimated_minutes||30) > BUFFER_LIMIT) {
+    const over = usedMin + (data.estimated_minutes||30) - BUFFER_LIMIT;
+    if (!confirm(`今日の使用時間が上限(${BUFFER_LIMIT}分)を${over}分超えます。\n虎の巻では1日の20〜30%をバッファとして空けることを推奨しています。\n\nそれでも今日に追加しますか？`)) return;
+  }
+  const { data: task, error } = await db.from('tasks').insert({
+    user_id: currentUser.id,
+    title: data.title,
+    type: data.type || 'judgment',
+    status: 'pending',
+    estimated_minutes: data.estimated_minutes || 30,
+    deadline: data.deadline || null,
+    scheduled_date: data.scheduled_date || null,
+    scheduled_time: data.scheduled_time || null,
+    memo: data.memo || null
+  }).select().single();
+  if (error) { showToast('保存に失敗しました'); console.error(error); return; }
+
+  // scheduled_dateを正規化してから追加
+  task.scheduled_date = normalizeDate(task.scheduled_date);
+  allTasks.unshift(task);
+
+  if (data.subtasks?.length) {
+    const subs = data.subtasks.map((s,i) => ({
+      task_id: task.id,
+      title: s.title,
+      estimated_minutes: s.minutes || s.estimated_minutes || 30,
+      status: 'pending',
+      sort_order: i
+    }));
+    const { data: saved } = await db.from('subtasks').insert(subs).select();
+    if (saved) allSubtasks.push(...saved);
+  }
+
+  showToast('タスクを追加しました 🐯');
+  aiResult = null;
+  // 今日ページに戻ってスケジュール表示を確認
+  navigateTo('today');
+}
+
+// ============================================================
 // TOGGLE
+// ============================================================
 async function toggleTask(taskId) {
   const task = allTasks.find(t => t.id === taskId);
   if (!task) return;
@@ -845,363 +1181,27 @@ async function toggleSubtask(subId) {
   renderToday();
 }
 
-// AUTO PLOT - 空き枠を計算してタスクを配置
-function getAvailableSlots(date) {
-  const WORK_START = 9 * 60, WORK_END = 18 * 60;
-  const blockedRanges = allBlocks.filter(b => b.date === date).map(b => {
-    const [sh,sm] = b.start_time.split(':').map(Number);
-    const [eh,em] = b.end_time.split(':').map(Number);
-    return { start: sh*60+sm, end: eh*60+em };
-  });
-  const scheduled = allTasks.filter(t => t.scheduled_date === date && t.scheduled_time && t.status !== 'done').map(t => {
-    const [h,m] = t.scheduled_time.split(':').map(Number);
-    return { start: h*60+m, end: h*60+m+(t.estimated_minutes||30) };
-  });
-  const busy = [...blockedRanges, ...scheduled].sort((a,b) => a.start - b.start);
-  const slots = [];
-  let cursor = WORK_START;
-  for (const b of busy) {
-    if (cursor < b.start) slots.push({ start: cursor, end: b.start });
-    cursor = Math.max(cursor, b.end);
-  }
-  if (cursor < WORK_END) slots.push({ start: cursor, end: WORK_END });
-  return slots;
-}
-
-function autoPlotTime(type, estimatedMin, date) {
-  const slots = getAvailableSlots(date);
-  // 集中枠（16:00以降）優先：unknown, judgment
-  const prefersConcentration = ['unknown', 'judgment'].includes(type);
-  const CONCENTRATION_START = 16 * 60;
-  const candidates = prefersConcentration
-    ? [...slots.filter(s => s.start >= CONCENTRATION_START), ...slots.filter(s => s.start < CONCENTRATION_START)]
-    : slots;
-  for (const slot of candidates) {
-    if (slot.end - slot.start >= estimatedMin) {
-      const h = Math.floor(slot.start / 60);
-      const m = slot.start % 60;
-      return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
-    }
-  }
-  return '09:00';
-}
-
-// GEMINI AI
-async function analyzeWithGemini(title) {
-  const prompt = `あなたは仕事タスク分析の専門家です。以下のタスクを分析して、JSON形式で返してください。
-
-タスク名：「${title}」
-
-以下のJSON形式のみを返してください（説明不要）：
-{
-  "type": "routine" | "unknown" | "judgment" | "dependent",
-  "estimated_minutes": 数値（5〜240）,
-  "decompose_pattern": null | "research" | "confirm" | "find_resource" | "fully_unknown" | "multi_person" | "approval" | "material" | "judgment",
-  "subtasks": [{"title": "サブタスク名", "minutes": 数値}],
-  "reason": "判断理由を一文で"
-}
-
-判断基準：
-- routine: 毎回同じ手順で繰り返す作業（報告書作成、定期連絡など）
-- unknown: 初めてまたは初めて要素がある（企画、新規提案など）
-- judgment: 意思決定が主目的（方針決定、選定など）
-- dependent: 他者のアクションが必要（承認依頼、確認待ちなど）
-subtasksはdecompose_patternがnullでない場合のみ設定。`;
-
-  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-  });
-  const data = await res.json();
-  const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-  const clean = text.replace(/```json|```/g, '').trim();
-  return JSON.parse(clean);
-}
-
-// ADD PAGE
-function initAddPage() {
-  document.getElementById('quick-title').value = '';
-  document.getElementById('quick-result').innerHTML = '';
-  aiResult = null;
-  wizardData = {};
-  showQuickPanel();
-}
-
-function showQuickPanel() {
-  document.getElementById('quick-panel').style.display = 'block';
-  document.getElementById('detail-panel').style.display = 'none';
-  document.getElementById('tab-quick').classList.add('active');
-  document.getElementById('tab-detail').classList.remove('active');
-}
-function showDetailPanel() {
-  document.getElementById('quick-panel').style.display = 'none';
-  document.getElementById('detail-panel').style.display = 'block';
-  document.getElementById('tab-quick').classList.remove('active');
-  document.getElementById('tab-detail').classList.add('active');
-  initWizard();
-}
-
-document.getElementById('tab-quick').addEventListener('click', showQuickPanel);
-document.getElementById('tab-detail').addEventListener('click', showDetailPanel);
-
-document.getElementById('quick-ai-btn').addEventListener('click', handleQuickAI);
-document.getElementById('quick-title').addEventListener('keydown', e => { if (e.key === 'Enter') handleQuickAI(); });
-
-async function handleQuickAI() {
-  const title = document.getElementById('quick-title').value.trim();
-  if (!title) { showToast('タスク名を入力してください'); return; }
-  const resultDiv = document.getElementById('quick-result');
-  resultDiv.innerHTML = `<div class="ai-loading"><div class="spinner"></div>AIが分析中...</div>`;
-  try {
-    aiResult = await analyzeWithGemini(title);
-    aiResult.title = title;
-    const autoTime = autoPlotTime(aiResult.type, aiResult.estimated_minutes, TODAY_STR);
-    aiResult.scheduled_time = autoTime;
-    aiResult.scheduled_date = TODAY_STR;
-    resultDiv.innerHTML = `
-      <div class="ai-result">
-        <div class="ai-result-title">AI分析結果</div>
-        <div class="ai-row"><span class="ai-row-label">種類</span><span class="ai-row-val"><span class="task-type-badge type-${aiResult.type}">${typeLabel(aiResult.type)}</span></span></div>
-        <div class="ai-row"><span class="ai-row-label">所要時間</span><span class="ai-row-val" style="font-family:var(--font-num);color:var(--accent);font-size:16px;">${aiResult.estimated_minutes}min</span></div>
-        <div class="ai-row"><span class="ai-row-label">プロット時刻</span><span class="ai-row-val" style="font-family:var(--font-num);font-size:16px;">${autoTime}</span></div>
-        <div class="ai-row" style="border:none;"><span class="ai-row-label">判断理由</span><span class="ai-row-val" style="font-size:12px;color:var(--text2);">${aiResult.reason}</span></div>
-        ${aiResult.subtasks?.length ? `
-          <div class="ai-subtasks">
-            <div style="font-size:9px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;">分解ステップ</div>
-            ${aiResult.subtasks.map(s => `<div class="ai-subtask-item"><span>${s.title}</span><span style="font-family:var(--font-num);color:var(--text3);">${s.minutes}min</span></div>`).join('')}
-          </div>` : ''}
-        <div class="ai-actions">
-          <button class="btn-ok" id="ai-ok-btn">このままプロット</button>
-          <button class="btn-edit" id="ai-edit-btn">編集する</button>
-        </div>
-      </div>
-    `;
-    document.getElementById('ai-ok-btn').addEventListener('click', () => saveFromAI());
-    document.getElementById('ai-edit-btn').addEventListener('click', () => {
-      wizardData = {
-        title: aiResult.title,
-        type: aiResult.type,
-        estimated_minutes: aiResult.estimated_minutes,
-        subtasks: aiResult.subtasks || [],
-        scheduled_time: aiResult.scheduled_time,
-        scheduled_date: aiResult.scheduled_date
-      };
-      showDetailPanel();
-    });
-  } catch(e) {
-    resultDiv.innerHTML = `<div style="font-size:13px;color:var(--accent);padding:12px;">AI分析に失敗しました。詳細入力をお試しください。</div>`;
-  }
-}
-
-async function saveFromAI() {
-  if (!aiResult) return;
-  await saveTask({
-    title: aiResult.title,
-    type: aiResult.type,
-    estimated_minutes: aiResult.estimated_minutes,
-    scheduled_date: aiResult.scheduled_date,
-    scheduled_time: aiResult.scheduled_time,
-    subtasks: aiResult.subtasks || []
-  });
-}
-
-// WIZARD
-function initWizard() { wizardData = {}; renderWizardStep(1); }
-
-function renderWizardStep(step) {
-  const c = document.getElementById('wizard-container');
-  c.innerHTML = '';
-  if (step === 1) {
-    c.innerHTML = `
-      <div class="wiz-input-wrap"><label class="wiz-label">タスク名</label><input class="wiz-input" id="wiz-title" placeholder="例：来月キャンペーン企画" value="${wizardData.title||''}"></div>
-      <div class="wiz-input-wrap"><label class="wiz-label">メモ（任意）</label><textarea class="wiz-input wiz-input-lg" id="wiz-memo" rows="2" placeholder="詳細など">${wizardData.memo||''}</textarea></div>
-      <button class="btn-next" id="wn1">次へ →</button>
-    `;
-    document.getElementById('wn1').addEventListener('click', () => {
-      const t = document.getElementById('wiz-title').value.trim();
-      if (!t) { showToast('タスク名を入力してください'); return; }
-      wizardData.title = t; wizardData.memo = document.getElementById('wiz-memo').value.trim();
-      renderWizardStep(2);
-    });
-  } else if (step === 2) {
-    c.innerHTML = `
-      <div class="wiz-q">「${wizardData.title}」<br>以前やったことがありますか？</div>
-      <div class="wiz-sub">同じ手順で繰り返しているものはルーティンです</div>
-      <div class="wiz-options">
-        <div class="wiz-opt" data-val="yes"><div><div class="wiz-opt-text">ある（ルーティン）</div><div class="wiz-opt-sub">毎回同じ手順で完結する</div></div></div>
-        <div class="wiz-opt" data-val="no"><div><div class="wiz-opt-text">ない・よくわからない</div><div class="wiz-opt-sub">初めてや新しい要素がある</div></div></div>
-      </div>
-      <div class="wiz-nav"><button class="btn-back" id="wb2">戻る</button></div>
-    `;
-    c.querySelectorAll('.wiz-opt').forEach(o => o.addEventListener('click', () => {
-      wizardData.isRoutine = o.dataset.val === 'yes';
-      if (wizardData.isRoutine) { wizardData.type = 'routine'; renderWizardStep(5); }
-      else renderWizardStep(3);
-    }));
-    document.getElementById('wb2').addEventListener('click', () => renderWizardStep(1));
-  } else if (step === 3) {
-    c.innerHTML = `
-      <div class="wiz-q">誰かのアクションや<br>情報が必要ですか？</div>
-      <div class="wiz-sub">返信待ち・承認待ちなど自分だけでは完結しない場合</div>
-      <div class="wiz-options">
-        <div class="wiz-opt" data-val="yes"><div><div class="wiz-opt-text">ある（他者依存）</div><div class="wiz-opt-sub">誰かに頼む・返信を待つ</div></div></div>
-        <div class="wiz-opt" data-val="no"><div><div class="wiz-opt-text">ない（自分で完結）</div><div class="wiz-opt-sub">自分だけで進められる</div></div></div>
-      </div>
-      <div class="wiz-nav"><button class="btn-back" id="wb3">戻る</button></div>
-    `;
-    c.querySelectorAll('.wiz-opt').forEach(o => o.addEventListener('click', () => {
-      if (o.dataset.val === 'yes') { wizardData.type = 'dependent'; renderWizardStep(4); }
-      else renderWizardStep(3.5);
-    }));
-    document.getElementById('wb3').addEventListener('click', () => renderWizardStep(2));
-  } else if (step === 3.5) {
-    const patterns = [
-      { key: 'research', label: 'リサーチが必要', sub: '情報・事例・他社動向が不明' },
-      { key: 'confirm', label: '社内確認が必要', sub: '誰かに確認しないと進められない' },
-      { key: 'find_resource', label: '過去資料を探す必要がある', sub: '前例・テンプレが存在しそう' },
-      { key: 'fully_unknown', label: '全部不明（完全初めて）', sub: '何がわからないかもわからない' },
-      { key: 'multi_person', label: '複数人が関わる', sub: '分担・すり合わせが必要' },
-      { key: 'approval', label: '承認フローがある', sub: '上司・他部署の承認が必要' },
-      { key: 'material', label: '素材・データが必要', sub: '画像・数字・原稿などが手元にない' },
-      { key: 'judgment', label: '判断が必要（自分で決める）', sub: '意思決定してから進む' },
-      { key: 'none', label: '特になし・そのまま進める', sub: '揃えるものは特にない' },
-    ];
-    let sel = [];
-    c.innerHTML = `
-      <div class="wiz-q">やり始める前に<br>何か揃えるものがありますか？</div>
-      <div class="wiz-options">${patterns.map(p => `<div class="wiz-opt" data-pattern="${p.key}"><div><div class="wiz-opt-text">${p.label}</div><div class="wiz-opt-sub">${p.sub}</div></div></div>`).join('')}</div>
-      <div class="wiz-nav"><button class="btn-back" id="wb35">戻る</button><button class="btn-next" id="wn35">次へ →</button></div>
-    `;
-    c.querySelectorAll('.wiz-opt').forEach(o => o.addEventListener('click', () => {
-      const p = o.dataset.pattern;
-      if (p === 'none') { sel = ['none']; c.querySelectorAll('.wiz-opt').forEach(x => x.classList.remove('sel')); o.classList.add('sel'); }
-      else {
-        sel = sel.filter(x => x !== 'none');
-        if (sel.includes(p)) { sel = sel.filter(x => x !== p); o.classList.remove('sel'); }
-        else { sel.push(p); o.classList.add('sel'); }
-      }
-    }));
-    document.getElementById('wb35').addEventListener('click', () => renderWizardStep(3));
-    document.getElementById('wn35').addEventListener('click', () => {
-      if (!sel.length) { showToast('選択してください'); return; }
-      wizardData.patterns = sel;
-      if (sel[0] === 'none') { wizardData.type = 'judgment'; wizardData.subtasks = []; renderWizardStep(5); }
-      else {
-        wizardData.type = 'unknown';
-        const subs = []; sel.forEach(p => (DECOMPOSE_PATTERNS[p]||[]).forEach(s => subs.push({...s})));
-        wizardData.subtasks = subs;
-        renderWizardStep(4);
-      }
-    });
-  } else if (step === 4) {
-    const subs = wizardData.subtasks || [];
-    const total = subs.reduce((a,s) => a + s.minutes, 0) || 30;
-    wizardData.estimated_minutes = total;
-    c.innerHTML = `
-      <div class="wiz-q">分解結果</div>
-      <div class="wiz-sub">このステップで進めます</div>
-      ${subs.length ? `<div class="decompose-preview">${subs.map(s => `<div class="decompose-item"><span>${s.title}</span><span class="decompose-min">${s.minutes}min</span></div>`).join('')}<div style="text-align:right;font-size:12px;color:var(--accent);margin-top:8px;font-family:var(--font-num);">合計 ${total}min</div></div>` : ''}
-      <div class="wiz-nav"><button class="btn-back" id="wb4">戻る</button><button class="btn-next" id="wn4">次へ →</button></div>
-    `;
-    document.getElementById('wb4').addEventListener('click', () => renderWizardStep(wizardData.type === 'dependent' ? 3 : 3.5));
-    document.getElementById('wn4').addEventListener('click', () => renderWizardStep(5));
-  } else if (step === 5) {
-    const defMin = wizardData.estimated_minutes || (wizardData.type === 'routine' ? 30 : 45);
-    const autoTime = autoPlotTime(wizardData.type || 'judgment', defMin, TODAY_STR);
-    c.innerHTML = `
-      <div class="wiz-q">スケジュール設定</div>
-      <div class="wiz-row">
-        <div class="wiz-input-wrap"><label class="wiz-label">所要時間（分）</label><input class="wiz-input" type="number" id="wiz-min" value="${defMin}" min="5" max="480" step="5"></div>
-        <div class="wiz-input-wrap"><label class="wiz-label">期限（任意）</label><input class="wiz-input" type="date" id="wiz-deadline" value="${wizardData.deadline||''}"></div>
-      </div>
-      <div class="wiz-input-wrap">
-        <label class="wiz-label">今日やる？</label>
-        <select class="wiz-input" id="wiz-today-flag">
-          <option value="yes">今日スケジュールに入れる</option>
-          <option value="no">後日やる（一覧に追加）</option>
-        </select>
-      </div>
-      <div id="slot-section">
-        <label class="wiz-label">開始時刻（自動: ${autoTime}）</label>
-        <div class="time-slots" id="slot-grid"></div>
-      </div>
-      <div class="wiz-nav"><button class="btn-back" id="wb5">戻る</button><button class="btn-next" id="wn5">保存する</button></div>
-    `;
-    wizardData.scheduled_time = autoTime;
-    const takenTimes = allTasks.filter(t => t.scheduled_date === TODAY_STR && t.scheduled_time).map(t => t.scheduled_time.slice(0,5));
-    const slots = ['09:00','09:30','10:00','10:30','11:00','11:30','13:00','14:00','15:00','16:00','16:30','17:00','17:30'];
-    const grid = document.getElementById('slot-grid');
-    slots.forEach(s => {
-      const d = document.createElement('div');
-      const isTaken = takenTimes.includes(s);
-      d.className = `time-slot${isTaken ? ' taken' : ''}${s === autoTime ? ' selected' : ''}`;
-      const [h] = s.split(':');
-      const label = parseInt(h) < 12 ? '午前' : parseInt(h) < 16 ? '午後' : '集中枠';
-      d.innerHTML = `<div class="time-slot-time">${s}</div><div class="time-slot-label">${label}</div>`;
-      if (!isTaken) d.addEventListener('click', () => {
-        document.querySelectorAll('.time-slot').forEach(x => x.classList.remove('selected'));
-        d.classList.add('selected');
-        wizardData.scheduled_time = s;
-      });
-      grid.appendChild(d);
-    });
-    document.getElementById('wiz-today-flag').addEventListener('change', function() {
-      document.getElementById('slot-section').style.display = this.value === 'yes' ? 'block' : 'none';
-    });
-    const backStep = wizardData.type === 'routine' ? 2 : (wizardData.subtasks?.length ? 4 : 3.5);
-    document.getElementById('wb5').addEventListener('click', () => renderWizardStep(backStep));
-    document.getElementById('wn5').addEventListener('click', async () => {
-      wizardData.estimated_minutes = parseInt(document.getElementById('wiz-min').value) || 30;
-      wizardData.deadline = document.getElementById('wiz-deadline').value || null;
-      const todayFlag = document.getElementById('wiz-today-flag').value;
-      wizardData.scheduled_date = todayFlag === 'yes' ? TODAY_STR : null;
-      if (todayFlag !== 'yes') wizardData.scheduled_time = null;
-      await saveTask(wizardData);
-    });
-  }
-}
-
-async function saveTask(data) {
-  const { data: task, error } = await db.from('tasks').insert({
-    user_id: currentUser.id, title: data.title, type: data.type || 'judgment',
-    status: 'pending', estimated_minutes: data.estimated_minutes || 30,
-    deadline: data.deadline || null, scheduled_date: data.scheduled_date || null,
-    scheduled_time: data.scheduled_time || null, memo: data.memo || null
-  }).select().single();
-  if (error) { showToast('保存に失敗しました'); return; }
-  allTasks.unshift(task);
-  if (data.subtasks?.length) {
-    const subs = data.subtasks.map((s, i) => ({ task_id: task.id, title: s.title, estimated_minutes: s.minutes || s.estimated_minutes || 30, status: 'pending', sort_order: i }));
-    const { data: saved } = await db.from('subtasks').insert(subs).select();
-    if (saved) allSubtasks.push(...saved);
-  }
-  showToast('タスクを追加しました 🐯');
-  aiResult = null; wizardData = {};
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.querySelector('[data-page="today"]').classList.add('active');
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById('page-today').classList.add('active');
-  renderToday();
-}
-
+// ============================================================
 // DETAIL MODAL
+// ============================================================
 function openDetail(taskId) {
   const task = allTasks.find(t => t.id === taskId);
   if (!task) return;
   const subs = allSubtasks.filter(s => s.task_id === taskId);
+  const reason = buildReason(task);
   const body = document.getElementById('detail-body');
   body.innerHTML = `
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
       <div class="task-type-badge type-${task.type}">${typeLabel(task.type)}</div>
       <span style="font-size:16px;font-weight:500;">${task.title}</span>
     </div>
-    <div style="display:flex;gap:16px;margin-bottom:14px;">
+    <div style="display:flex;gap:16px;margin-bottom:12px;">
       <div><div style="font-size:9px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px;">所要時間</div><div style="font-family:var(--font-num);font-size:22px;color:var(--accent);">${task.estimated_minutes}<span style="font-size:11px;">min</span></div></div>
       ${task.scheduled_time ? `<div><div style="font-size:9px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px;">開始時刻</div><div style="font-family:var(--font-num);font-size:22px;color:var(--text2);">${task.scheduled_time.slice(0,5)}</div></div>` : ''}
       ${task.deadline ? `<div><div style="font-size:9px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px;">期限</div><div style="font-size:13px;color:var(--accent);margin-top:6px;">${task.deadline}</div></div>` : ''}
     </div>
-    ${subs.length ? `<div style="font-size:9px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;">サブタスク</div><div class="subtask-list" style="margin-top:0;padding-top:0;border-top:none;">${subs.map(s => `<div class="subtask-item"><div class="subtask-check ${s.status==='done'?'done':''}" data-sub-id="${s.id}">${s.status==='done'?`<svg width="7" height="7" viewBox="0 0 7 7"><polyline points="1,3.5 2.8,5.5 6,1.5" stroke="white" stroke-width="1.5" fill="none"/></svg>`:''}</div><span class="subtask-title ${s.status==='done'?'done':''}">${s.title}</span><span class="subtask-min">${s.estimated_minutes}min</span></div>`).join('')}</div>` : ''}
+    <div style="font-size:11px;color:var(--text3);background:var(--bg2);border-radius:6px;padding:8px 10px;margin-bottom:14px;">🐯 ${reason}</div>
+    ${subs.length ? `<div style="font-size:9px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;">サブタスク</div><div class="subtask-list" style="margin-top:0;padding-top:0;border-top:none;">${subs.map(s=>`<div class="subtask-item"><div class="subtask-check ${s.status==='done'?'done':''}" data-sub-id="${s.id}">${s.status==='done'?`<svg width="7" height="7" viewBox="0 0 7 7"><polyline points="1,3.5 2.8,5.5 6,1.5" stroke="white" stroke-width="1.5" fill="none"/></svg>`:''}</div><span class="subtask-title ${s.status==='done'?'done':''}">${s.title}</span><span class="subtask-min">${s.estimated_minutes}min</span></div>`).join('')}</div>` : ''}
     ${task.memo ? `<div style="margin-top:12px;font-size:13px;color:var(--text2);line-height:1.6;background:var(--bg2);border-radius:8px;padding:10px 12px;">${task.memo}</div>` : ''}
     <div class="detail-actions">
       <button class="btn-done" id="dd-btn">完了</button>
@@ -1212,12 +1212,10 @@ function openDetail(taskId) {
   body.querySelectorAll('.subtask-check').forEach(el => el.addEventListener('click', () => toggleSubtask(el.dataset.subId)));
   document.getElementById('dd-btn').addEventListener('click', async () => { await toggleTask(taskId); closeModal('detail-modal'); });
   document.getElementById('dc-btn').addEventListener('click', async () => {
-    const tm = new Date(TODAY); tm.setDate(tm.getDate()+1);
-    const tStr = tm.toISOString().split('T')[0];
-    const autoTime = autoPlotTime(task.type, task.estimated_minutes, tStr);
-    await db.from('tasks').update({ status: 'carried', scheduled_date: tStr, scheduled_time: autoTime }).eq('id', taskId);
+    const autoTime = autoPlotTime(task.type, task.estimated_minutes, TOMORROW_STR);
+    await db.from('tasks').update({ status: 'carried', scheduled_date: TOMORROW_STR, scheduled_time: autoTime }).eq('id', taskId);
     const t = allTasks.find(x => x.id === taskId);
-    if (t) { t.status = 'carried'; t.scheduled_date = tStr; t.scheduled_time = autoTime; }
+    if (t) { t.status = 'carried'; t.scheduled_date = TOMORROW_STR; t.scheduled_time = autoTime; }
     closeModal('detail-modal'); renderToday(); showToast('明日に持ち越しました');
   });
   document.getElementById('ddel-btn').addEventListener('click', async () => {
@@ -1230,55 +1228,9 @@ function openDetail(taskId) {
   openModal('detail-modal');
 }
 
-// BLOCKS
-document.getElementById('add-block-btn').addEventListener('click', () => openModal('block-modal'));
-document.getElementById('block-save-btn').addEventListener('click', async () => {
-  const title = document.getElementById('block-title').value.trim();
-  const start = document.getElementById('block-start').value;
-  const end = document.getElementById('block-end').value;
-  const date = document.getElementById('block-date').value;
-  if (!title || !start || !end) { showToast('内容・時間を入力してください'); return; }
-  const { data } = await db.from('blocks').insert({ user_id: currentUser.id, title, start_time: start+':00', end_time: end+':00', date }).select().single();
-  if (data) allBlocks.push(data);
-  closeModal('block-modal');
-  renderTomorrow();
-  renderToday();
-  if (window.innerWidth >= 900) renderWeekView();
-  showToast('固定ブロックを追加しました');
-});
-
-function renderTomorrow() {
-  const tm = new Date(TODAY); tm.setDate(tm.getDate()+1);
-  const tStr = tm.toISOString().split('T')[0];
-  const blockList = document.getElementById('block-list');
-  const todayBlocks = allBlocks.filter(b => b.date === TODAY_STR);
-  blockList.innerHTML = todayBlocks.length ? todayBlocks.map(b => `
-    <div class="task-card block-card" style="margin-bottom:6px;">
-      <div class="task-card-top">
-        <div class="task-card-left"><div class="task-type-badge type-block">固定</div><span class="task-title">${b.title}</span></div>
-        <span class="task-time">${b.start_time.slice(0,5)}〜${b.end_time.slice(0,5)}</span>
-      </div>
-    </div>`).join('') : '<div style="font-size:13px;color:var(--text3);padding:8px 0 12px;">固定ブロックなし</div>';
-  const carried = allTasks.filter(t => t.status === 'carried' || (t.status === 'pending' && t.scheduled_date === TODAY_STR));
-  const unscheduled = allTasks.filter(t => !t.scheduled_date && t.status === 'pending');
-  const carriedList = document.getElementById('carried-list');
-  carriedList.innerHTML = carried.length ? carried.map(t => `<div class="task-card" style="margin-bottom:6px;"><div class="task-card-top"><div class="task-card-left"><div class="task-type-badge type-${t.type}">${typeLabel(t.type)}</div><span class="task-title">${t.title}</span></div><span class="task-time">${t.estimated_minutes}min</span></div></div>`).join('') : '<div style="font-size:13px;color:var(--text3);padding:8px 0;">持ち越しなし 🎉</div>';
-  const unList = document.getElementById('unscheduled-list');
-  unList.innerHTML = unscheduled.length ? unscheduled.map(t => `<div class="task-card" style="margin-bottom:6px;"><div class="task-card-top"><div class="task-card-left"><div class="task-type-badge type-${t.type}">${typeLabel(t.type)}</div><span class="task-title">${t.title}</span></div><span class="task-time">${t.estimated_minutes}min</span></div></div>`).join('') : '<div style="font-size:13px;color:var(--text3);padding:8px 0;">なし</div>';
-  document.getElementById('plot-tomorrow-btn').onclick = async () => {
-    const targets = [...carried, ...unscheduled];
-    if (!targets.length) { showToast('プロット対象なし'); return; }
-    await Promise.all(targets.map(t => {
-      const autoTime = autoPlotTime(t.type, t.estimated_minutes, tStr);
-      db.from('tasks').update({ scheduled_date: tStr, scheduled_time: autoTime, status: 'pending' }).eq('id', t.id);
-      t.scheduled_date = tStr; t.scheduled_time = autoTime; t.status = 'pending';
-    }));
-    showToast(`${targets.length}件を明日に自動プロットしました`);
-    renderTomorrow();
-  };
-}
-
+// ============================================================
 // TASK LIST
+// ============================================================
 function renderTaskList() {
   const list = document.getElementById('task-list');
   let tasks = [...allTasks];
@@ -1290,7 +1242,17 @@ function renderTaskList() {
     const subs = allSubtasks.filter(s => s.task_id === t.id);
     const card = document.createElement('div');
     card.className = `task-card${t.status==='done'?' done':''}`;
-    card.innerHTML = `<div class="task-card-top"><div class="task-card-left"><div class="task-type-badge type-${t.type}">${typeLabel(t.type)}</div><span class="task-title">${t.title}</span></div><span class="task-time">${t.estimated_minutes}min</span></div><div class="task-card-bottom">${t.scheduled_date?`<span class="task-min">${t.scheduled_date}</span>`:''}${t.deadline?`<span class="task-deadline">期限 ${t.deadline}</span>`:''}${subs.length?`<span class="task-min">サブ ${subs.filter(s=>s.status==='done').length}/${subs.length}</span>`:''}</div>`;
+    card.innerHTML = `
+      <div class="task-card-top">
+        <div class="task-card-left"><div class="task-type-badge type-${t.type}">${typeLabel(t.type)}</div><span class="task-title">${t.title}</span></div>
+        <span class="task-time">${t.estimated_minutes}min</span>
+      </div>
+      <div class="task-card-bottom">
+        ${t.scheduled_date ? `<span class="task-min">${t.scheduled_date}</span>` : ''}
+        ${t.deadline ? `<span class="task-deadline">期限 ${t.deadline}</span>` : ''}
+        ${subs.length ? `<span class="task-min">サブ ${subs.filter(s=>s.status==='done').length}/${subs.length}</span>` : ''}
+      </div>
+    `;
     card.addEventListener('click', () => openDetail(t.id));
     list.appendChild(card);
   });
@@ -1302,16 +1264,129 @@ document.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () =
   renderTaskList();
 }));
 
+// ============================================================
+// TOMORROW PAGE
+// ============================================================
+function renderTomorrow() {
+  // 明日の負荷バー
+  const loadWrap = document.getElementById('tomorrow-load-wrap');
+  const tmUsed = calcUsedMinutes(TOMORROW_STR);
+  const tmPct = Math.min(100, Math.round(tmUsed / BUFFER_LIMIT * 100));
+  loadWrap.innerHTML = `
+    <div class="tomorrow-load-bar">
+      <div class="tomorrow-load-label">
+        <span>明日の使用時間</span>
+        <span class="tomorrow-load-nums"><span>${tmUsed}</span>/${BUFFER_LIMIT}min</span>
+      </div>
+      <div class="buffer-track"><div class="buffer-fill ${tmUsed > BUFFER_LIMIT ? 'warn' : ''}" style="width:${tmPct}%"></div></div>
+    </div>
+  `;
+
+  // 明日のブロック
+  const blockList = document.getElementById('block-list');
+  const tmBlocks = allBlocks.filter(b => b.date === TOMORROW_STR);
+  blockList.innerHTML = tmBlocks.length
+    ? tmBlocks.map(b => `<div class="task-card block-card" style="margin-bottom:6px;"><div class="task-card-top"><div class="task-card-left"><div class="task-type-badge type-block">固定</div><span class="task-title">${b.title}</span></div><span class="task-time">${b.start_time.slice(0,5)}〜${b.end_time.slice(0,5)}</span></div></div>`).join('')
+    : '<div style="font-size:13px;color:var(--text3);padding:8px 0 12px;">明日の固定ブロックなし</div>';
+
+  // 明日のタスク
+  const tmTasks = allTasks.filter(t => t.scheduled_date === TOMORROW_STR && t.status !== 'done')
+    .sort((a,b) => (a.scheduled_time||'99:99').localeCompare(b.scheduled_time||'99:99'));
+  const tmList = document.getElementById('tomorrow-task-list');
+  tmList.innerHTML = tmTasks.length
+    ? tmTasks.map(t => `<div class="task-card" style="margin-bottom:6px;" onclick="openDetail('${t.id}')"><div class="task-card-top"><div class="task-card-left"><div class="task-type-badge type-${t.type}">${typeLabel(t.type)}</div><span class="task-title">${t.title}</span></div><span class="task-time">${t.scheduled_time ? t.scheduled_time.slice(0,5) : '--:--'} · ${t.estimated_minutes}min</span></div><div class="task-reason">${buildReason(t)}</div></div>`).join('')
+    : '<div style="font-size:13px;color:var(--text3);padding:8px 0;">明日のタスクなし</div>';
+
+  // 未スケジュール
+  const unscheduled = allTasks.filter(t => !t.scheduled_date && t.status === 'pending');
+  const unList = document.getElementById('unscheduled-list');
+  unList.innerHTML = unscheduled.length
+    ? unscheduled.map(t => `<div class="task-card" style="margin-bottom:6px;"><div class="task-card-top"><div class="task-card-left"><div class="task-type-badge type-${t.type}">${typeLabel(t.type)}</div><span class="task-title">${t.title}</span></div><span class="task-time">${t.estimated_minutes}min</span></div></div>`).join('')
+    : '<div style="font-size:13px;color:var(--text3);padding:8px 0;">なし</div>';
+
+  document.getElementById('plot-tomorrow-btn').onclick = async () => {
+    const targets = [...allTasks.filter(t => t.status === 'carried'), ...unscheduled];
+    if (!targets.length) { showToast('プロット対象なし'); return; }
+    await Promise.all(targets.map(async t => {
+      const autoTime = autoPlotTime(t.type, t.estimated_minutes, TOMORROW_STR);
+      await db.from('tasks').update({ scheduled_date: TOMORROW_STR, scheduled_time: autoTime, status: 'pending' }).eq('id', t.id);
+      t.scheduled_date = TOMORROW_STR; t.scheduled_time = autoTime; t.status = 'pending';
+    }));
+    showToast(`${targets.length}件を明日に自動プロットしました`);
+    renderTomorrow();
+  };
+}
+
+// ============================================================
+// BLOCKS
+// ============================================================
+document.getElementById('add-block-btn').addEventListener('click', () => openModal('block-modal'));
+document.getElementById('add-block-right-btn')?.addEventListener('click', () => {
+  document.getElementById('block-date').value = TODAY_STR;
+  openModal('block-modal');
+});
+document.getElementById('block-save-btn').addEventListener('click', async () => {
+  const title = document.getElementById('block-title').value.trim();
+  const start = document.getElementById('block-start').value;
+  const end = document.getElementById('block-end').value;
+  const date = document.getElementById('block-date').value;
+  if (!title || !start || !end) { showToast('内容・時間を入力してください'); return; }
+  const { data } = await db.from('blocks').insert({ user_id: currentUser.id, title, start_time: start+':00', end_time: end+':00', date }).select().single();
+  if (data) allBlocks.push(data);
+  document.getElementById('block-title').value = '';
+  closeModal('block-modal');
+  renderTomorrow(); renderToday(); renderRightPanel();
+  showToast('固定ブロックを追加しました');
+});
+
+// ============================================================
+// RIGHT PANEL
+// ============================================================
+function renderRightPanel() {
+  const todayBlocks = allBlocks.filter(b => b.date === TODAY_STR);
+  const blockRight = document.getElementById('block-list-right');
+  if (blockRight) {
+    blockRight.innerHTML = todayBlocks.length
+      ? todayBlocks.map(b => `<div class="task-card block-card" style="margin-bottom:6px;cursor:default;"><div class="task-card-top"><div class="task-card-left"><div class="task-type-badge type-block">固定</div><span class="task-title">${b.title}</span></div><span class="task-time">${b.start_time.slice(0,5)}〜${b.end_time.slice(0,5)}</span></div></div>`).join('')
+      : '<div style="font-size:12px;color:var(--text3);padding:4px 0;">今日の会議なし</div>';
+  }
+  // 明日のミニ負荷バー
+  const miniLoad = document.getElementById('tomorrow-mini-load');
+  if (miniLoad) {
+    const tmUsed = calcUsedMinutes(TOMORROW_STR);
+    const tmPct = Math.min(100, Math.round(tmUsed / BUFFER_LIMIT * 100));
+    miniLoad.innerHTML = `
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-bottom:6px;">
+        <span>${tmUsed}min / ${BUFFER_LIMIT}min</span>
+        <span style="color:${tmUsed > BUFFER_LIMIT ? 'var(--accent)' : 'var(--text3)'};">${tmUsed > BUFFER_LIMIT ? '上限超え' : '余裕あり'}</span>
+      </div>
+      <div class="buffer-track"><div class="buffer-fill ${tmUsed > BUFFER_LIMIT ? 'warn' : ''}" style="width:${tmPct}%"></div></div>
+    `;
+  }
+}
+
+// ============================================================
 // WEEKLY REVIEW
+// ============================================================
 document.getElementById('review-btn').addEventListener('click', () => {
   const pending = allTasks.filter(t => t.status === 'pending' || t.status === 'carried');
   const body = document.getElementById('review-body');
-  body.innerHTML = `<div style="font-size:13px;color:var(--text2);margin-bottom:16px;">未完了 <strong>${pending.length}件</strong> を確認します</div>` +
-    (pending.length ? pending.slice(0,15).map(t => `<div class="review-card"><div class="review-card-title">${t.title}</div><div class="review-card-sub">${typeLabel(t.type)} · ${t.estimated_minutes}min</div><div class="review-action"><button class="btn-sm" onclick="moveNextWeek('${t.id}')">来週に移す</button><button class="btn-sm btn-sm-accent" onclick="keepTask('${t.id}')">今週継続</button><button class="btn-sm" style="color:var(--accent);" onclick="dropTask('${t.id}')">削除</button></div></div>`).join('') : '<div class="empty">未完了タスクなし 🎉</div>');
+  body.innerHTML = `<div style="font-size:13px;color:var(--text2);margin-bottom:16px;">未完了 <strong>${pending.length}件</strong></div>` +
+    (pending.length ? pending.slice(0,15).map(t => `
+      <div class="review-card">
+        <div class="review-card-title">${t.title}</div>
+        <div class="review-card-sub">${typeLabel(t.type)} · ${t.estimated_minutes}min</div>
+        <div class="review-action">
+          <button class="btn-sm" onclick="reviewMoveNextWeek('${t.id}')">来週に移す</button>
+          <button class="btn-sm btn-sm-accent" onclick="reviewKeep()">今週継続</button>
+          <button class="btn-sm" style="color:var(--accent);" onclick="reviewDrop('${t.id}')">削除</button>
+        </div>
+      </div>`).join('')
+    : '<div class="empty">未完了タスクなし 🎉</div>');
   openModal('review-modal');
 });
-window.moveNextWeek = async (id) => {
-  const nm = new Date(TODAY); nm.setDate(TODAY.getDate() + (8-TODAY.getDay())%7||7);
+window.reviewMoveNextWeek = async (id) => {
+  const nm = new Date(TODAY); nm.setDate(TODAY.getDate() + 7);
   const nStr = nm.toISOString().split('T')[0];
   await db.from('tasks').update({ scheduled_date: nStr, status: 'pending' }).eq('id', id);
   const t = allTasks.find(x => x.id === id);
@@ -1319,8 +1394,8 @@ window.moveNextWeek = async (id) => {
   showToast('来週に移しました');
   document.getElementById('review-btn').click();
 };
-window.keepTask = () => showToast('今週継続します');
-window.dropTask = async (id) => {
+window.reviewKeep = () => { showToast('今週継続します'); closeModal('review-modal'); };
+window.reviewDrop = async (id) => {
   if (!confirm('削除しますか？')) return;
   await db.from('tasks').delete().eq('id', id);
   allTasks = allTasks.filter(t => t.id !== id);
@@ -1328,8 +1403,10 @@ window.dropTask = async (id) => {
   document.getElementById('review-btn').click();
 };
 
-// MODALS CLOSE
-['detail-modal','goal-modal','review-modal','block-modal'].forEach(id => {
+// ============================================================
+// MODAL CLOSE
+// ============================================================
+['detail-modal','review-modal','block-modal'].forEach(id => {
   document.getElementById(id).addEventListener('click', function(e) { if (e.target === this) closeModal(id); });
 });
 document.querySelectorAll('.modal').forEach(m => {
