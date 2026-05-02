@@ -311,18 +311,52 @@ kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); b
       <!-- 追加 -->
       <div class="page" id="page-add">
         <div class="sec-label" style="margin-top:4px;">タスクを追加</div>
-        <div class="quick-wrap">
-          <div>
-            <label class="wiz-label">タスク名を入れてAIに任せる</label>
-            <div class="quick-input-row">
-              <input class="quick-input" id="quick-title" placeholder="例：来月キャンペーン企画" maxlength="60">
-              <button class="btn-ai" id="quick-ai-btn">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="white" stroke-width="1.5"/><path d="M5 8 C5 6.3 6.3 5 8 5 C9.7 5 11 6.3 11 8" stroke="white" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="10" r="1" fill="white"/></svg>
-                AI分析
-              </button>
+        <!-- STEP1: タスク名 -->
+        <div style="margin-bottom:16px;">
+          <label style="font-size:11px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:6px;">① タスク名</label>
+          <input style="width:100%;height:48px;border:0.5px solid var(--bg3);border-radius:var(--radius-sm);background:var(--white);padding:0 14px;font-size:15px;font-family:var(--font);color:var(--text);outline:none;" id="task-name-input" placeholder="例：汗シミーヌリールのチェックバック" maxlength="60">
+        </div>
+        <!-- STEP2: タイプ -->
+        <div style="margin-bottom:16px;">
+          <label style="font-size:11px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:8px;">② タイプ</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;" id="type-grid">
+            <div style="background:var(--white);border:0.5px solid var(--sep);border-radius:var(--radius-sm);padding:12px 14px;cursor:pointer;" class="type-opt" data-type="routine"><div style="font-size:13px;font-weight:500;margin-bottom:2px;">ルーティン</div><div style="font-size:11px;color:var(--text3);">毎回同じ手順で完結</div></div>
+            <div style="background:var(--white);border:0.5px solid var(--sep);border-radius:var(--radius-sm);padding:12px 14px;cursor:pointer;" class="type-opt" data-type="unknown"><div style="font-size:13px;font-weight:500;margin-bottom:2px;">初めて</div><div style="font-size:11px;color:var(--text3);">新規・やったことがない</div></div>
+            <div style="background:var(--white);border:0.5px solid var(--sep);border-radius:var(--radius-sm);padding:12px 14px;cursor:pointer;" class="type-opt" data-type="judgment"><div style="font-size:13px;font-weight:500;margin-bottom:2px;">判断</div><div style="font-size:11px;color:var(--text3);">意思決定・方針決定が主</div></div>
+            <div style="background:var(--white);border:0.5px solid var(--sep);border-radius:var(--radius-sm);padding:12px 14px;cursor:pointer;" class="type-opt" data-type="dependent"><div style="font-size:13px;font-weight:500;margin-bottom:2px;">他者依存</div><div style="font-size:11px;color:var(--text3);">誰かへの連絡・依頼</div></div>
+          </div>
+        </div>
+        <!-- STEP3: パターン -->
+        <div style="margin-bottom:16px;display:none;" id="step-pattern">
+          <label style="font-size:11px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:8px;">③ 作業パターン</label>
+          <div id="pattern-list"></div>
+        </div>
+        <!-- STEP4: 件数 -->
+        <div style="margin-bottom:16px;display:none;" id="step-count">
+          <label style="font-size:11px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:8px;">④ 件数</label>
+          <div style="display:flex;align-items:center;gap:12px;background:var(--white);border:0.5px solid var(--sep);border-radius:var(--radius-sm);padding:10px 14px;">
+            <span style="font-size:13px;color:var(--text);flex:1;">何件分の作業？</span>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <button id="count-minus" style="width:28px;height:28px;border-radius:50%;border:0.5px solid var(--bg3);background:var(--bg2);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:var(--font);">−</button>
+              <span id="count-val" style="font-family:var(--font-num);font-size:18px;color:var(--accent);min-width:24px;text-align:center;">1</span>
+              <button id="count-plus" style="width:28px;height:28px;border-radius:50%;border:0.5px solid var(--bg3);background:var(--bg2);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:var(--font);">＋</button>
             </div>
           </div>
-          <div id="quick-result"></div>
+        </div>
+        <!-- STEP5: サブタスクプレビュー -->
+        <div style="margin-bottom:16px;display:none;" id="step-preview">
+          <label style="font-size:11px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:8px;">分解ステップ</label>
+          <div id="subtask-preview" style="background:var(--white);border:0.5px solid var(--sep);border-radius:var(--radius-sm);padding:12px 14px;"></div>
+        </div>
+        <!-- STEP6: 期限・プロット -->
+        <div style="display:none;" id="step-plot">
+          <label style="font-size:11px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:8px;">期限（任意）</label>
+          <div style="display:flex;gap:10px;margin-bottom:12px;">
+            <input type="date" id="deadline-input" style="flex:1;height:40px;border:0.5px solid var(--bg3);border-radius:var(--radius-sm);background:var(--white);padding:0 12px;font-size:14px;font-family:var(--font);color:var(--text);outline:none;">
+            <button class="btn-sm" id="deadline-clear-btn">クリア</button>
+          </div>
+          <div id="plot-info" style="background:var(--bg2);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:8px;"></div>
+          <button id="plot-btn" style="width:100%;height:48px;background:var(--accent);color:white;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:500;font-family:var(--font);cursor:pointer;">今日にプロット 🐯</button>
         </div>
       </div>
 
@@ -406,6 +440,18 @@ kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); b
       <div class="wiz-input-wrap"><label class="wiz-label">終了</label><input class="wiz-input" type="time" id="block-end" value="11:00"></div>
     </div>
     <div class="wiz-input-wrap"><label class="wiz-label">日付</label><input class="wiz-input" type="date" id="block-date"></div>
+    <div class="wiz-input-wrap">
+      <label class="wiz-label">繰り返し</label>
+      <select class="wiz-input" id="block-repeat">
+        <option value="none">繰り返しなし</option>
+        <option value="weekly">毎週</option>
+        <option value="biweekly">隔週</option>
+      </select>
+    </div>
+    <div class="wiz-input-wrap" id="block-repeat-end-wrap" style="display:none;">
+      <label class="wiz-label">繰り返し終了日</label>
+      <input class="wiz-input" type="date" id="block-repeat-end">
+    </div>
     <button class="btn-next" id="block-save-btn">追加する</button>
   </div>
 </div>
@@ -435,7 +481,7 @@ const DEFAULT_MINUTES = { routine: 30, unknown: 30, judgment: 25, dependent: 15 
 // routine/dependent → 日中(9:00-16:00)
 // unknown/judgment → 午前優先(9:00-12:00)、なければ日中
 // 企画・資料系(unknown) → 16:00以降の集中枠も候補
-const BUFFER_LIMIT = 340; // 480分の約30%引き = 340分を実稼働上限
+const BUFFER_LIMIT = 360; // 450min × 80% // 480分の約30%引き = 340分を実稼働上限
 // バッファ付き時間（タイプ別）
 const TYPE_BUFFER = { routine: 0, unknown: 15, judgment: 10, dependent: 5 };
 
@@ -897,228 +943,119 @@ subtasksは分解が必要な場合のみ設定（routineは原則空配列）�
 // ============================================================
 // ADD PAGE
 // ============================================================
+// 8パターン定義
+const PATTERNS = {
+  check: { name: 'チェック・フィードバック系', types: ['routine'], baseMin: 30, countable: false,
+    subtasks: [{ title: '動画・内容を確認する', minutes: 15 }, { title: '修正点・フィードバックをまとめる', minutes: 10 }, { title: '修正指示・フィードバックを送る', minutes: 5 }] },
+  send: { name: '送付・連絡系', types: ['dependent'], baseMin: 15, countable: false,
+    subtasks: [{ title: '送る内容・聞くことをまとめる', minutes: 5 }, { title: '送付・連絡する', minutes: 5 }, { title: '返信待ち（備忘録）', minutes: 5 }] },
+  adjust: { name: '確認・調整系', types: ['judgment'], baseMin: 25, countable: false,
+    subtasks: [{ title: '現状・条件を確認する', minutes: 10 }, { title: '可否・方針を判断する', minutes: 10 }, { title: '関係者に連絡・更新する', minutes: 5 }] },
+  update: { name: '入稿・更新作業系', types: ['routine'], baseMin: 30, countable: true,
+    subtasks: [{ title: '素材・データを確認・収集する', minutes: 10 }, { title: '入稿・更新作業を実行する', minutes: 15 }, { title: '完了確認・チェックする', minutes: 5 }] },
+  ad: { name: '広告設定・配信系', types: ['routine'], baseMin: 45, countable: true,
+    subtasks: [{ title: '素材の格納先・キャプションを確認する', minutes: 10 }, { title: '広告設定・入稿する', minutes: 20 }, { title: '配信確認・承認する', minutes: 10 }, { title: '関係者に配信開始を連絡する', minutes: 5 }] },
+  plan: { name: '企画・アイデア出し系', types: ['unknown'], baseMin: 60, countable: false,
+    subtasks: [{ title: '参考・トレンドをリサーチする', minutes: 20 }, { title: 'アイデア・企画案を作成する', minutes: 25 }, { title: '撮影・制作の段取りを確認する', minutes: 10 }, { title: '社内共有・確認依頼する', minutes: 5 }] },
+  report: { name: '分析・レポート系', types: ['routine'], baseMin: 45, countable: false,
+    subtasks: [{ title: 'データ・数値を抽出する', minutes: 15 }, { title: '集計・グラフ化する', minutes: 15 }, { title: '所見・コメントを書く', minutes: 10 }, { title: '共有・提出する', minutes: 5 }] },
+  doc: { name: '資料・まとめ作成系', types: ['unknown', 'judgment'], baseMin: 60, countable: false,
+    subtasks: [{ title: '必要な情報・データを集める', minutes: 15 }, { title: '構成・骨子を決める', minutes: 10 }, { title: '資料・まとめを作成する', minutes: 25 }, { title: '確認依頼・提出する', minutes: 10 }] }
+};
+
+let addState = { type: null, patternKey: null, count: 1, subtasks: [], totalMin: 0, scheduledTime: null };
+
 function initAddPage() {
-  document.getElementById('quick-title').value = '';
-  document.getElementById('quick-result').innerHTML = '';
-  aiResult = null;
-}
+  addState = { type: null, patternKey: null, count: 1, subtasks: [], totalMin: 0, scheduledTime: null };
+  const nameEl = document.getElementById('task-name-input');
+  const deadlineEl = document.getElementById('deadline-input');
+  if(nameEl) nameEl.value = '';
+  if(deadlineEl) deadlineEl.value = '';
+  document.querySelectorAll('.type-opt').forEach(o => { o.style.borderColor='var(--sep)'; o.style.background='var(--white)'; });
+  ['step-pattern','step-count','step-preview','step-plot'].forEach(id => { const el=document.getElementById(id); if(el) el.style.display='none'; });
 
-document.getElementById('quick-ai-btn').addEventListener('click', handleQuickAI);
-document.getElementById('quick-title').addEventListener('keydown', e => { if (e.key === 'Enter') handleQuickAI(); });
-
-async function handleQuickAI() {
-  const title = document.getElementById('quick-title').value.trim();
-  if (!title) { showToast('タスク名を入力してください'); return; }
-  const resultDiv = document.getElementById('quick-result');
-  resultDiv.innerHTML = `<div class="ai-loading"><div class="spinner"></div>虎の巻に照らして分析中...</div>`;
-  try {
-    const geminiResult = await analyzeWithGemini(title);
-    const type = geminiResult.type || 'judgment';
-    const minutes = geminiResult.estimated_minutes || DEFAULT_MINUTES[type] || 30;
-    const scheduledTime = autoPlotTime(type, minutes, TODAY_STR);
-    aiResult = {
-      title,
-      type,
-      estimated_minutes: minutes,
-      subtasks: geminiResult.subtasks || [],
-      scheduled_date: TODAY_STR,
-      scheduled_time: scheduledTime,
-      deadline: null,
-      ai_reason: geminiResult.reason || ''
+  document.querySelectorAll('.type-opt').forEach(opt => {
+    opt.onclick = () => {
+      document.querySelectorAll('.type-opt').forEach(o => { o.style.borderColor='var(--sep)'; o.style.background='var(--white)'; });
+      opt.style.borderColor='var(--accent)'; opt.style.background='var(--accent-light)';
+      addState.type=opt.dataset.type; addState.patternKey=null; addState.count=1;
+      const cv=document.getElementById('count-val'); if(cv) cv.textContent='1';
+      renderPatternList();
+      document.getElementById('step-pattern').style.display='block';
+      ['step-count','step-preview','step-plot'].forEach(id=>document.getElementById(id).style.display='none');
     };
-    renderAIResult(resultDiv);
-  } catch(e) {
-    resultDiv.innerHTML = `<div style="font-size:13px;color:var(--accent);padding:12px;">AI分析に失敗しました。もう一度お試しください。</div>`;
-  }
+  });
+
+  const cm=document.getElementById('count-minus');
+  const cp=document.getElementById('count-plus');
+  if(cm) cm.onclick=()=>{ if(addState.count<=1) return; addState.count--; document.getElementById('count-val').textContent=addState.count; updateSubtasksAndPlot(); };
+  if(cp) cp.onclick=()=>{ addState.count++; document.getElementById('count-val').textContent=addState.count; updateSubtasksAndPlot(); };
+
+  if(deadlineEl) deadlineEl.onchange=()=>{ if(addState.patternKey){ addState.scheduledTime=autoPlotTime(addState.type,addState.totalMin,TODAY_STR); updatePlotInfo(); } };
+  const dcb=document.getElementById('deadline-clear-btn');
+  if(dcb) dcb.onclick=()=>{ if(deadlineEl) deadlineEl.value=''; if(addState.patternKey) updatePlotInfo(); };
+
+  const pb=document.getElementById('plot-btn');
+  if(pb) pb.onclick=async()=>{
+    const title=document.getElementById('task-name-input').value.trim();
+    if(!title){ showToast('タスク名を入力してください'); return; }
+    if(!addState.type){ showToast('タイプを選択してください'); return; }
+    if(!addState.patternKey){ showToast('作業パターンを選択してください'); return; }
+    const deadline=deadlineEl?deadlineEl.value||null:null;
+    const used=calcUsedMinutes(TODAY_STR);
+    if(used+addState.totalMin>BUFFER_LIMIT){
+      const over=used+addState.totalMin-BUFFER_LIMIT;
+      if(!confirm(`今日の使用時間が上限(${BUFFER_LIMIT}分)を${over}分超えます。\n虎の巻では20%のバッファを推奨しています。\nそれでも追加しますか？`)) return;
+    }
+    await saveTask({title,type:addState.type,estimated_minutes:addState.totalMin,deadline,scheduled_date:TODAY_STR,scheduled_time:addState.scheduledTime,subtasks:addState.subtasks});
+  };
 }
 
-function renderAIResult(container) {
-  if (!aiResult) return;
-  const takenTimes = allTasks.filter(t => t.scheduled_date === TODAY_STR && t.scheduled_time).map(t => t.scheduled_time.slice(0,5));
-  const timeSlots = ['09:00','09:30','10:00','10:30','11:00','11:30','12:00','13:00','14:00','15:00','16:00','16:30','17:00','17:30'];
-
-  container.innerHTML = `
-    <div class="ai-result">
-      <div class="ai-result-title">AI分析結果</div>
-      <div class="ai-task-name">${aiResult.title}</div>
-      <div class="ai-reason-row">${aiResult.ai_reason}</div>
-      <div class="pill-row" id="pill-row">
-        <div class="pill" id="pill-type" data-pill="type">
-          <span id="pill-type-label">${typeLabel(aiResult.type)}</span>
-          <svg viewBox="0 0 10 10" fill="none"><path d="M2 3L5 7L8 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-        </div>
-        <div class="pill" id="pill-minutes" data-pill="minutes">
-          <span id="pill-minutes-label">${aiResult.estimated_minutes}min</span>
-          <svg viewBox="0 0 10 10" fill="none"><path d="M2 3L5 7L8 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-        </div>
-        <div class="pill" id="pill-time" data-pill="time">
-          <span id="pill-time-label">${aiResult.scheduled_time || '未設定'}</span>
-          <svg viewBox="0 0 10 10" fill="none"><path d="M2 3L5 7L8 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-        </div>
-        <div class="pill" id="pill-deadline" data-pill="deadline">
-          <span id="pill-deadline-label">${aiResult.deadline || '期限なし'}</span>
-          <svg viewBox="0 0 10 10" fill="none"><path d="M2 3L5 7L8 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-        </div>
-      </div>
-      ${aiResult.subtasks.length ? `
-        <div class="ai-subtasks">
-          <div style="font-size:9px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;">分解ステップ</div>
-          ${aiResult.subtasks.map(s=>`<div class="ai-subtask-item"><span>${s.title}</span><span style="font-family:var(--font-num);color:var(--text3);">${s.minutes}min</span></div>`).join('')}
-        </div>` : ''}
-      <div class="ai-actions">
-        <button class="btn-ok" id="ai-plot-btn">今日にプロット</button>
-      </div>
-    </div>
-  `;
-
-  // ピルイベント
-  document.getElementById('pill-type').addEventListener('click', function(e) {
-    e.stopPropagation();
-    showPillPopover(this, 'type', [
-      { val:'routine', label:'ルーティン' },
-      { val:'unknown', label:'初めて' },
-      { val:'judgment', label:'判断' },
-      { val:'dependent', label:'他者依存' }
-    ], aiResult.type, (val) => {
-      aiResult.type = val;
-      aiResult.scheduled_time = autoPlotTime(val, aiResult.estimated_minutes, TODAY_STR);
-      document.getElementById('pill-type-label').textContent = typeLabel(val);
-      document.getElementById('pill-time-label').textContent = aiResult.scheduled_time;
-    });
-  });
-
-  document.getElementById('pill-minutes').addEventListener('click', function(e) {
-    e.stopPropagation();
-    showPillPopoverNumber(this, aiResult.estimated_minutes, (val) => {
-      aiResult.estimated_minutes = val;
-      aiResult.scheduled_time = autoPlotTime(aiResult.type, val, TODAY_STR);
-      document.getElementById('pill-minutes-label').textContent = val+'min';
-      document.getElementById('pill-time-label').textContent = aiResult.scheduled_time;
-    });
-  });
-
-  document.getElementById('pill-time').addEventListener('click', function(e) {
-    e.stopPropagation();
-    showPillPopoverTime(this, timeSlots, takenTimes, aiResult.scheduled_time, (val) => {
-      aiResult.scheduled_time = val;
-      document.getElementById('pill-time-label').textContent = val;
-    });
-  });
-
-  document.getElementById('pill-deadline').addEventListener('click', function(e) {
-    e.stopPropagation();
-    showPillPopoverDeadline(this, aiResult.deadline, (val) => {
-      aiResult.deadline = val || null;
-      document.getElementById('pill-deadline-label').textContent = val || '期限なし';
-    });
-  });
-
-  document.getElementById('ai-plot-btn').addEventListener('click', async () => {
-    await saveTask(aiResult);
-  });
+function renderPatternList() {
+  const list=document.getElementById('pattern-list'); if(!list) return;
+  const entries=Object.entries(PATTERNS).filter(([,p])=>p.types.includes(addState.type));
+  const all=entries.length?entries:Object.entries(PATTERNS);
+  list.innerHTML=all.map(([key,p])=>`<div onclick="selectPattern('${key}')" data-pattern="${key}" style="background:var(--white);border:0.5px solid var(--sep);border-radius:var(--radius-sm);padding:10px 14px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;"><span style="font-size:13px;font-weight:500;color:var(--text);">${p.name}</span><span style="font-family:var(--font-num);font-size:13px;color:var(--text3);">${p.baseMin}min〜</span></div>`).join('');
 }
 
-// ============================================================
-// ピルポップオーバー
-// ============================================================
-let activePillBtn = null;
-function hidePillPopover() {
-  document.getElementById('pill-popover').style.display = 'none';
-  activePillBtn = null;
-}
-document.addEventListener('click', (e) => {
-  if (!e.target.closest('#pill-popover') && !e.target.closest('.pill')) hidePillPopover();
-});
+window.selectPattern=function(key){
+  document.querySelectorAll('#pattern-list > div').forEach(o=>{o.style.borderColor='var(--sep)';o.style.background='var(--white)';});
+  const sel=document.querySelector(`#pattern-list [data-pattern="${key}"]`);
+  if(sel){sel.style.borderColor='var(--accent)';sel.style.background='var(--accent-light)';}
+  addState.patternKey=key; addState.count=1;
+  const cv=document.getElementById('count-val'); if(cv) cv.textContent='1';
+  const pattern=PATTERNS[key];
+  if(pattern.countable) document.getElementById('step-count').style.display='block';
+  else { document.getElementById('step-count').style.display='none'; addState.count=1; }
+  updateSubtasksAndPlot();
+};
 
-function positionPopover(btn) {
-  const pop = document.getElementById('pill-popover');
-  pop.style.display = 'block';
-  const rect = btn.getBoundingClientRect();
-  const popH = pop.offsetHeight;
-  const spaceBelow = window.innerHeight - rect.bottom;
-  if (spaceBelow < popH + 8 && rect.top > popH + 8) {
-    pop.style.top = (rect.top + window.scrollY - popH - 6) + 'px';
-  } else {
-    pop.style.top = (rect.bottom + window.scrollY + 6) + 'px';
-  }
-  pop.style.left = Math.min(rect.left, window.innerWidth - 180) + 'px';
-}
-
-function showPillPopover(btn, type, options, current, onChange) {
-  if (activePillBtn === btn) { hidePillPopover(); return; }
-  activePillBtn = btn;
-  const pop = document.getElementById('pill-popover');
-  pop.innerHTML = options.map(o => `<div class="pill-option ${o.val===current?'active':''}" data-val="${o.val}">${o.label}</div>`).join('');
-  pop.querySelectorAll('.pill-option').forEach(el => {
-    el.addEventListener('click', e => { e.stopPropagation(); onChange(el.dataset.val); hidePillPopover(); });
-  });
-  positionPopover(btn);
+function updateSubtasksAndPlot(){
+  const pattern=PATTERNS[addState.patternKey]; if(!pattern) return;
+  if(addState.count===1){ addState.subtasks=pattern.subtasks.map(s=>({...s})); }
+  else { addState.subtasks=[]; for(let i=1;i<=addState.count;i++) pattern.subtasks.forEach(s=>addState.subtasks.push({title:`[${i}件目] ${s.title}`,minutes:s.minutes})); }
+  addState.totalMin=addState.subtasks.reduce((a,s)=>a+s.minutes,0);
+  const preview=document.getElementById('subtask-preview');
+  if(preview) preview.innerHTML=addState.subtasks.map(s=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:0.5px solid var(--sep);font-size:13px;"><span style="color:var(--text2);">${s.title}</span><span style="font-family:var(--font-num);font-size:12px;color:var(--text3);">${s.minutes}min</span></div>`).join('')+`<div style="text-align:right;font-family:var(--font-num);font-size:14px;color:var(--accent);margin-top:8px;">合計 ${addState.totalMin}min</div>`;
+  document.getElementById('step-preview').style.display='block';
+  addState.scheduledTime=autoPlotTime(addState.type,addState.totalMin,TODAY_STR);
+  updatePlotInfo();
+  document.getElementById('step-plot').style.display='block';
 }
 
-function showPillPopoverNumber(btn, current, onChange) {
-  if (activePillBtn === btn) { hidePillPopover(); return; }
-  activePillBtn = btn;
-  const pop = document.getElementById('pill-popover');
-  const presets = [5,15,25,30,45,60,90,120];
-  pop.innerHTML = `
-    <div style="display:flex;flex-wrap:wrap;gap:4px;padding:8px;">
-      ${presets.map(p=>`<div class="pill-option" style="padding:5px 10px;" data-val="${p}">${p}min</div>`).join('')}
-    </div>
-    <div class="pill-number-row">
-      <input class="pill-number-input" type="number" id="custom-min-input" value="${current}" min="5" max="480" step="5">
-      <button class="btn-pill-apply" id="custom-min-apply">OK</button>
-    </div>
-  `;
-  pop.querySelectorAll('.pill-option').forEach(el => {
-    el.addEventListener('click', e => { e.stopPropagation(); onChange(parseInt(el.dataset.val)); hidePillPopover(); });
-  });
-  document.getElementById('custom-min-apply').addEventListener('click', e => {
-    e.stopPropagation();
-    const val = parseInt(document.getElementById('custom-min-input').value) || current;
-    onChange(val); hidePillPopover();
-  });
-  positionPopover(btn);
+function updatePlotInfo(){
+  const info=document.getElementById('plot-info'); if(!info) return;
+  const parts=[]; const deadlineEl=document.getElementById('deadline-input');
+  const deadline=deadlineEl?deadlineEl.value:'';
+  if(deadline){const d=Math.ceil((new Date(deadline)-TODAY)/(1000*60*60*24));if(d<=0)parts.push('期限超過');else if(d===1)parts.push('期限明日');else if(d<=3)parts.push(`期限${d}日`);}
+  if(addState.type==='judgment'||addState.type==='unknown') parts.push('午前の脳リソースで対応');
+  if(addState.type==='dependent') parts.push('早めにボールを渡す');
+  if(addState.type==='routine') parts.push('テンプレで流す');
+  if(addState.scheduledTime){const h=parseInt(addState.scheduledTime.split(':')[0]);if(h>=16)parts.push('集中枠');else if(h<12)parts.push('午前枠');}
+  const reason=parts.join(' · ')||'標準スケジュール';
+  info.innerHTML=`<div style="font-size:12px;color:var(--text3);margin-bottom:4px;">プロット時刻</div><div style="font-family:var(--font-num);font-size:18px;color:var(--text);margin-bottom:4px;">${addState.scheduledTime} · ${addState.totalMin}min</div><div style="font-size:11px;color:var(--text3);">🐯 ${reason}</div>`;
 }
 
-function showPillPopoverTime(btn, slots, takenTimes, current, onChange) {
-  if (activePillBtn === btn) { hidePillPopover(); return; }
-  activePillBtn = btn;
-  const pop = document.getElementById('pill-popover');
-  pop.innerHTML = `<div class="time-grid">${slots.map(s=>`<div class="time-option ${s===current?'active':''} ${takenTimes.includes(s)&&s!==current?'taken':''}" data-val="${s}">${s}</div>`).join('')}</div>`;
-  pop.querySelectorAll('.time-option:not(.taken)').forEach(el => {
-    el.addEventListener('click', e => { e.stopPropagation(); onChange(el.dataset.val); hidePillPopover(); });
-  });
-  positionPopover(btn);
-}
-
-function showPillPopoverDeadline(btn, current, onChange) {
-  if (activePillBtn === btn) { hidePillPopover(); return; }
-  activePillBtn = btn;
-  const pop = document.getElementById('pill-popover');
-  pop.innerHTML = `
-    <div style="padding:8px;">
-      <input type="date" class="wiz-input" id="deadline-input" value="${current||''}" style="margin-bottom:8px;">
-      <div style="display:flex;gap:6px;">
-        <button class="btn-pill-apply" id="deadline-apply" style="flex:1;">設定</button>
-        <button class="btn-pill-apply" id="deadline-clear" style="background:var(--bg3);color:var(--text2);">クリア</button>
-      </div>
-    </div>
-  `;
-  document.getElementById('deadline-apply').addEventListener('click', e => {
-    e.stopPropagation();
-    const val = document.getElementById('deadline-input').value;
-    onChange(val); hidePillPopover();
-  });
-  document.getElementById('deadline-clear').addEventListener('click', e => {
-    e.stopPropagation();
-    onChange(''); hidePillPopover();
-  });
-  positionPopover(btn);
-}
-
-// ============================================================
-// SAVE TASK
-// ============================================================
 async function saveTask(data) {
   const usedMin = calcUsedMinutes(TODAY_STR);
   if (data.scheduled_date === TODAY_STR && usedMin + (data.estimated_minutes||30) > BUFFER_LIMIT) {
