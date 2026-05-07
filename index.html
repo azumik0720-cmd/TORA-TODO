@@ -291,7 +291,7 @@ kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); b
         </button>
       </div>
       <div class="header-date" id="header-date"></div>
-      <button id="start-time-btn" style="font-size:11px;color:var(--text3);background:var(--bg2);border:0.5px solid var(--sep);border-radius:6px;padding:3px 8px;cursor:pointer;font-family:var(--font);" title="始業時間を設定">⏰ 9:30</button>
+      <button id="start-time-btn" style="font-size:11px;color:var(--text3);background:var(--bg2);border:0.5px solid var(--sep);border-radius:6px;padding:3px 8px;cursor:pointer;font-family:var(--font);">⏰ 9:30</button>
       <button class="btn-logout" id="logout-btn">ログアウト</button>
     </div>
   </div>
@@ -312,68 +312,18 @@ kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); b
       <!-- 追加 -->
       <div class="page" id="page-add">
         <div class="sec-label" style="margin-top:4px;">タスクを追加</div>
-        <!-- STEP1: タスク名 -->
-        <div style="margin-bottom:16px;">
-          <label style="font-size:11px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:6px;">① タスク名</label>
-          <input style="width:100%;height:48px;border:0.5px solid var(--bg3);border-radius:var(--radius-sm);background:var(--white);padding:0 14px;font-size:15px;font-family:var(--font);color:var(--text);outline:none;" id="task-name-input" placeholder="例：汗シミーヌリールのチェックバック" maxlength="60">
-        </div>
-        <!-- STEP2: タイプ -->
-        <div style="margin-bottom:16px;">
-          <label style="font-size:11px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:8px;">② タイプ</label>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;" id="type-grid">
-            <div style="background:var(--white);border:0.5px solid var(--sep);border-radius:var(--radius-sm);padding:12px 14px;cursor:pointer;" class="type-opt" data-type="routine"><div style="font-size:13px;font-weight:500;margin-bottom:2px;">ルーティン</div><div style="font-size:11px;color:var(--text3);">毎回同じ手順で完結</div></div>
-            <div style="background:var(--white);border:0.5px solid var(--sep);border-radius:var(--radius-sm);padding:12px 14px;cursor:pointer;" class="type-opt" data-type="unknown"><div style="font-size:13px;font-weight:500;margin-bottom:2px;">初めて</div><div style="font-size:11px;color:var(--text3);">新規・やったことがない</div></div>
-            <div style="background:var(--white);border:0.5px solid var(--sep);border-radius:var(--radius-sm);padding:12px 14px;cursor:pointer;" class="type-opt" data-type="judgment"><div style="font-size:13px;font-weight:500;margin-bottom:2px;">判断</div><div style="font-size:11px;color:var(--text3);">意思決定・方針決定が主</div></div>
-            <div style="background:var(--white);border:0.5px solid var(--sep);border-radius:var(--radius-sm);padding:12px 14px;cursor:pointer;" class="type-opt" data-type="dependent"><div style="font-size:13px;font-weight:500;margin-bottom:2px;">他者依存</div><div style="font-size:11px;color:var(--text3);">誰かへの連絡・依頼</div></div>
-          </div>
-        </div>
-        <!-- STEP3: パターン -->
-        <div style="margin-bottom:16px;display:none;" id="step-pattern">
-          <label style="font-size:11px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:8px;">③ 作業パターン</label>
-          <div id="pattern-list"></div>
-        </div>
-        <!-- STEP4: 件数 -->
-        <div style="margin-bottom:16px;display:none;" id="step-count">
-          <label style="font-size:11px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:8px;">④ 件数</label>
-          <div style="display:flex;align-items:center;gap:12px;background:var(--white);border:0.5px solid var(--sep);border-radius:var(--radius-sm);padding:10px 14px;">
-            <span style="font-size:13px;color:var(--text);flex:1;">何件分の作業？</span>
-            <div style="display:flex;align-items:center;gap:8px;">
-              <button id="count-minus" style="width:28px;height:28px;border-radius:50%;border:0.5px solid var(--bg3);background:var(--bg2);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:var(--font);">−</button>
-              <span id="count-val" style="font-family:var(--font-num);font-size:18px;color:var(--accent);min-width:24px;text-align:center;">1</span>
-              <button id="count-plus" style="width:28px;height:28px;border-radius:50%;border:0.5px solid var(--bg3);background:var(--bg2);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:var(--font);">＋</button>
+        <div class="quick-wrap">
+          <div>
+            <label class="wiz-label">タスク名を入れてAIに任せる</label>
+            <div class="quick-input-row">
+              <input class="quick-input" id="quick-title" placeholder="例：来月キャンペーン企画" maxlength="60">
+              <button class="btn-ai" id="quick-ai-btn">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="white" stroke-width="1.5"/><path d="M5 8 C5 6.3 6.3 5 8 5 C9.7 5 11 6.3 11 8" stroke="white" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="10" r="1" fill="white"/></svg>
+                AI分析
+              </button>
             </div>
           </div>
-        </div>
-        <!-- STEP5: サブタスクプレビュー -->
-        <div style="margin-bottom:16px;display:none;" id="step-preview">
-          <label style="font-size:11px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:8px;">分解ステップ</label>
-          <div id="subtask-preview" style="background:var(--white);border:0.5px solid var(--sep);border-radius:var(--radius-sm);padding:12px 14px;"></div>
-        </div>
-        <!-- STEP6: プロット先・期限・繰り返し -->
-        <div style="display:none;" id="step-plot">
-          <!-- プロット先選択 -->
-          <label style="font-size:11px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:8px;">プロット先</label>
-          <div style="display:flex;gap:6px;margin-bottom:12px;" id="plot-date-btns">
-            <button class="plot-date-btn selected" data-date="today" style="flex:1;height:36px;border-radius:var(--radius-sm);border:0.5px solid var(--accent);background:var(--accent-light);color:var(--accent);font-size:13px;font-weight:500;font-family:var(--font);cursor:pointer;">今日</button>
-            <button class="plot-date-btn" data-date="tomorrow" style="flex:1;height:36px;border-radius:var(--radius-sm);border:0.5px solid var(--sep);background:var(--white);color:var(--text2);font-size:13px;font-weight:500;font-family:var(--font);cursor:pointer;">明日</button>
-            <button class="plot-date-btn" data-date="dayafter" style="flex:1;height:36px;border-radius:var(--radius-sm);border:0.5px solid var(--sep);background:var(--white);color:var(--text2);font-size:13px;font-weight:500;font-family:var(--font);cursor:pointer;">明後日</button>
-          </div>
-          <!-- 期限 -->
-          <label style="font-size:11px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:8px;">期限（任意）</label>
-          <div style="display:flex;gap:10px;margin-bottom:12px;">
-            <input type="date" id="deadline-input" style="flex:1;height:40px;border:0.5px solid var(--bg3);border-radius:var(--radius-sm);background:var(--white);padding:0 12px;font-size:14px;font-family:var(--font);color:var(--text);outline:none;">
-            <button class="btn-sm" id="deadline-clear-btn">クリア</button>
-          </div>
-          <!-- 繰り返し -->
-          <label style="font-size:11px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:8px;">繰り返し</label>
-          <div style="display:flex;gap:6px;margin-bottom:12px;" id="repeat-btns">
-            <button class="repeat-btn selected" data-repeat="none" style="flex:1;height:36px;border-radius:var(--radius-sm);border:0.5px solid var(--accent);background:var(--accent-light);color:var(--accent);font-size:12px;font-weight:500;font-family:var(--font);cursor:pointer;">なし</button>
-            <button class="repeat-btn" data-repeat="daily" style="flex:1;height:36px;border-radius:var(--radius-sm);border:0.5px solid var(--sep);background:var(--white);color:var(--text2);font-size:12px;font-weight:500;font-family:var(--font);cursor:pointer;">毎日</button>
-            <button class="repeat-btn" data-repeat="weekly" style="flex:1;height:36px;border-radius:var(--radius-sm);border:0.5px solid var(--sep);background:var(--white);color:var(--text2);font-size:12px;font-weight:500;font-family:var(--font);cursor:pointer;">毎週</button>
-            <button class="repeat-btn" data-repeat="biweekly" style="flex:1;height:36px;border-radius:var(--radius-sm);border:0.5px solid var(--sep);background:var(--white);color:var(--text2);font-size:12px;font-weight:500;font-family:var(--font);cursor:pointer;">隔週</button>
-          </div>
-          <div id="plot-info" style="background:var(--bg2);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:8px;"></div>
-          <button id="plot-btn" style="width:100%;height:48px;background:var(--accent);color:white;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:500;font-family:var(--font);cursor:pointer;">プロット 🐯</button>
+          <div id="quick-result"></div>
         </div>
       </div>
 
@@ -448,26 +398,21 @@ kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); b
 <div class="modal-overlay" id="detail-modal"><div class="modal"><div class="modal-handle"></div><div id="detail-body"></div></div></div>
 <div class="modal-overlay" id="review-modal"><div class="modal"><div class="modal-handle"></div><div class="modal-title">週次レビュー</div><div id="review-body"></div></div></div>
 <div class="modal-overlay" id="start-modal">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title">今日の始業時間</div>
-    <div style="display:flex;gap:8px;margin-bottom:16px;" id="start-time-opts">
-      <button class="start-opt" data-h="8" data-m="30" style="flex:1;height:40px;border:0.5px solid var(--sep);border-radius:var(--radius-sm);background:var(--white);font-size:13px;font-family:var(--font);cursor:pointer;">8:30</button>
-      <button class="start-opt" data-h="9" data-m="0" style="flex:1;height:40px;border:0.5px solid var(--sep);border-radius:var(--radius-sm);background:var(--white);font-size:13px;font-family:var(--font);cursor:pointer;">9:00</button>
-      <button class="start-opt selected" data-h="9" data-m="30" style="flex:1;height:40px;border:0.5px solid var(--accent);border-radius:var(--radius-sm);background:var(--accent-light);font-size:13px;font-weight:500;color:var(--accent);font-family:var(--font);cursor:pointer;">9:30</button>
-      <button class="start-opt" data-h="10" data-m="0" style="flex:1;height:40px;border:0.5px solid var(--sep);border-radius:var(--radius-sm);background:var(--white);font-size:13px;font-family:var(--font);cursor:pointer;">10:00</button>
-    </div>
-    <div style="margin-bottom:16px;">
-      <label style="font-size:11px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:6px;">午後休</label>
-      <div style="display:flex;gap:8px;">
-        <button class="aft-opt selected" data-aft="none" style="flex:1;height:36px;border:0.5px solid var(--accent);border-radius:var(--radius-sm);background:var(--accent-light);font-size:12px;font-weight:500;color:var(--accent);font-family:var(--font);cursor:pointer;">なし</button>
-        <button class="aft-opt" data-aft="half" style="flex:1;height:36px;border:0.5px solid var(--sep);border-radius:var(--radius-sm);background:var(--white);font-size:12px;font-family:var(--font);cursor:pointer;">午後休（13時〜）</button>
-      </div>
-    </div>
-    <button class="btn-next" id="start-save-btn">設定する</button>
+  <div class="modal"><div class="modal-handle"></div><div class="modal-title">今日の始業時間</div>
+  <div style="display:flex;gap:8px;margin-bottom:16px;">
+    <button class="start-opt" data-h="8" data-m="30" style="flex:1;height:40px;border:0.5px solid var(--sep);border-radius:var(--radius-sm);background:var(--white);font-size:13px;font-family:var(--font);cursor:pointer;">8:30</button>
+    <button class="start-opt" data-h="9" data-m="0" style="flex:1;height:40px;border:0.5px solid var(--sep);border-radius:var(--radius-sm);background:var(--white);font-size:13px;font-family:var(--font);cursor:pointer;">9:00</button>
+    <button class="start-opt" data-h="9" data-m="30" style="flex:1;height:40px;border:0.5px solid var(--accent);border-radius:var(--radius-sm);background:var(--accent-light);font-size:13px;font-weight:500;color:var(--accent);font-family:var(--font);cursor:pointer;">9:30</button>
+    <button class="start-opt" data-h="10" data-m="0" style="flex:1;height:40px;border:0.5px solid var(--sep);border-radius:var(--radius-sm);background:var(--white);font-size:13px;font-family:var(--font);cursor:pointer;">10:00</button>
+  </div>
+  <label style="font-size:11px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:6px;">午後休</label>
+  <div style="display:flex;gap:8px;margin-bottom:16px;">
+    <button class="aft-opt" data-aft="none" style="flex:1;height:36px;border:0.5px solid var(--accent);border-radius:var(--radius-sm);background:var(--accent-light);font-size:12px;font-weight:500;color:var(--accent);font-family:var(--font);cursor:pointer;">なし</button>
+    <button class="aft-opt" data-aft="half" style="flex:1;height:36px;border:0.5px solid var(--sep);border-radius:var(--radius-sm);background:var(--white);font-size:12px;font-family:var(--font);cursor:pointer;">午後休（13時〜）</button>
+  </div>
+  <button class="btn-next" id="start-save-btn">設定する</button>
   </div>
 </div>
-
 <div class="modal-overlay" id="block-modal">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -478,18 +423,8 @@ kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); b
       <div class="wiz-input-wrap"><label class="wiz-label">終了</label><input class="wiz-input" type="time" id="block-end" value="11:00"></div>
     </div>
     <div class="wiz-input-wrap"><label class="wiz-label">日付</label><input class="wiz-input" type="date" id="block-date"></div>
-    <div class="wiz-input-wrap">
-      <label class="wiz-label">繰り返し</label>
-      <select class="wiz-input" id="block-repeat">
-        <option value="none">繰り返しなし</option>
-        <option value="weekly">毎週</option>
-        <option value="biweekly">隔週</option>
-      </select>
-    </div>
-    <div class="wiz-input-wrap" id="block-repeat-end-wrap" style="display:none;">
-      <label class="wiz-label">繰り返し終了日</label>
-      <input class="wiz-input" type="date" id="block-repeat-end">
-    </div>
+    <div class="wiz-input-wrap"><label class="wiz-label">繰り返し</label><select class="wiz-input" id="block-repeat"><option value="none">繰り返しなし</option><option value="weekly">毎週</option><option value="biweekly">隔週</option></select></div>
+    <div class="wiz-input-wrap" id="block-repeat-end-wrap" style="display:none;"><label class="wiz-label">繰り返し終了日</label><input class="wiz-input" type="date" id="block-repeat-end"></div>
     <button class="btn-next" id="block-save-btn">追加する</button>
   </div>
 </div>
@@ -519,36 +454,20 @@ const DEFAULT_MINUTES = { routine: 30, unknown: 30, judgment: 25, dependent: 15 
 // routine/dependent → 日中(9:00-16:00)
 // unknown/judgment → 午前優先(9:00-12:00)、なければ日中
 // 企画・資料系(unknown) → 16:00以降の集中枠も候補
-const BUFFER_LIMIT = 360; // 450min × 80%
-const DEFAULT_START_HOUR = 9;
-const DEFAULT_START_MIN = 30;
-// デフォルト固定ブロック（空き枠計算に使用、DBには保存しない）
+const BUFFER_LIMIT = 360;
+const DEFAULT_START_HOUR = 9, DEFAULT_START_MIN = 30;
 function getDefaultBlocks(date) {
-  const startMin = (window._dayStartHour||DEFAULT_START_HOUR)*60 + (window._dayStartMin||DEFAULT_START_MIN);
-  const blocks = [
-    { date, title: 'メール・チャット確認', start_time: toTimeStr(startMin), end_time: toTimeStr(startMin+15), _default: true },
-    { date, title: '昼休憩', start_time: '12:00:00', end_time: '13:00:00', _default: true },
-    { date, title: 'メール・チャット確認（昼後）', start_time: '13:00:00', end_time: '13:15:00', _default: true },
+  const sm=(window._dayStartHour||DEFAULT_START_HOUR)*60+(window._dayStartMin||DEFAULT_START_MIN);
+  const blocks=[
+    {date,title:'メール・チャット確認',start_time:toTimeStr(sm),end_time:toTimeStr(sm+15),_default:true},
+    {date,title:'昼休憩',start_time:'12:00:00',end_time:'13:00:00',_default:true},
+    {date,title:'メール・チャット確認（昼後）',start_time:'13:00:00',end_time:'13:15:00',_default:true},
   ];
-  if (window._aftOff) blocks.push({ date, title: '午後休', start_time: '13:00:00', end_time: '18:00:00', _default: true });
+  if(window._aftOff)blocks.push({date,title:'午後休',start_time:'13:00:00',end_time:'18:00:00',_default:true});
   return blocks;
 }
-function toTimeStr(totalMin) {
-  const h = Math.floor(totalMin/60);
-  const m = totalMin%60;
-  return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':00';
-}
-// 次の営業日（土日スキップ）
-function nextBusinessDay(date, daysAhead) {
-  let d = new Date(date);
-  let added = 0;
-  while (added < daysAhead) {
-    d.setDate(d.getDate()+1);
-    const dow = d.getDay();
-    if (dow !== 0 && dow !== 6) added++;
-  }
-  return d.toISOString().split('T')[0];
-} // 480分の約30%引き = 340分を実稼働上限
+function toTimeStr(m){const h=Math.floor(m/60),mn=m%60;return String(h).padStart(2,'0')+':'+String(mn).padStart(2,'0')+':00';}
+function nextBusinessDay(date,n){let d=new Date(date),a=0;while(a<n){d.setDate(d.getDate()+1);if(d.getDay()!==0&&d.getDay()!==6)a++;}return d.toISOString().split('T')[0];} // 480分の約30%引き = 340分を実稼働上限
 // バッファ付き時間（タイプ別）
 const TYPE_BUFFER = { routine: 0, unknown: 15, judgment: 10, dependent: 5 };
 
@@ -581,31 +500,22 @@ function calcPriorityScore(task) {
 function buildReason(task) {
   const parts = [];
   if (task.deadline) {
-    const daysLeft = Math.ceil((new Date(task.deadline) - TODAY) / (1000*60*60*24));
-    if (daysLeft <= 0) parts.push('期限超過');
-    else if (daysLeft === 1) parts.push('期限明日');
-    else if (daysLeft <= 3) parts.push(`期限${daysLeft}日`);
+    const d = Math.ceil((new Date(task.deadline)-TODAY)/(1000*60*60*24));
+    if(d<=0)parts.push('期限超過');else if(d===1)parts.push('期限明日');else if(d<=3)parts.push(`期限${d}日`);
   }
-  if (task.type === 'judgment' || task.type === 'unknown') parts.push('午前の脳リソースで対応');
-  if (task.type === 'dependent') parts.push('早めにボールを渡す');
-  if (task.type === 'routine') parts.push('テンプレで流す');
-  if (task.scheduled_time) {
-    const h = parseInt(task.scheduled_time.split(':')[0]);
-    if (h >= 16) parts.push('集中枠に配置');
-    else if (h < 12) parts.push('午前枠に配置');
-  }
-  return parts.join(' · ') || '標準スケジュール';
+  if(task.type==='judgment'||task.type==='unknown')parts.push('要脳リソース');
+  if(task.type==='dependent')parts.push('早めにボールを渡す');
+  return parts.join(' · ');
 }
 
 // ============================================================
 // 空き枠計算（虎の巻: 上限340分）
 // ============================================================
 function getAvailableSlots(date) {
-  const startMin = (window._dayStartHour||DEFAULT_START_HOUR)*60 + (window._dayStartMin||DEFAULT_START_MIN);
-  const WORK_END_HOUR = window._aftOff ? 13 : 18;
-  const WORK_START = startMin, WORK_END = WORK_END_HOUR * 60;
-  const allBlocksForDate = [...allBlocks.filter(b => b.date === date), ...getDefaultBlocks(date)];
-  const blockedRanges = allBlocksForDate.map(b => {
+  const sm=(window._dayStartHour||DEFAULT_START_HOUR)*60+(window._dayStartMin||DEFAULT_START_MIN);
+  const WORK_START=sm, WORK_END=(window._aftOff?13:18)*60;
+  const allB=[...allBlocks.filter(b=>b.date===date),...getDefaultBlocks(date)];
+  const blockedRanges = allB.map(b => {
     const [sh,sm] = b.start_time.split(':').map(Number);
     const [eh,em] = b.end_time.split(':').map(Number);
     return { start: sh*60+sm, end: eh*60+em };
@@ -667,14 +577,10 @@ function autoPlotTime(type, estimatedMin, date) {
 
 // 今日の総使用時間を計算
 function calcUsedMinutes(date) {
-  const taskMin = allTasks.filter(t => t.scheduled_date === date && t.status !== 'done').reduce((a,t) => a+(t.estimated_minutes||0),0);
-  const allBlocksForCalc = [...allBlocks.filter(b => b.date === date), ...getDefaultBlocks(date)];
-  const blockMin = allBlocksForCalc.reduce((a,b) => {
-    const [sh,sm] = b.start_time.split(':').map(Number);
-    const [eh,em] = b.end_time.split(':').map(Number);
-    return a + (eh*60+em - sh*60-sm);
-  }, 0);
-  return taskMin + blockMin;
+  const tm=allTasks.filter(t=>t.scheduled_date===date&&t.status!=='done').reduce((a,t)=>a+(t.estimated_minutes||0),0);
+  const allB=[...allBlocks.filter(b=>b.date===date),...getDefaultBlocks(date)];
+  const bm=allB.reduce((a,b)=>{const[sh,sm]=b.start_time.split(':').map(Number);const[eh,em]=b.end_time.split(':').map(Number);return a+(eh*60+em-sh*60-sm);},0);
+  return tm+bm;
 }
 
 // ============================================================
@@ -739,42 +645,25 @@ async function loadAll() {
     db.from('blocks').select('*').eq('user_id', currentUser.id).order('start_time')
   ]);
   // scheduled_dateを正規化
-  allTasks = (tasks || []).map(t => ({ ...t, scheduled_date: normalizeDate(t.scheduled_date) }));
-  allSubtasks = subtasks || [];
-  allBlocks = blocks || [];
+  allTasks=(tasks||[]).map(t=>({...t,scheduled_date:normalizeDate(t.scheduled_date)}));
+  allSubtasks=subtasks||[]; allBlocks=blocks||[];
   await generateTodayRepeatTasks();
-  renderToday();
-  renderRightPanel();
+  renderToday(); renderRightPanel();
 }
-
-// 繰り返しタスクの当日自動生成
-async function generateTodayRepeatTasks() {
-  const repeatTasks = allTasks.filter(t => t.repeat && t.repeat !== 'none');
-  const toInsert = [];
-  for (const t of repeatTasks) {
-    // 今日分が既に存在するかチェック
-    const alreadyExists = allTasks.some(x => x.title === t.title && x.scheduled_date === TODAY_STR && x.id !== t.id);
-    if (alreadyExists) continue;
-    // 繰り返し条件チェック
-    if (!t.scheduled_date) continue;
-    const origin = new Date(t.scheduled_date);
-    const today = new Date(TODAY_STR);
-    const diffDays = Math.round((today - origin) / (1000*60*60*24));
-    if (diffDays <= 0) continue;
-    let shouldGenerate = false;
-    if (t.repeat === 'daily') shouldGenerate = true;
-    else if (t.repeat === 'weekly') shouldGenerate = diffDays % 7 === 0;
-    else if (t.repeat === 'biweekly') shouldGenerate = diffDays % 14 === 0;
-    if (!shouldGenerate) continue;
-    const scheduledTime = autoPlotTime(t.type, t.estimated_minutes, TODAY_STR);
-    toInsert.push({ user_id: currentUser.id, title: t.title, type: t.type, status: 'pending', estimated_minutes: t.estimated_minutes, scheduled_date: TODAY_STR, scheduled_time: scheduledTime, repeat: t.repeat });
+async function generateTodayRepeatTasks(){
+  const rts=allTasks.filter(t=>t.repeat&&t.repeat!=='none'&&t.scheduled_date);
+  const ins=[];
+  for(const t of rts){
+    if(allTasks.some(x=>x.title===t.title&&x.scheduled_date===TODAY_STR&&x.id!==t.id))continue;
+    const diff=Math.round((new Date(TODAY_STR)-new Date(t.scheduled_date))/(1000*60*60*24));
+    if(diff<=0)continue;
+    let ok=t.repeat==='daily'||(t.repeat==='weekly'&&diff%7===0)||(t.repeat==='biweekly'&&diff%14===0);
+    if(!ok)continue;
+    ins.push({user_id:currentUser.id,title:t.title,type:t.type,status:'pending',estimated_minutes:t.estimated_minutes,scheduled_date:TODAY_STR,scheduled_time:autoPlotTime(t.type,t.estimated_minutes,TODAY_STR),repeat:t.repeat});
   }
-  if (!toInsert.length) return;
-  const { data: newTasks } = await db.from('tasks').insert(toInsert).select();
-  if (newTasks) {
-    const normalized = newTasks.map(t => ({ ...t, scheduled_date: normalizeDate(t.scheduled_date) }));
-    allTasks.push(...normalized);
-  }
+  if(!ins.length)return;
+  const{data:nt}=await db.from('tasks').insert(ins).select();
+  if(nt)allTasks.push(...nt.map(t=>({...t,scheduled_date:normalizeDate(t.scheduled_date)})));
 }
 
 // ============================================================
@@ -898,103 +787,57 @@ function renderGoals() {
 
 function renderSchedule() {
   const wrap = document.getElementById('schedule-list');
-  const todayTasks = allTasks
-    .filter(t => t.scheduled_date === TODAY_STR && t.status !== 'done')
-    .map(t => ({ ...t, score: calcPriorityScore(t) }))
-    .sort((a,b) => {
-      const ta = a.scheduled_time ? parseInt(a.scheduled_time.split(':')[0])*60+parseInt(a.scheduled_time.split(':')[1]) : 9999;
-      const tb = b.scheduled_time ? parseInt(b.scheduled_time.split(':')[0])*60+parseInt(b.scheduled_time.split(':')[1]) : 9999;
-      return ta - tb;
-    });
-  const todayBlocks = allBlocks.filter(b => b.date === TODAY_STR).sort((a,b) => a.start_time.localeCompare(b.start_time));
-  const items = [
-    ...todayBlocks.map(b => ({ type:'block', time: b.start_time, data: b })),
-    ...todayTasks.map(t => ({ type:'task', time: t.scheduled_time || '99:99', data: t }))
-  ].sort((a,b) => a.time.localeCompare(b.time));
+  const todayTasks = allTasks.filter(t => t.scheduled_date === TODAY_STR && t.status !== 'done')
+    .sort((a,b) => (a.scheduled_time||'99:99').localeCompare(b.scheduled_time||'99:99'));
+  const todayBlocks = allBlocks.filter(b => b.date === TODAY_STR).sort((a,b)=>a.start_time.localeCompare(b.start_time));
+  const defaultBlocks = getDefaultBlocks(TODAY_STR);
 
-  if (!items.length) {
-    wrap.innerHTML = '<div class="empty">今日のスケジュールはまだありません<br>追加タブからタスクを入れてみましょう</div>';
-    return;
-  }
+  const baseItems = [
+    ...todayBlocks.map(b=>({type:'block',time:b.start_time,data:b})),
+    ...defaultBlocks.map(b=>({type:'block',time:b.start_time,data:b})),
+    ...todayTasks.map(t=>({type:'task',time:t.scheduled_time||'99:99',data:t}))
+  ].sort((a,b)=>a.time.localeCompare(b.time));
+
+  const ws=(window._dayStartHour||9)*60+(window._dayStartMin||30), we=(window._aftOff?13:18)*60;
+  const busy=baseItems.map(it=>{
+    if(it.type==='block'){const[sh,sm]=it.data.start_time.split(':').map(Number);const[eh,em]=it.data.end_time.split(':').map(Number);return{start:sh*60+sm,end:eh*60+em};}
+    if(!it.data.scheduled_time)return null;
+    const[sh,sm]=it.data.scheduled_time.split(':').map(Number);return{start:sh*60+sm,end:sh*60+sm+(it.data.estimated_minutes||0)};
+  }).filter(Boolean).sort((a,b)=>a.start-b.start);
+  const mrg=[];for(const b of busy){if(mrg.length&&b.start<=mrg[mrg.length-1].end)mrg[mrg.length-1].end=Math.max(mrg[mrg.length-1].end,b.end);else mrg.push({...b});}
+  const gaps=[];let cur=ws;
+  for(const b of mrg){if(b.start>cur+10){const h2=Math.floor(cur/60),m2=cur%60;gaps.push({type:'gap',time:String(h2).padStart(2,'0')+':'+String(m2).padStart(2,'0'),gapMin:b.start-cur});}cur=Math.max(cur,b.end);}
+  if(cur<we-10){const h2=Math.floor(cur/60),m2=cur%60;gaps.push({type:'gap',time:String(h2).padStart(2,'0')+':'+String(m2).padStart(2,'0'),gapMin:we-cur});}
+
+  const items=[...baseItems,...gaps].sort((a,b)=>a.time.localeCompare(b.time));
+  if (!items.length) { wrap.innerHTML = '<div class="empty">今日のスケジュールはまだありません<br>追加タブからタスクを入れてみましょう</div>'; return; }
   wrap.innerHTML = '';
   items.forEach((item, i) => {
     const row = document.createElement('div');
     row.className = 'sched-row';
     const timeStr = item.time === '99:99' ? '--:--' : item.time.slice(0,5);
     const isLast = i === items.length - 1;
+    if (item.type === 'gap') {
+      row.innerHTML = `<div class="sched-time" style="opacity:.4;">${timeStr}</div><div class="sched-line"><div style="width:8px;height:8px;border-radius:50%;border:1.5px dashed var(--text3);flex-shrink:0;"></div>${!isLast?'<div class="sched-connector" style="opacity:.3;"></div>':''}</div><div class="sched-content"><div style="font-size:11px;color:var(--text3);padding:6px 0;">空き ${item.gapMin}min</div></div>`;
+      wrap.appendChild(row); return;
+    }
     if (item.type === 'block') {
-      const b = item.data;
-      row.innerHTML = `
-        <div class="sched-time">${timeStr}</div>
-        <div class="sched-line"><div class="sched-dot block-dot"></div>${!isLast?'<div class="sched-connector"></div>':''}</div>
-        <div class="sched-content">
-          <div class="task-card block-card">
-            <div class="task-card-top">
-              <div class="task-card-left"><div class="task-type-badge type-block">固定</div><span class="task-title">${b.title}</span></div>
-              <span class="task-time">${b.start_time.slice(0,5)}〜${b.end_time.slice(0,5)}</span>
-            </div>
-          </div>
-        </div>
-      `;
+      const b = item.data; const isDef=b._default||false;
+      row.innerHTML = `<div class="sched-time" style="${isDef?'opacity:.5':''}">${timeStr}<div style="font-size:10px;color:var(--text3);margin-top:1px;">〜${b.end_time.slice(0,5)}</div></div><div class="sched-line"><div class="sched-dot block-dot" style="${isDef?'opacity:.4':''}"></div>${!isLast?'<div class="sched-connector"></div>':''}</div><div class="sched-content"><div class="task-card block-card" style="${isDef?'opacity:.6;border-style:dashed;':''}"><div class="task-card-top"><div class="task-card-left"><div class="task-type-badge type-block">${isDef?'自動':'固定'}</div><span class="task-title">${b.title}</span></div><span class="task-time">${b.start_time.slice(0,5)}〜${b.end_time.slice(0,5)}</span></div></div></div>`;
     } else {
-      const t = item.data;
-      const subs = allSubtasks.filter(s => s.task_id === t.id);
-      const reason = buildReason(t);
-      // 終了時刻計算
-      let endStr = '';
-      if (t.scheduled_time) {
-        const [sh,sm] = t.scheduled_time.split(':').map(Number);
-        const endMin = sh*60+sm+(t.estimated_minutes||0);
-        endStr = `〜${String(Math.floor(endMin/60)).padStart(2,'0')}:${String(endMin%60).padStart(2,'0')}`;
-      }
-      const doneCount = subs.filter(s=>s.status==='done').length;
-      row.innerHTML = `
-        <div class="sched-time">${timeStr}<div style="font-size:10px;color:var(--text3);margin-top:1px;">${endStr}</div></div>
-        <div class="sched-line"><div class="sched-dot"></div>${!isLast?'<div class="sched-connector"></div>':''}</div>
-        <div class="sched-content"><div class="task-card" data-id="${t.id}">
-          <div class="task-card-top">
-            <div class="task-card-left"><div class="task-type-badge type-${t.type}">${typeLabel(t.type)}</div><span class="task-title">${t.title}</span></div>
-            <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
-              ${subs.length?`<span style="font-size:10px;color:var(--text3);">${doneCount}/${subs.length}</span>`:''}
-              <span class="task-time">${t.estimated_minutes}min</span>
-              ${subs.length?`<div class="sub-toggle" data-task-id="${t.id}" style="width:18px;height:18px;border-radius:50%;background:var(--bg2);display:flex;align-items:center;justify-content:center;cursor:pointer;">
-                <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path class="toggle-arrow" d="M2 3.5L5 6.5L8 3.5" stroke="var(--text3)" stroke-width="1.5" stroke-linecap="round"/></svg>
-              </div>`:''}
-            </div>
-          </div>
-          <div class="subtask-list" id="sub-list-${t.id}" style="display:none;">${subs.map(s=>`
-            <div class="subtask-item">
-              <div class="subtask-check ${s.status==='done'?'done':''}" data-sub-id="${s.id}">${s.status==='done'?'<svg width="7" height="7" viewBox="0 0 7 7"><polyline points="1,3.5 2.8,5.5 6,1.5" stroke="white" stroke-width="1.5" fill="none"/></svg>':''}</div>
-              <span class="subtask-title ${s.status==='done'?'done':''}">${s.title}</span>
-              <span class="subtask-min">${s.estimated_minutes}min</span>
-            </div>`).join('')}
-          </div>
-          <div class="task-reason">${reason}</div>
-        </div></div>`;
-      row.querySelector('.task-card').addEventListener('click', e => {
-        if (e.target.closest('.sub-toggle') || e.target.closest('.subtask-check')) return;
-        openDetail(t.id);
-      });
-      const toggle = row.querySelector('.sub-toggle');
-      if (toggle) {
-        toggle.addEventListener('click', e => {
-          e.stopPropagation();
-          const subList = document.getElementById('sub-list-'+toggle.dataset.taskId);
-          const isOpen = subList.style.display !== 'none';
-          subList.style.display = isOpen ? 'none' : 'flex';
-          const arrow = toggle.querySelector('.toggle-arrow');
-          arrow.setAttribute('d', isOpen ? 'M2 3.5L5 6.5L8 3.5' : 'M2 6.5L5 3.5L8 6.5');
-        });
-      }
-      row.querySelectorAll('.subtask-check').forEach(el => el.addEventListener('click', e => { e.stopPropagation(); toggleSubtask(el.dataset.subId); }));
+      const t=item.data; const subs=allSubtasks.filter(s=>s.task_id===t.id); const reason=buildReason(t);
+      let endStr='';
+      if(t.scheduled_time){const[sh,sm]=t.scheduled_time.split(':').map(Number);const em2=sh*60+sm+(t.estimated_minutes||0);endStr=`〜${String(Math.floor(em2/60)).padStart(2,'0')}:${String(em2%60).padStart(2,'0')}`;}
+      const doneCount=subs.filter(s=>s.status==='done').length;
+      row.innerHTML = `<div class="sched-time">${timeStr}<div style="font-size:10px;color:var(--text3);margin-top:1px;">${endStr}</div></div><div class="sched-line"><div class="sched-dot"></div>${!isLast?'<div class="sched-connector"></div>':''}</div><div class="sched-content"><div class="task-card" data-id="${t.id}"><div class="task-card-top"><div class="task-card-left"><div class="task-type-badge type-${t.type}">${typeLabel(t.type)}</div><span class="task-title">${t.title}</span></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">${subs.length?`<span style="font-size:10px;color:var(--text3);">${doneCount}/${subs.length}</span>`:''}<span class="task-time">${t.estimated_minutes}min</span>${subs.length?`<div class="sub-toggle" data-tid="${t.id}" style="width:18px;height:18px;border-radius:50%;background:var(--bg2);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path class="tarr" d="M2 3.5L5 6.5L8 3.5" stroke="var(--text3)" stroke-width="1.5" stroke-linecap="round"/></svg></div>`:''}</div></div><div class="subtask-list" id="sl-${t.id}" style="display:none;">${subs.map(s=>`<div class="subtask-item"><div class="subtask-check ${s.status==='done'?'done':''}" data-sub-id="${s.id}">${s.status==='done'?'<svg width="7" height="7" viewBox="0 0 7 7"><polyline points="1,3.5 2.8,5.5 6,1.5" stroke="white" stroke-width="1.5" fill="none"/></svg>':''}</div><span class="subtask-title ${s.status==='done'?'done':''}">${s.title}</span><span class="subtask-min">${s.estimated_minutes}min</span></div>`).join('')}</div>${reason?`<div class="task-reason">${reason}</div>`:''}</div></div>`;
+      row.querySelector('.task-card').addEventListener('click',e=>{if(e.target.closest('.sub-toggle')||e.target.closest('.subtask-check'))return;openDetail(t.id);});
+      const tog=row.querySelector('.sub-toggle');
+      if(tog)tog.addEventListener('click',e=>{e.stopPropagation();const sl=document.getElementById('sl-'+tog.dataset.tid);const open=sl.style.display!=='none';sl.style.display=open?'none':'flex';tog.querySelector('.tarr').setAttribute('d',open?'M2 3.5L5 6.5L8 3.5':'M2 6.5L5 3.5L8 6.5');});
+      row.querySelectorAll('.subtask-check').forEach(el=>el.addEventListener('click',e=>{e.stopPropagation();toggleSubtask(el.dataset.subId);}));
     }
     wrap.appendChild(row);
   });
 }
-
-// ============================================================
-// CONFLICT
-// ============================================================
 function checkConflicts() {
   const area = document.getElementById('conflict-area');
   if (!area) return;
@@ -1067,193 +910,113 @@ subtasksは分解が必要な場合のみ設定（routineは原則空配列）�
 // ============================================================
 // ADD PAGE
 // ============================================================
-// 8パターン定義
-const PATTERNS = {
-  check: { name: 'チェック・フィードバック系', types: ['routine'], baseMin: 30, countable: false,
-    subtasks: [{ title: '動画・内容を確認する', minutes: 15 }, { title: '修正点・フィードバックをまとめる', minutes: 10 }, { title: '修正指示・フィードバックを送る', minutes: 5 }] },
-  send: { name: '送付・連絡系', types: ['dependent'], baseMin: 15, countable: false,
-    subtasks: [{ title: '送る内容・聞くことをまとめる', minutes: 5 }, { title: '送付・連絡する', minutes: 5 }, { title: '返信待ち（備忘録）', minutes: 5 }] },
-  adjust: { name: '確認・調整系', types: ['judgment'], baseMin: 25, countable: false,
-    subtasks: [{ title: '現状・条件を確認する', minutes: 10 }, { title: '可否・方針を判断する', minutes: 10 }, { title: '関係者に連絡・更新する', minutes: 5 }] },
-  update: { name: '入稿・更新作業系', types: ['routine'], baseMin: 30, countable: true,
-    subtasks: [{ title: '素材・データを確認・収集する', minutes: 10 }, { title: '入稿・更新作業を実行する', minutes: 15 }, { title: '完了確認・チェックする', minutes: 5 }] },
-  ad: { name: '広告設定・配信系', types: ['routine'], baseMin: 45, countable: true,
-    subtasks: [{ title: '素材の格納先・キャプションを確認する', minutes: 10 }, { title: '広告設定・入稿する', minutes: 10 }, { title: '配信確認・承認する', minutes: 10 }, { title: '関係者に配信開始を連絡する', minutes: 5 }] },
-  plan: { name: '企画・アイデア出し系', types: ['unknown'], baseMin: 60, countable: false,
-    subtasks: [{ title: '参考・トレンドをリサーチする', minutes: 20 }, { title: 'アイデア・企画案を作成する', minutes: 25 }, { title: '撮影・制作の段取りを確認する', minutes: 10 }, { title: '社内共有・確認依頼する', minutes: 5 }] },
-  report: { name: '分析・レポート系', types: ['routine'], baseMin: 45, countable: false,
-    subtasks: [{ title: 'データ・数値を抽出する', minutes: 15 }, { title: '集計・グラフ化する', minutes: 15 }, { title: '所見・コメントを書く', minutes: 10 }, { title: '共有・提出する', minutes: 5 }] },
-  doc: { name: '資料・まとめ作成系', types: ['unknown', 'judgment'], baseMin: 60, countable: false,
-    subtasks: [{ title: '必要な情報・データを集める', minutes: 15 }, { title: '構成・骨子を決める', minutes: 10 }, { title: '資料・まとめを作成する', minutes: 25 }, { title: '確認依頼・提出する', minutes: 10 }] }
+const PATTERNS={
+  check:{name:'チェック・フィードバック系',types:['routine'],baseMin:30,countable:false,subtasks:[{title:'動画・内容を確認する',minutes:15},{title:'修正点・フィードバックをまとめる',minutes:10},{title:'修正指示・フィードバックを送る',minutes:5}]},
+  send:{name:'送付・連絡系',types:['dependent'],baseMin:15,countable:false,subtasks:[{title:'送る内容・聞くことをまとめる',minutes:5},{title:'送付・連絡する',minutes:5},{title:'返信待ち（備忘録）',minutes:5}]},
+  adjust:{name:'確認・調整系',types:['judgment'],baseMin:25,countable:false,subtasks:[{title:'現状・条件を確認する',minutes:10},{title:'可否・方針を判断する',minutes:10},{title:'関係者に連絡・更新する',minutes:5}]},
+  update:{name:'入稿・更新作業系',types:['routine'],baseMin:30,countable:true,subtasks:[{title:'素材・データを確認・収集する',minutes:10},{title:'入稿・更新作業を実行する',minutes:15},{title:'完了確認・チェックする',minutes:5}]},
+  ad:{name:'広告設定・配信系',types:['routine'],baseMin:45,countable:true,subtasks:[{title:'素材の格納先・キャプションを確認する',minutes:10},{title:'広告設定・入稿する',minutes:10},{title:'配信確認・承認する',minutes:10},{title:'関係者に配信開始を連絡する',minutes:5}]},
+  plan:{name:'企画・アイデア出し系',types:['unknown'],baseMin:60,countable:false,subtasks:[{title:'参考・トレンドをリサーチする',minutes:20},{title:'アイデア・企画案を作成する',minutes:25},{title:'撮影・制作の段取りを確認する',minutes:10},{title:'社内共有・確認依頼する',minutes:5}]},
+  report:{name:'分析・レポート系',types:['routine'],baseMin:45,countable:false,subtasks:[{title:'データ・数値を抽出する',minutes:15},{title:'集計・グラフ化する',minutes:15},{title:'所見・コメントを書く',minutes:10},{title:'共有・提出する',minutes:5}]},
+  doc:{name:'資料・まとめ作成系',types:['unknown','judgment'],baseMin:60,countable:false,subtasks:[{title:'必要な情報・データを集める',minutes:15},{title:'構成・骨子を決める',minutes:10},{title:'資料・まとめを作成する',minutes:25},{title:'確認依頼・提出する',minutes:10}]}
 };
-
-let addState = { type: null, patternKey: null, count: 1, subtasks: [], totalMin: 0, scheduledTime: null, plotDate: TODAY_STR, repeat: 'none' };
-
-function initAddPage() {
-  addState = { type: null, patternKey: null, count: 1, subtasks: [], totalMin: 0, scheduledTime: null, plotDate: TODAY_STR, repeat: 'none' };
-  const nameEl = document.getElementById('task-name-input');
-  const deadlineEl = document.getElementById('deadline-input');
-  if(nameEl) nameEl.value = '';
-  if(deadlineEl) deadlineEl.value = '';
-  document.querySelectorAll('.type-opt').forEach(o => { o.style.borderColor='var(--sep)'; o.style.background='var(--white)'; });
-  ['step-pattern','step-count','step-preview','step-plot'].forEach(id => { const el=document.getElementById(id); if(el) el.style.display='none'; });
-
-  document.querySelectorAll('.type-opt').forEach(opt => {
-    opt.onclick = () => {
-      document.querySelectorAll('.type-opt').forEach(o => { o.style.borderColor='var(--sep)'; o.style.background='var(--white)'; });
-      opt.style.borderColor='var(--accent)'; opt.style.background='var(--accent-light)';
-      addState.type=opt.dataset.type; addState.patternKey=null; addState.count=1;
-      const cv=document.getElementById('count-val'); if(cv) cv.textContent='1';
-      renderPatternList();
-      document.getElementById('step-pattern').style.display='block';
+let addState={type:null,patternKey:null,count:1,subtasks:[],totalMin:0,scheduledTime:null,plotDate:TODAY_STR,repeat:'none'};
+function initAddPage(){
+  addState={type:null,patternKey:null,count:1,subtasks:[],totalMin:0,scheduledTime:null,plotDate:TODAY_STR,repeat:'none'};
+  const ne=document.getElementById('task-name-input'),de=document.getElementById('deadline-input');
+  if(ne)ne.value=''; if(de)de.value='';
+  document.querySelectorAll('.type-opt').forEach(o=>{o.style.borderColor='var(--sep)';o.style.background='var(--white)';});
+  ['step-pattern','step-count','step-preview','step-plot'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
+  document.querySelectorAll('.type-opt').forEach(opt=>{
+    opt.onclick=()=>{
+      document.querySelectorAll('.type-opt').forEach(o=>{o.style.borderColor='var(--sep)';o.style.background='var(--white)';});
+      opt.style.borderColor='var(--accent)';opt.style.background='var(--accent-light)';
+      addState.type=opt.dataset.type;addState.patternKey=null;addState.count=1;
+      const cv=document.getElementById('count-val');if(cv)cv.textContent='1';
+      renderPatternList();document.getElementById('step-pattern').style.display='block';
       ['step-count','step-preview','step-plot'].forEach(id=>document.getElementById(id).style.display='none');
     };
   });
-
-  const cm=document.getElementById('count-minus');
-  const cp=document.getElementById('count-plus');
-  if(cm) cm.onclick=()=>{ if(addState.count<=1) return; addState.count--; document.getElementById('count-val').textContent=addState.count; updateSubtasksAndPlot(); };
-  if(cp) cp.onclick=()=>{ addState.count++; document.getElementById('count-val').textContent=addState.count; updateSubtasksAndPlot(); };
-
-  if(deadlineEl) deadlineEl.onchange=()=>{ if(addState.patternKey){ addState.scheduledTime=autoPlotTime(addState.type,addState.totalMin,TODAY_STR); updatePlotInfo(); } };
+  const cm=document.getElementById('count-minus'),cp=document.getElementById('count-plus');
+  if(cm)cm.onclick=()=>{if(addState.count<=1)return;addState.count--;document.getElementById('count-val').textContent=addState.count;updateSubtasksAndPlot();};
+  if(cp)cp.onclick=()=>{addState.count++;document.getElementById('count-val').textContent=addState.count;updateSubtasksAndPlot();};
+  if(de)de.onchange=()=>{if(addState.patternKey){addState.scheduledTime=autoPlotTime(addState.type,addState.totalMin,addState.plotDate);updatePlotInfo();}};
   const dcb=document.getElementById('deadline-clear-btn');
-  if(dcb) dcb.onclick=()=>{ if(deadlineEl) deadlineEl.value=''; if(addState.patternKey) updatePlotInfo(); };
-
-  // プロット先ボタン
-  document.querySelectorAll('.plot-date-btn').forEach(btn => {
-    btn.onclick = () => {
-      document.querySelectorAll('.plot-date-btn').forEach(b => {
-        b.style.borderColor='var(--sep)'; b.style.background='var(--white)'; b.style.color='var(--text2)';
-      });
-      btn.style.borderColor='var(--accent)'; btn.style.background='var(--accent-light)'; btn.style.color='var(--accent)';
-      const d = btn.dataset.date;
-      if (d === 'today') addState.plotDate = TODAY_STR;
-      else if (d === 'tomorrow') addState.plotDate = nextBusinessDay(new Date(), 1);
-      else if (d === 'dayafter') addState.plotDate = nextBusinessDay(new Date(), 2);
-      addState.scheduledTime = autoPlotTime(addState.type, addState.totalMin, addState.plotDate);
-      updatePlotInfo();
+  if(dcb)dcb.onclick=()=>{if(de)de.value='';if(addState.patternKey)updatePlotInfo();};
+  document.querySelectorAll('.plot-date-btn').forEach(btn=>{
+    btn.onclick=()=>{
+      document.querySelectorAll('.plot-date-btn').forEach(b=>{b.style.borderColor='var(--sep)';b.style.background='var(--white)';b.style.color='var(--text2)';});
+      btn.style.borderColor='var(--accent)';btn.style.background='var(--accent-light)';btn.style.color='var(--accent)';
+      const d=btn.dataset.date;
+      if(d==='today')addState.plotDate=TODAY_STR;
+      else if(d==='tomorrow')addState.plotDate=nextBusinessDay(new Date(),1);
+      else if(d==='dayafter')addState.plotDate=nextBusinessDay(new Date(),2);
+      addState.scheduledTime=autoPlotTime(addState.type,addState.totalMin,addState.plotDate);updatePlotInfo();
     };
   });
-  // 繰り返しボタン
-  document.querySelectorAll('.repeat-btn').forEach(btn => {
-    btn.onclick = () => {
-      document.querySelectorAll('.repeat-btn').forEach(b => {
-        b.style.borderColor='var(--sep)'; b.style.background='var(--white)'; b.style.color='var(--text2)';
-      });
-      btn.style.borderColor='var(--accent)'; btn.style.background='var(--accent-light)'; btn.style.color='var(--accent)';
-      addState.repeat = btn.dataset.repeat;
+  document.querySelectorAll('.repeat-btn').forEach(btn=>{
+    btn.onclick=()=>{
+      document.querySelectorAll('.repeat-btn').forEach(b=>{b.style.borderColor='var(--sep)';b.style.background='var(--white)';b.style.color='var(--text2)';});
+      btn.style.borderColor='var(--accent)';btn.style.background='var(--accent-light)';btn.style.color='var(--accent)';
+      addState.repeat=btn.dataset.repeat;
     };
   });
-
   const pb=document.getElementById('plot-btn');
-  if(pb) pb.onclick=async()=>{
+  if(pb)pb.onclick=async()=>{
     const title=document.getElementById('task-name-input').value.trim();
-    if(!title){ showToast('タスク名を入力してください'); return; }
-    if(!addState.type){ showToast('タイプを選択してください'); return; }
-    if(!addState.patternKey){ showToast('作業パターンを選択してください'); return; }
-    const deadline=deadlineEl?deadlineEl.value||null:null;
-    const used=calcUsedMinutes(TODAY_STR);
-    if(used+addState.totalMin>BUFFER_LIMIT){
-      const over=used+addState.totalMin-BUFFER_LIMIT;
-      if(!confirm(`今日の使用時間が上限(${BUFFER_LIMIT}分)を${over}分超えます。\n虎の巻では20%のバッファを推奨しています。\nそれでも追加しますか？`)) return;
+    if(!title){showToast('タスク名を入力してください');return;}
+    if(!addState.type){showToast('タイプを選択してください');return;}
+    if(!addState.patternKey){showToast('作業パターンを選択してください');return;}
+    const deadline=de?de.value||null:null;
+    const used=calcUsedMinutes(addState.plotDate);
+    if(addState.plotDate===TODAY_STR&&used+addState.totalMin>BUFFER_LIMIT){
+      if(!confirm(`今日の使用時間が上限(${BUFFER_LIMIT}分)を${used+addState.totalMin-BUFFER_LIMIT}分超えます。\nそれでも追加しますか？`))return;
     }
     await saveTask({title,type:addState.type,estimated_minutes:addState.totalMin,deadline,scheduled_date:addState.plotDate,scheduled_time:addState.scheduledTime,subtasks:addState.subtasks,repeat:addState.repeat});
   };
 }
-
-function renderPatternList() {
-  const list=document.getElementById('pattern-list'); if(!list) return;
+function renderPatternList(){
+  const list=document.getElementById('pattern-list');if(!list)return;
   const entries=Object.entries(PATTERNS).filter(([,p])=>p.types.includes(addState.type));
   const all=entries.length?entries:Object.entries(PATTERNS);
   list.innerHTML=all.map(([key,p])=>`<div onclick="selectPattern('${key}')" data-pattern="${key}" style="background:var(--white);border:0.5px solid var(--sep);border-radius:var(--radius-sm);padding:10px 14px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;"><span style="font-size:13px;font-weight:500;color:var(--text);">${p.name}</span><span style="font-family:var(--font-num);font-size:13px;color:var(--text3);">${p.baseMin}min〜</span></div>`).join('');
 }
-
 window.selectPattern=function(key){
   document.querySelectorAll('#pattern-list > div').forEach(o=>{o.style.borderColor='var(--sep)';o.style.background='var(--white)';});
   const sel=document.querySelector(`#pattern-list [data-pattern="${key}"]`);
   if(sel){sel.style.borderColor='var(--accent)';sel.style.background='var(--accent-light)';}
-  addState.patternKey=key; addState.count=1;
-  const cv=document.getElementById('count-val'); if(cv) cv.textContent='1';
-  const pattern=PATTERNS[key];
-  if(pattern.countable) document.getElementById('step-count').style.display='block';
-  else { document.getElementById('step-count').style.display='none'; addState.count=1; }
+  addState.patternKey=key;addState.count=1;
+  const cv=document.getElementById('count-val');if(cv)cv.textContent='1';
+  const p=PATTERNS[key];
+  document.getElementById('step-count').style.display=p.countable?'block':'none';
+  if(!p.countable)addState.count=1;
   updateSubtasksAndPlot();
 };
-
+function renderSubtaskPreview(){
+  const preview=document.getElementById('subtask-preview');if(!preview)return;
+  preview.innerHTML=addState.subtasks.map((s,i)=>`<div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:0.5px solid var(--sep);"><input value="${s.title.replace(/"/g,'&quot;')}" style="flex:1;border:none;background:transparent;font-size:13px;color:var(--text2);font-family:var(--font);outline:none;padding:2px 4px;border-radius:4px;" onfocus="this.style.background='var(--bg2)'" onblur="this.style.background='transparent';updateSubField(${i},'title',this.value)"><input value="${s.minutes}" type="number" min="5" max="180" step="5" style="width:48px;border:0.5px solid var(--bg3);background:var(--bg);font-size:12px;color:var(--text3);font-family:var(--font-num);outline:none;padding:2px 4px;border-radius:4px;text-align:center;" onblur="updateSubField(${i},'minutes',parseInt(this.value)||5)"><span style="font-size:11px;color:var(--text3);">min</span><button onclick="removeSubtask(${i})" style="width:20px;height:20px;border:none;background:none;cursor:pointer;color:var(--text3);font-size:16px;line-height:1;padding:0;">×</button></div>`).join('')+`<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;"><button onclick="addSubtask()" style="font-size:12px;color:var(--accent);background:none;border:0.5px dashed var(--accent);border-radius:6px;padding:4px 10px;cursor:pointer;font-family:var(--font);">＋ ステップを追加</button><div style="font-family:var(--font-num);font-size:14px;color:var(--accent);">合計 ${addState.totalMin}min</div></div>`;
+}
+window.updateSubField=function(i,f,v){if(!addState.subtasks[i])return;addState.subtasks[i][f]=f==='minutes'?(parseInt(v)||5):v;addState.totalMin=addState.subtasks.reduce((a,s)=>a+s.minutes,0);renderSubtaskPreview();addState.scheduledTime=autoPlotTime(addState.type,addState.totalMin,addState.plotDate);updatePlotInfo();};
+window.removeSubtask=function(i){addState.subtasks.splice(i,1);addState.totalMin=addState.subtasks.reduce((a,s)=>a+s.minutes,0);renderSubtaskPreview();addState.scheduledTime=autoPlotTime(addState.type,addState.totalMin,addState.plotDate);updatePlotInfo();};
+window.addSubtask=function(){addState.subtasks.push({title:'新しいステップ',minutes:15});addState.totalMin=addState.subtasks.reduce((a,s)=>a+s.minutes,0);renderSubtaskPreview();addState.scheduledTime=autoPlotTime(addState.type,addState.totalMin,addState.plotDate);updatePlotInfo();};
 function updateSubtasksAndPlot(){
-  const pattern=PATTERNS[addState.patternKey]; if(!pattern) return;
-  if(addState.count===1){ addState.subtasks=pattern.subtasks.map(s=>({...s})); }
-  else { addState.subtasks=[]; for(let i=1;i<=addState.count;i++) pattern.subtasks.forEach(s=>addState.subtasks.push({title:`[${i}件目] ${s.title}`,minutes:s.minutes})); }
+  const p=PATTERNS[addState.patternKey];if(!p)return;
+  if(addState.count===1){addState.subtasks=p.subtasks.map(s=>({...s}));}
+  else{addState.subtasks=[];for(let i=1;i<=addState.count;i++)p.subtasks.forEach(s=>addState.subtasks.push({title:`[${i}件目] ${s.title}`,minutes:s.minutes}));}
   addState.totalMin=addState.subtasks.reduce((a,s)=>a+s.minutes,0);
-  renderSubtaskPreview();
-  document.getElementById('step-preview').style.display='block';
-  // デフォルトプロット先は今日
-  if (!addState.plotDate) addState.plotDate = TODAY_STR;
-  addState.scheduledTime=autoPlotTime(addState.type,addState.totalMin,addState.plotDate);
-  updatePlotInfo();
-  document.getElementById('step-plot').style.display='block';
+  renderSubtaskPreview();document.getElementById('step-preview').style.display='block';
+  addState.scheduledTime=autoPlotTime(addState.type,addState.totalMin,addState.plotDate||TODAY_STR);
+  updatePlotInfo();document.getElementById('step-plot').style.display='block';
 }
-
-function renderSubtaskPreview() {
-  const preview = document.getElementById('subtask-preview');
-  if (!preview) return;
-  preview.innerHTML = addState.subtasks.map((s, i) => `
-    <div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:0.5px solid var(--sep);">
-      <input value="${s.title}" data-sub-idx="${i}" data-field="title"
-        style="flex:1;border:none;background:transparent;font-size:13px;color:var(--text2);font-family:var(--font);outline:none;padding:2px 4px;border-radius:4px;"
-        onfocus="this.style.background='var(--bg2)'" onblur="this.style.background='transparent';updateSubtaskField(${i},'title',this.value)">
-      <input value="${s.minutes}" type="number" min="5" max="120" step="5" data-sub-idx="${i}" data-field="minutes"
-        style="width:52px;border:0.5px solid var(--bg3);background:var(--bg);font-size:12px;color:var(--text3);font-family:var(--font-num);outline:none;padding:2px 6px;border-radius:4px;text-align:center;"
-        onblur="updateSubtaskField(${i},'minutes',parseInt(this.value)||5)">
-      <span style="font-size:11px;color:var(--text3);">min</span>
-      <button onclick="removeSubtask(${i})" style="width:18px;height:18px;border:none;background:none;cursor:pointer;color:var(--text3);font-size:14px;line-height:1;padding:0;flex-shrink:0;">×</button>
-    </div>`).join('') +
-    `<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
-      <button onclick="addSubtask()" style="font-size:12px;color:var(--accent);background:none;border:0.5px dashed var(--accent);border-radius:6px;padding:4px 10px;cursor:pointer;font-family:var(--font);">＋ ステップを追加</button>
-      <div style="font-family:var(--font-num);font-size:14px;color:var(--accent);">合計 ${addState.totalMin}min</div>
-    </div>`;
-}
-
-window.updateSubtaskField = function(idx, field, val) {
-  if (!addState.subtasks[idx]) return;
-  addState.subtasks[idx][field] = field === 'minutes' ? (parseInt(val)||5) : val;
-  addState.totalMin = addState.subtasks.reduce((a,s)=>a+s.minutes,0);
-  // 合計だけ更新
-  const totalEl = document.querySelector('#subtask-preview [style*="font-num"]');
-  if (totalEl) totalEl.textContent = '合計 '+addState.totalMin+'min';
-  addState.scheduledTime = autoPlotTime(addState.type, addState.totalMin, addState.plotDate||TODAY_STR);
-  updatePlotInfo();
-};
-
-window.removeSubtask = function(idx) {
-  addState.subtasks.splice(idx, 1);
-  addState.totalMin = addState.subtasks.reduce((a,s)=>a+s.minutes,0);
-  renderSubtaskPreview();
-  addState.scheduledTime = autoPlotTime(addState.type, addState.totalMin, addState.plotDate||TODAY_STR);
-  updatePlotInfo();
-};
-
-window.addSubtask = function() {
-  addState.subtasks.push({ title: '新しいステップ', minutes: 15 });
-  addState.totalMin = addState.subtasks.reduce((a,s)=>a+s.minutes,0);
-  renderSubtaskPreview();
-  addState.scheduledTime = autoPlotTime(addState.type, addState.totalMin, addState.plotDate||TODAY_STR);
-  updatePlotInfo();
-};
-
 function updatePlotInfo(){
-  const info=document.getElementById('plot-info'); if(!info) return;
-  const parts=[]; const deadlineEl=document.getElementById('deadline-input');
-  const deadline=deadlineEl?deadlineEl.value:'';
+  const info=document.getElementById('plot-info');if(!info)return;
+  const parts=[],de=document.getElementById('deadline-input'),deadline=de?de.value:'';
   if(deadline){const d=Math.ceil((new Date(deadline)-TODAY)/(1000*60*60*24));if(d<=0)parts.push('期限超過');else if(d===1)parts.push('期限明日');else if(d<=3)parts.push(`期限${d}日`);}
-  if(addState.type==='judgment'||addState.type==='unknown') parts.push('午前の脳リソースで対応');
-  if(addState.type==='dependent') parts.push('早めにボールを渡す');
-  if(addState.type==='routine') parts.push('テンプレで流す');
-  if(addState.scheduledTime){const h=parseInt(addState.scheduledTime.split(':')[0]);if(h>=16)parts.push('集中枠');else if(h<12)parts.push('午前枠');} const dateLabel=addState.plotDate===TODAY_STR?'今日':addState.plotDate===nextBusinessDay(new Date(),1)?'明日':'明後日';
-  const reason=parts.join(' · ')||'標準スケジュール';
-  info.innerHTML=`<div style="font-size:12px;color:var(--text3);margin-bottom:4px;">プロット先 · 時刻</div><div style="font-family:var(--font-num);font-size:18px;color:var(--text);margin-bottom:4px;">${dateLabel} ${addState.scheduledTime} · ${addState.totalMin}min</div><div style="font-size:11px;color:var(--text3);">🐯 ${reason}</div>`;
+  if(addState.type==='dependent')parts.push('早めにボールを渡す');
+  const dl=addState.plotDate===TODAY_STR?'今日':addState.plotDate===nextBusinessDay(new Date(),1)?'明日':'明後日';
+  const reason=parts.join(' · ');
+  info.innerHTML=`<div style="font-size:12px;color:var(--text3);margin-bottom:4px;">プロット先 · 時刻</div><div style="font-family:var(--font-num);font-size:18px;color:var(--text);margin-bottom:4px;">${dl} ${addState.scheduledTime} · ${addState.totalMin}min</div>${reason?`<div style="font-size:11px;color:var(--text3);">🐯 ${reason}</div>`:''}`;
 }
-
 async function saveTask(data) {
   const usedMin = calcUsedMinutes(TODAY_STR);
   if (data.scheduled_date === TODAY_STR && usedMin + (data.estimated_minutes||30) > BUFFER_LIMIT) {
