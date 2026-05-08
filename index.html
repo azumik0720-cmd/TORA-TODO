@@ -1117,20 +1117,21 @@ function openDetail(taskId) {
     if (t) { t.status = 'carried'; t.scheduled_date = TOMORROW_STR; t.scheduled_time = autoTime; }
     closeModal('detail-modal'); renderToday(); showToast('明日に持ち越しました');
   });
+  let deleteReady = false;
   document.getElementById('ddel-btn').addEventListener('click', async () => {
-    document.getElementById('ddel-btn').textContent = '本当に削除？';
-    document.getElementById('ddel-btn').style.background = 'var(--accent)';
-    document.getElementById('ddel-btn').style.color = 'white';
-    if (document.getElementById('ddel-btn').dataset.confirmed !== 'true') {
-      document.getElementById('ddel-btn').dataset.confirmed = 'true';
+    if (!deleteReady) {
+      deleteReady = true;
+      document.getElementById('ddel-btn').textContent = 'もう一度押して削除';
+      document.getElementById('ddel-btn').style.background = 'var(--accent)';
+      document.getElementById('ddel-btn').style.color = 'white';
       return;
     }
+    await db.from('tasks').delete().eq('id', taskId);
     allTasks = allTasks.filter(t => t.id !== taskId);
     allSubtasks = allSubtasks.filter(s => s.task_id !== taskId);
     closeModal('detail-modal');
     renderToday();
     showToast('削除しました');
-    db.from('tasks').delete().eq('id', taskId); // DB削除はUI更新後に非同期で実行
   });
   openModal('detail-modal');
 }
