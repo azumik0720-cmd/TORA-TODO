@@ -1130,8 +1130,8 @@ function openDetail(taskId) {
     allTasks = allTasks.filter(t => t.id !== taskId);
     allSubtasks = allSubtasks.filter(s => s.task_id !== taskId);
     closeModal('detail-modal');
-    renderToday();
     showToast('削除しました');
+    setTimeout(() => { renderToday(); renderTaskList(); }, 350);
   });
   openModal('detail-modal');
 }
