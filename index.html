@@ -620,6 +620,44 @@ document.getElementById('auth-toggle-link').addEventListener('click', () => {
   document.getElementById('auth-toggle-link').textContent = authMode === 'login' ? '新規登録' : 'ログイン';
 });
 document.getElementById('logout-btn').addEventListener('click', () => db.auth.signOut());
+  document.getElementById('quick-ai-btn').addEventListener('click', async () => {
+  const title = document.getElementById('quick-title').value.trim();
+  if (!title) { showToast('タスク名を入力してください'); return; }
+  const resultWrap = document.getElementById('quick-result');
+  resultWrap.innerHTML = '<div class="ai-loading"><div class="spinner"></div>分析中...</div>';
+  try {
+    const data = await analyzeWithGemini(title);
+    const plotTime = autoPlotTime(data.type, data.estimated_minutes, TODAY_STR);
+    resultWrap.innerHTML = `
+      <div class="ai-result">
+        <div class="ai-result-title">🐯 分析結果</div>
+        <div class="ai-task-name">${title}</div>
+        <div class="ai-reason-row">${data.reason}</div>
+        <div class="pill-row">
+          <div class="pill"><span>${typeLabel(data.type)}</span></div>
+          <div class="pill"><span>${data.estimated_minutes}min</span></div>
+          <div class="pill"><span>今日 ${plotTime}</span></div>
+        </div>
+        ${data.subtasks?.length ? `<div class="ai-subtasks">${data.subtasks.map(s=>`<div class="ai-subtask-item"><span>${s.title}</span><span>${s.minutes}min</span></div>`).join('')}</div>` : ''}
+        <div class="ai-actions"><button class="btn-ok" id="ai-save-btn">このまま追加</button></div>
+      </div>
+    `;
+    document.getElementById('ai-save-btn').addEventListener('click', async () => {
+      await saveTask({
+        title,
+        type: data.type,
+        estimated_minutes: data.estimated_minutes,
+        scheduled_date: TODAY_STR,
+        scheduled_time: plotTime,
+        subtasks: (data.subtasks||[]).map(s => ({ title: s.title, minutes: s.minutes }))
+      });
+      document.getElementById('quick-title').value = '';
+      resultWrap.innerHTML = '';
+    });
+  } catch(e) {
+    resultWrap.innerHTML = '<div style="color:var(--accent);font-size:13px;padding:12px;">分析に失敗しました。もう一度お試しください。</div>';
+  }
+});
 db.auth.onAuthStateChange((event, session) => {
   if (session) {
     currentUser = session.user;
