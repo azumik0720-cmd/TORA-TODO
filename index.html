@@ -151,6 +151,20 @@ kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); b
 .ai-subtask-item:last-child { border-bottom: none; }
 .btn-ok { flex: 1; height: 44px; background: var(--accent); color: white; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; font-family: var(--font); cursor: pointer; }
 .btn-ok:active { opacity: .8; }
+/* カレンダーUI */
+.cal-wrap { font-family: var(--font); }
+.cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.cal-nav { background: none; border: none; cursor: pointer; font-size: 18px; color: var(--text2); padding: 4px 8px; border-radius: 6px; }
+.cal-nav:hover { background: var(--bg2); }
+.cal-month { font-size: 13px; font-weight: 500; color: var(--text); }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.cal-day-label { text-align: center; font-size: 10px; color: var(--text3); padding: 4px 0; letter-spacing: .04em; }
+.cal-day { text-align: center; padding: 6px 2px; border-radius: 6px; font-size: 13px; color: var(--text); cursor: pointer; transition: all .15s; }
+.cal-day:hover { background: var(--bg2); }
+.cal-day.today { color: var(--accent); font-weight: 700; }
+.cal-day.selected { background: var(--accent); color: white !important; font-weight: 500; }
+.cal-day.past { color: var(--text3); opacity: .4; pointer-events: none; }
+.cal-day.empty { pointer-events: none; }
 .count-row { display: flex; align-items: center; gap: 12px; }
 .count-btn { width: 32px; height: 32px; border: 0.5px solid var(--sep); border-radius: 50%; background: var(--white); font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text2); font-family: var(--font); }
 .count-val { font-family: var(--font-num); font-size: 22px; color: var(--accent); min-width: 24px; text-align: center; }
@@ -250,9 +264,10 @@ kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); b
           </div>
           <div class="add-step">
             <div class="add-step-title">期限（任意）</div>
-            <div style="display:flex;gap:8px;">
-              <input class="wiz-input" type="date" id="deadline-input" style="flex:1;">
-              <button id="deadline-clear-btn" style="height:44px;padding:0 12px;border:0.5px solid var(--sep);border-radius:var(--radius-sm);background:var(--white);font-size:12px;font-family:var(--font);color:var(--text3);cursor:pointer;">クリア</button>
+            <div id="deadline-calendar"></div>
+            <div style="margin-top:8px;display:flex;align-items:center;justify-content:space-between;">
+              <span id="deadline-selected" style="font-size:12px;color:var(--text3);">未設定</span>
+              <button id="deadline-clear-btn" style="font-size:11px;color:var(--text3);background:none;border:none;cursor:pointer;font-family:var(--font);">クリア</button>
             </div>
           </div>
           <div class="add-step">
@@ -411,7 +426,11 @@ const PATTERNS={
   ad:{name:'広告設定・配信系',types:['routine'],baseMin:45,countable:true,subtasks:[{title:'素材の格納先・キャプションを確認する',minutes:10},{title:'広告設定・入稿する',minutes:10},{title:'配信確認・承認する',minutes:10},{title:'関係者に配信開始を連絡する',minutes:5}]},
   plan:{name:'企画・アイデア出し系',types:['unknown'],baseMin:60,countable:false,subtasks:[{title:'参考・トレンドをリサーチする',minutes:20},{title:'アイデア・企画案を作成する',minutes:25},{title:'撮影・制作の段取りを確認する',minutes:10},{title:'社内共有・確認依頼する',minutes:5}]},
   report:{name:'分析・レポート系',types:['routine'],baseMin:45,countable:false,subtasks:[{title:'データ・数値を抽出する',minutes:15},{title:'集計・グラフ化する',minutes:15},{title:'所見・コメントを書く',minutes:10},{title:'共有・提出する',minutes:5}]},
-  doc:{name:'資料・まとめ作成系',types:['unknown','judgment'],baseMin:60,countable:false,subtasks:[{title:'必要な情報・データを集める',minutes:15},{title:'構成・骨子を決める',minutes:10},{title:'資料・まとめを作成する',minutes:25},{title:'確認依頼・提出する',minutes:10}]}
+  doc:{name:'資料・まとめ作成系',types:['unknown','judgment'],baseMin:60,countable:false,subtasks:[{title:'必要な情報・データを集める',minutes:15},{title:'構成・骨子を決める',minutes:10},{title:'資料・まとめを作成する',minutes:25},{title:'確認依頼・提出する',minutes:10}]},
+  video:{name:'動画制作系',types:['creative'],baseMin:60,countable:true,subtasks:[{title:'素材・台本を確認する',minutes:10},{title:'撮影・録音する',minutes:30},{title:'編集・書き出しする',minutes:15},{title:'チェック・修正する',minutes:10},{title:'入稿・投稿する',minutes:5}]},
+  design:{name:'デザイン・画像制作系',types:['creative'],baseMin:45,countable:true,subtasks:[{title:'参考・方向性を確認する',minutes:10},{title:'制作する',minutes:25},{title:'チェック・修正する',minutes:10}]},
+  writing:{name:'文章・コピー作成系',types:['creative'],baseMin:45,countable:false,subtasks:[{title:'構成・ポイントをまとめる',minutes:10},{title:'書く',minutes:25},{title:'見直し・修正する',minutes:10}]},
+  post:{name:'投稿・コンテンツ制作系',types:['creative'],baseMin:30,countable:true,subtasks:[{title:'素材・キャプションを準備する',minutes:10},{title:'制作・仕上げる',minutes:15},{title:'投稿・スケジュール設定する',minutes:5}]}
 };
 
 let addState={type:null,patternKey:null,count:1,subtasks:[],totalMin:0,scheduledTime:null,plotDate:TODAY_STR};
@@ -839,13 +858,75 @@ window.moveConflictTask=async function(taskId){const task=allTasks.find(t=>t.id=
 window.dismissConflict=function(btn){btn.closest('.conflict-banner').remove();};
 
 // ============================================================
+// カレンダーUI（期限選択）
+// ============================================================
+let calYear=TODAY.getFullYear(), calMonth=TODAY.getMonth();
+let selectedDeadline=null;
+
+function renderDeadlineCalendar(){
+  const wrap=document.getElementById('deadline-calendar');
+  if(!wrap)return;
+  const MONTHS=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  const DAYS_LABEL=['日','月','火','水','木','金','土'];
+  const firstDay=new Date(calYear,calMonth,1).getDay();
+  const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
+  // 最大2ヶ月先まで
+  const maxDate=new Date(TODAY);maxDate.setMonth(maxDate.getMonth()+2);
+  let html=`<div class="cal-wrap"><div class="cal-header">
+    <button class="cal-nav" id="cal-prev">‹</button>
+    <span class="cal-month">${calYear}年 ${MONTHS[calMonth]}</span>
+    <button class="cal-nav" id="cal-next">›</button>
+  </div><div class="cal-grid">`;
+  DAYS_LABEL.forEach(d=>{html+=`<div class="cal-day-label">${d}</div>`;});
+  for(let i=0;i<firstDay;i++)html+=`<div class="cal-day empty"></div>`;
+  for(let d=1;d<=daysInMonth;d++){
+    const date=new Date(calYear,calMonth,d);
+    const dateStr=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday=dateStr===TODAY_STR;
+    const isPast=date<new Date(TODAY.getFullYear(),TODAY.getMonth(),TODAY.getDate());
+    const isSelected=dateStr===selectedDeadline;
+    let cls='cal-day';
+    if(isToday)cls+=' today';
+    if(isPast)cls+=' past';
+    if(isSelected)cls+=' selected';
+    html+=`<div class="${cls}" data-date="${dateStr}">${d}</div>`;
+  }
+  html+=`</div></div>`;
+  wrap.innerHTML=html;
+  wrap.querySelectorAll('.cal-day[data-date]').forEach(el=>{
+    el.addEventListener('click',()=>{
+      selectedDeadline=el.dataset.date;
+      const d=new Date(selectedDeadline);
+      const label=`${d.getMonth()+1}/${d.getDate()} (${DAYS[d.getDay()]})`;
+      const sel=document.getElementById('deadline-selected');
+      if(sel)sel.textContent='期限: '+label;
+      if(sel)sel.style.color='var(--accent)';
+      renderDeadlineCalendar();
+      if(addState.patternKey)updatePlotInfo();
+    });
+  });
+  document.getElementById('cal-prev')?.addEventListener('click',()=>{
+    calMonth--;if(calMonth<0){calMonth=11;calYear--;}
+    renderDeadlineCalendar();
+  });
+  document.getElementById('cal-next')?.addEventListener('click',()=>{
+    calMonth++;if(calMonth>11){calMonth=0;calYear++;}
+    renderDeadlineCalendar();
+  });
+}
+
+// ============================================================
 // ADD PAGE
 // ============================================================
 function initAddPage(){
   addState={type:null,patternKey:null,count:1,subtasks:[],totalMin:0,scheduledTime:null,plotDate:TODAY_STR};
   const ne=document.getElementById('task-name-input');if(ne)ne.value='';
-  const de=document.getElementById('deadline-input');if(de)de.value='';
   const me=document.getElementById('memo-input');if(me)me.value='';
+  selectedDeadline=null;
+  calYear=TODAY.getFullYear();calMonth=TODAY.getMonth();
+  const sel=document.getElementById('deadline-selected');
+  if(sel){sel.textContent='未設定';sel.style.color='var(--text3)';}
+  renderDeadlineCalendar();
   document.querySelectorAll('.type-opt').forEach(o=>{o.style.borderColor='var(--sep)';o.style.background='var(--white)';});
   ['step-pattern','step-count','step-preview','step-plot'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
 }
@@ -864,17 +945,21 @@ document.querySelectorAll('.type-opt').forEach(opt=>{
 
 document.getElementById('count-minus').addEventListener('click',()=>{if(addState.count<=1)return;addState.count--;document.getElementById('count-val').textContent=addState.count;updateSubtasksAndPlot();});
 document.getElementById('count-plus').addEventListener('click',()=>{addState.count++;document.getElementById('count-val').textContent=addState.count;updateSubtasksAndPlot();});
-document.getElementById('deadline-clear-btn').addEventListener('click',()=>{document.getElementById('deadline-input').value='';if(addState.patternKey)updatePlotInfo();});
-document.getElementById('deadline-input').addEventListener('change',()=>{if(addState.patternKey)updatePlotInfo();});
+document.getElementById('deadline-clear-btn').addEventListener('click',()=>{
+  selectedDeadline=null;
+  const sel=document.getElementById('deadline-selected');
+  if(sel){sel.textContent='未設定';sel.style.color='var(--text3)';}
+  renderDeadlineCalendar();
+  if(addState.patternKey)updatePlotInfo();
+});
 
 document.getElementById('plot-btn').addEventListener('click',async()=>{
   const title=document.getElementById('task-name-input').value.trim();
   if(!title){showToast('タスク名を入力してください');return;}
   if(!addState.type){showToast('タイプを選択してください');return;}
   if(!addState.patternKey){showToast('作業パターンを選択してください');return;}
-  const deadline=document.getElementById('deadline-input').value||null;
   const memo=document.getElementById('memo-input').value.trim()||null;
-  await saveTask({title,type:addState.type,estimated_minutes:addState.totalMin,deadline,memo,subtasks:addState.subtasks});
+  await saveTask({title,type:addState.type,estimated_minutes:addState.totalMin,deadline:selectedDeadline,memo,subtasks:addState.subtasks});
 });
 
 function renderPatternList(){
@@ -917,8 +1002,7 @@ function updateSubtasksAndPlot(){
 
 function updatePlotInfo(){
   const info=document.getElementById('plot-info');if(!info)return;
-  // 期限を考慮した自動日付決定
-  const deadline=document.getElementById('deadline-input')?.value||null;
+  const deadline=selectedDeadline;
   const tmpTask={type:addState.type,estimated_minutes:addState.totalMin,deadline,created_at:new Date().toISOString()};
   const targetDate=autoPlotDate(tmpTask);
   addState.plotDate=targetDate;
@@ -933,16 +1017,23 @@ function updatePlotInfo(){
 }
 
 async function saveTask(data){
-  const tmpTask={type:data.type,estimated_minutes:data.estimated_minutes||30,deadline:data.deadline,created_at:new Date().toISOString()};
+  const tmpTask={type:data.type,estimated_minutes:data.estimated_minutes||30,deadline:data.deadline||null,created_at:new Date().toISOString()};
   const targetDate=autoPlotDate(tmpTask);
   const plotTime=autoPlotTime(data.type,data.estimated_minutes||30,targetDate);
-  const{data:task,error}=await db.from('tasks').insert({
-    user_id:currentUser.id,title:data.title,type:data.type||'judgment',status:'pending',
-    estimated_minutes:data.estimated_minutes||30,deadline:data.deadline||null,
-    scheduled_date:targetDate,scheduled_time:plotTime,
-    memo:data.memo||null,repeat:'none',pinned:false
-  }).select().single();
-  if(error){showToast('保存に失敗しました');console.error(error);return;}
+  const insertData={
+    user_id:currentUser.id,
+    title:data.title,
+    type:data.type||'judgment',
+    status:'pending',
+    estimated_minutes:data.estimated_minutes||30,
+    deadline:data.deadline||null,
+    scheduled_date:targetDate,
+    scheduled_time:plotTime,
+    pinned:false
+  };
+  if(data.memo)insertData.memo=data.memo;
+  const{data:task,error}=await db.from('tasks').insert(insertData).select().single();
+  if(error){showToast('ERR:'+error.message.slice(0,50));console.error(error);return;}
   task.scheduled_date=normalizeDate(task.scheduled_date);
   allTasks.unshift(task);
   if(data.subtasks?.length){
