@@ -430,7 +430,7 @@ const PATTERNS={
   video:{name:'動画制作系',types:['creative'],baseMin:60,countable:true,subtasks:[{title:'素材・台本を確認する',minutes:10},{title:'撮影・録音する',minutes:30},{title:'編集・書き出しする',minutes:15},{title:'チェック・修正する',minutes:10},{title:'入稿・投稿する',minutes:5}]},
   design:{name:'デザイン・画像制作系',types:['creative'],baseMin:45,countable:true,subtasks:[{title:'参考・方向性を確認する',minutes:10},{title:'制作する',minutes:25},{title:'チェック・修正する',minutes:10}]},
   writing:{name:'文章・コピー作成系',types:['creative'],baseMin:45,countable:false,subtasks:[{title:'構成・ポイントをまとめる',minutes:10},{title:'書く',minutes:25},{title:'見直し・修正する',minutes:10}]},
-  post:{name:'投稿・コンテンツ制作系',types:['creative'],baseMin:30,countable:true,subtasks:[{title:'素材・キャプションを準備する',minutes:10},{title:'制作・仕上げる',minutes:15},{title:'投稿・スケジュール設定する',minutes:5}]}
+  post:{name:'投稿・コンテンツ制作系',types:['creative'],baseMin:45,countable:true,subtasks:[{title:'素材・キャプションを準備する',minutes:10},{title:'制作・仕上げる',minutes:30},{title:'投稿・スケジュール設定する',minutes:5}]}
 };
 
 let addState={type:null,patternKey:null,count:1,subtasks:[],totalMin:0,scheduledTime:null,plotDate:TODAY_STR};
@@ -531,20 +531,20 @@ function buildReason(task){
 // 自動プロット日付決定
 // ============================================================
 function autoPlotDate(task){
-  // 期限が明日以内なら今日
-  if(task.deadline){
-    const daysLeft=Math.ceil((new Date(task.deadline)-TODAY)/(1000*60*60*24));
-    if(daysLeft<=1)return TODAY_STR;
-    if(daysLeft===2)return TOMORROW_STR;
-  }
+  const usedToday=calcUsedMinutes(TODAY_STR);
+  const usedTomorrow=calcUsedMinutes(TOMORROW_STR);
+  console.log('[autoPlotDate]',{type:task.type,min:task.estimated_minutes,usedToday,usedTomorrow,BUFFER_LIMIT,deadline:task.deadline});
   // dependentは金曜に翌営業日送り
   if(task.type==='dependent'&&TODAY.getDay()===5){
     return nextBizDay(TODAY,1);
   }
-  // 基本方針：今日に入れられるなら今日
-  const usedToday=calcUsedMinutes(TODAY_STR);
+  // 期限が今日・明日なら今日に強制（バッファ超えでも）
+  if(task.deadline){
+    const daysLeft=Math.ceil((new Date(task.deadline)-TODAY)/(1000*60*60*24));
+    if(daysLeft<=1)return TODAY_STR;
+  }
+  // 基本方針：今日に入れられるなら今日（期限に関わらず早めにやる）
   if(usedToday+(task.estimated_minutes||30)<=BUFFER_LIMIT)return TODAY_STR;
-  const usedTomorrow=calcUsedMinutes(TOMORROW_STR);
   if(usedTomorrow+(task.estimated_minutes||30)<=BUFFER_LIMIT)return TOMORROW_STR;
   return DAY_AFTER_STR;
 }
@@ -983,7 +983,7 @@ window.selectPattern=function(key){
 
 function renderSubtaskPreview(){
   const preview=document.getElementById('subtask-preview');if(!preview)return;
-  preview.innerHTML=addState.subtasks.map((s,i)=>`<div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:0.5px solid var(--sep);"><input value="${s.title.replace(/"/g,'&quot;')}" style="flex:1;border:none;background:transparent;font-size:13px;color:var(--text2);font-family:var(--font);outline:none;padding:2px 4px;border-radius:4px;" onfocus="this.style.background='var(--bg2)'" onblur="this.style.background='transparent';updateSubField(${i},'title',this.value)"><input value="${s.minutes}" type="number" min="5" max="180" step="5" style="width:48px;border:0.5px solid var(--bg3);background:var(--bg);font-size:12px;color:var(--text3);font-family:var(--font-num);outline:none;padding:2px 4px;border-radius:4px;text-align:center;" onblur="updateSubField(${i},'minutes',parseInt(this.value)||5)"><span style="font-size:11px;color:var(--text3);">min</span><button onclick="removeSubtask(${i})" style="width:20px;height:20px;border:none;background:none;cursor:pointer;color:var(--text3);font-size:16px;line-height:1;padding:0;">×</button></div>`).join('')+`<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;"><button onclick="addSubtask()" style="font-size:12px;color:var(--accent);background:none;border:0.5px dashed var(--accent);border-radius:6px;padding:4px 10px;cursor:pointer;font-family:var(--font);">＋ ステップを追加</button><div style="font-family:var(--font-num);font-size:14px;color:var(--accent);">合計 ${addState.totalMin}min</div></div>`;
+  preview.innerHTML=addState.subtasks.map((s,i)=>`<div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:0.5px solid var(--sep);"><input value="${s.title.replace(/"/g,'&quot;')}" style="flex:1;border:none;background:transparent;font-size:13px;color:var(--text2);font-family:var(--font);outline:none;padding:2px 4px;border-radius:4px;" onfocus="this.style.background='var(--bg2)'" onblur="this.style.background='transparent';updateSubField(${i},'title',this.value)"><input value="${s.minutes}" type="number" min="5" max="180" step="5" style="width:48px;border:0.5px solid var(--bg3);background:var(--bg);font-size:12px;color:var(--text3);font-family:var(--font-num);outline:none;padding:2px 4px;border-radius:4px;text-align:center;" oninput="updateSubField(${i},'minutes',parseInt(this.value)||5)"><span style="font-size:11px;color:var(--text3);">min</span><button onclick="removeSubtask(${i})" style="width:20px;height:20px;border:none;background:none;cursor:pointer;color:var(--text3);font-size:16px;line-height:1;padding:0;">×</button></div>`).join('')+`<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;"><button onclick="addSubtask()" style="font-size:12px;color:var(--accent);background:none;border:0.5px dashed var(--accent);border-radius:6px;padding:4px 10px;cursor:pointer;font-family:var(--font);">＋ ステップを追加</button><div style="font-family:var(--font-num);font-size:14px;color:var(--accent);">合計 ${addState.totalMin}min</div></div>`;
 }
 window.updateSubField=function(i,f,v){if(!addState.subtasks[i])return;addState.subtasks[i][f]=f==='minutes'?(parseInt(v)||5):v;addState.totalMin=addState.subtasks.reduce((a,s)=>a+s.minutes,0);renderSubtaskPreview();updatePlotInfo();};
 window.removeSubtask=function(i){addState.subtasks.splice(i,1);addState.totalMin=addState.subtasks.reduce((a,s)=>a+s.minutes,0);renderSubtaskPreview();updatePlotInfo();};
