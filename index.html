@@ -624,12 +624,95 @@ function calcOptimizeProposals(){
   const proposals=[];
   const targets=allTasks.filter(t=>t.status==='pending'&&!t.pinned);
   const scored=targets.map(t=>({...t,score:calcPriorityScore(t)})).sort((a,b)=>b.score-a.score);
+
+  // 各日の残り容量
   const dayRemaining={
     [TODAY_STR]:calcDayRemaining(TODAY_STR),
     [TOMORROW_STR]:calcDayRemaining(TOMORROW_STR),
     [DAY_AFTER_STR]:calcDayRemaining(DAY_AFTER_STR)
   };
   const dayConsumed={[TODAY_STR]:0,[TOMORROW_STR]:0,[DAY_AFTER_STR]:0};
+
+  // 各日の仮想カーソル（次のタスクをどこから入れるか）
+  // 固定タスクとブロックを先に消化した状態から始める
+  const now=new Date();
+  const nowMin=now.getHours()*60+now.getMinutes();
+  const sm=(window._dayStartHour||DEFAULT_START_HOUR)*60+(window._dayStartMin||DEFAULT_START_MIN);
+
+  function buildInitialCursor(date){
+    // その日の固定タスク・ブロックをすべて並べて最後の終了時刻を返す
+    const startMin=date===TODAY_STR?Math.max(sm,nowMin):sm;
+    const allB=[...allBlocks.filter(b=>b.date===date),...getDefaultBlocks(date)];
+    const absenceBlocks=date===TODAY_STR?(window._absences||[]).map(a=>({start_time:toTimeStr(a.start),end_time:toTimeStr(a.end)})):[];
+    const pinnedTasks=allTasks.filter(t=>t.status==='pending'&&t.pinned&&t.scheduled_date===date);
+    const occupied=[
+      ...[...allB,...absenceBlocks].map(b=>{const[sh,bsm]=b.start_time.split(':').map(Number);const[eh,em]=b.end_time.split(':').map(Number);return{start:sh*60+bsm,end:eh*60+em};}),
+      ...pinnedTasks.filter(t=>t.scheduled_time).map(t=>{const[h,m]=t.scheduled_time.split(':').map(Number);return{start:h*60+m,end:h*60+m+(t.estimated_minutes||30)};})
+    ].sort((a,b)=>a.start-b.start);
+    // 空き枠を計算して最初の空き開始位置を返す
+    let cursor=startMin;
+    for(const b of occupied){if(cursor<b.start)break;cursor=Math.max(cursor,b.end);}
+    return cursor;
+  }
+
+  const dayCursor={
+    [TODAY_STR]:buildInitialCursor(TODAY_STR),
+    [TOMORROW_STR]:buildInitialCursor(TOMORROW_STR),
+    [DAY_AFTER_STR]:buildInitialCursor(DAY_AFTER_STR)
+  };
+  const WORK_END=(window._dayEndHour||DEFAULT_END_HOUR)*60;
+
+  // 日の空き枠リストを仮想管理（ブロック・固定タスク込み）
+  function getVirtualSlots(date){
+    const startMin=date===TODAY_STR?Math.max(sm,nowMin):sm;
+    const allB=[...allBlocks.filter(b=>b.date===date),...getDefaultBlocks(date)];
+    const absenceBlocks=date===TODAY_STR?(window._absences||[]).map(a=>({start_time:toTimeStr(a.start),end_time:toTimeStr(a.end)})):[];
+    const pinnedTasks=allTasks.filter(t=>t.status==='pending'&&t.pinned&&t.scheduled_date===date);
+    const busy=[
+      ...[...allB,...absenceBlocks].map(b=>{const[sh,bsm]=b.start_time.split(':').map(Number);const[eh,em]=b.end_time.split(':').map(Number);return{start:sh*60+bsm,end:eh*60+em};}),
+      ...pinnedTasks.filter(t=>t.scheduled_time).map(t=>{const[h,m]=t.scheduled_time.split(':').map(Number);return{start:h*60+m,end:h*60+m+(t.estimated_minutes||30)};})
+    ].sort((a,b)=>a.start-b.start);
+    const slots=[];let cursor=startMin;
+    for(const b of busy){if(cursor<b.start)slots.push({start:cursor,end:b.start});cursor=Math.max(cursor,b.end);}
+    if(cursor<WORK_END)slots.push({start:cursor,end:WORK_END});
+    return slots.filter(s=>s.end>s.start);
+  }
+
+  // 各日の仮想スロットをコピーして消費していく
+  const virtualSlots={
+    [TODAY_STR]:getVirtualSlots(TODAY_STR),
+    [TOMORROW_STR]:getVirtualSlots(TOMORROW_STR),
+    [DAY_AFTER_STR]:getVirtualSlots(DAY_AFTER_STR)
+  };
+
+  function consumeSlot(date, type, min){
+    const needed=min+(TYPE_BUFFER[type]||0);
+    const NOON=12*60, CONC=16*60;
+    let slots=virtualSlots[date];
+    // タイプ別優先順
+    let candidates;
+    if(type==='judgment'||type==='unknown'||type==='creative'){
+      candidates=[...slots.filter(s=>s.start<NOON),...slots.filter(s=>s.start>=CONC),...slots.filter(s=>s.start>=NOON&&s.start<CONC)];
+    } else {
+      candidates=[...slots.filter(s=>s.start>=9*60&&s.start<CONC),...slots.filter(s=>s.start>=CONC)];
+    }
+    for(const slot of candidates){
+      if(slot.end-slot.start>=needed){
+        const h=Math.floor(slot.start/60),m=slot.start%60;
+        const timeStr=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+        // このスロットを消費（分割）
+        const idx=slots.indexOf(slot);
+        const newStart=slot.start+min;
+        if(newStart<slot.end){slots.splice(idx,1,{start:newStart,end:slot.end});}
+        else{slots.splice(idx,1);}
+        virtualSlots[date]=slots;
+        return timeStr;
+      }
+    }
+    // フォールバック
+    if(slots.length){const h=Math.floor(slots[0].start/60),m=slots[0].start%60;const timeStr=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;slots.splice(0,1);return timeStr;}
+    return'09:00';
+  }
 
   for(const task of scored){
     let targetDate=null;
@@ -647,8 +730,8 @@ function calcOptimizeProposals(){
     }
     dayConsumed[targetDate]=(dayConsumed[targetDate]||0)+min;
 
-    // 時刻を再計算
-    const newTime=autoPlotTimeFromNow(task.type,min,targetDate,task.id);
+    // 仮想スロットから時刻を決定（競合しない）
+    const newTime=consumeSlot(targetDate,task.type,min);
     const currentDate=normalizeDate(task.scheduled_date);
     const currentTime=(task.scheduled_time||'').slice(0,5);
     const newTimeShort=newTime.slice(0,5);
