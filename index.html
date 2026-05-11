@@ -510,13 +510,44 @@ function closeModal(id){document.getElementById(id).classList.remove('open');}
 
 function getDefaultBlocks(date){
   const sm=(window._dayStartHour||DEFAULT_START_HOUR)*60+(window._dayStartMin||DEFAULT_START_MIN);
-  const blocks=[
-    {date,title:'メール・チャット確認',start_time:toTimeStr(sm),end_time:toTimeStr(sm+15),_default:true},
-    {date,title:'昼休憩',start_time:'12:00:00',end_time:'13:00:00',_default:true},
-    {date,title:'メール・チャット確認（昼後）',start_time:'13:00:00',end_time:'13:15:00',_default:true},
-  ];
+  const WORK_END=(window._dayEndHour||DEFAULT_END_HOUR)*60;
+
+  // 固定ブロックの占有範囲を取得
+  const fixedBlocks=allBlocks.filter(b=>b.date===date).map(b=>{
+    const[sh,bsm]=b.start_time.split(':').map(Number);
+    const[eh,em]=b.end_time.split(':').map(Number);
+    return{start:sh*60+bsm,end:eh*60+em};
+  }).sort((a,b)=>a.start-b.start);
+
+  // 指定時刻以降で固定ブロックと重ならない最初の空き開始時刻を返す
+  function findFreeSlot(fromMin){
+    let cursor=fromMin;
+    for(const b of fixedBlocks){
+      if(b.start<=cursor&&b.end>cursor)cursor=b.end;
+    }
+    return cursor;
+  }
+
+  const blocks=[];
+
+  // 朝のメール確認：始業時間以降の最初の空き
+  const morningMail=findFreeSlot(sm);
+  if(morningMail+15<=WORK_END){
+    blocks.push({date,title:'メール・チャット確認',start_time:toTimeStr(morningMail),end_time:toTimeStr(morningMail+15),_default:true});
+  }
+
+  // 昼休憩：12:00固定
+  if(12*60+60<=WORK_END){
+    blocks.push({date,title:'昼休憩',start_time:'12:00:00',end_time:'13:00:00',_default:true});
+  }
+
+  // 昼後メール確認：13:00以降の最初の空き
+  const afternoonMail=findFreeSlot(13*60);
+  if(afternoonMail+15<=WORK_END){
+    blocks.push({date,title:'メール・チャット確認（昼後）',start_time:toTimeStr(afternoonMail),end_time:toTimeStr(afternoonMail+15),_default:true});
+  }
+
   if(window._aftOff)blocks.push({date,title:'午後休',start_time:'13:00:00',end_time:'18:00:00',_default:true});
-  // 不在時間（今日のみ）はgetAvailableSlotsとrenderScheduleで別途処理
   return blocks;
 }
 
@@ -557,16 +588,39 @@ function autoPlotTime(type, estimatedMin, date, excludeTaskId=null, fromNow=fals
 function calcUsedMinutes(date, fromNow=false){
   const now=new Date();
   const nowMin=now.getHours()*60+now.getMinutes();
-  const tm=allTasks.filter(t=>{
+  const sm=(window._dayStartHour||DEFAULT_START_HOUR)*60+(window._dayStartMin||DEFAULT_START_MIN);
+  const WORK_END=(window._dayEndHour||DEFAULT_END_HOUR)*60;
+  const startMin=fromNow&&date===TODAY_STR?Math.max(sm,nowMin):sm;
+
+  // ブロック・不在時間を全部集めてマージ（重複除去）
+  const allB=[...allBlocks.filter(b=>b.date===date),...getDefaultBlocks(date)];
+  const absenceBlocks=date===TODAY_STR?(window._absences||[]).map(a=>({start_time:toTimeStr(a.start),end_time:toTimeStr(a.end)})):[];
+  const blockRanges=[...allB,...absenceBlocks].map(b=>{
+    const[sh,bsm]=b.start_time.split(':').map(Number);
+    const[eh,em]=b.end_time.split(':').map(Number);
+    return{start:Math.max(sh*60+bsm,startMin),end:Math.min(eh*60+em,WORK_END)};
+  }).filter(r=>r.end>r.start).sort((a,b)=>a.start-b.start);
+
+  // マージして重複除去
+  const merged=[];
+  for(const r of blockRanges){
+    if(merged.length&&r.start<=merged[merged.length-1].end){
+      merged[merged.length-1].end=Math.max(merged[merged.length-1].end,r.end);
+    } else merged.push({...r});
+  }
+  const blockMin=merged.reduce((a,r)=>a+(r.end-r.start),0);
+
+  // タスクの所要時間（完了・現在時刻前を除外）
+  const taskMin=allTasks.filter(t=>{
     if(t.scheduled_date!==date||t.status==='done')return false;
     if(fromNow&&date===TODAY_STR&&t.scheduled_time){
       const[h,m]=t.scheduled_time.split(':').map(Number);
-      return h*60+m>=nowMin; // 現在時刻以降のタスクのみ
+      return h*60+m>=nowMin;
     }
     return true;
   }).reduce((a,t)=>a+(t.estimated_minutes||0),0);
-  const bm=allBlocks.filter(b=>b.date===date).reduce((a,b)=>{const[sh,sm]=b.start_time.split(':').map(Number);const[eh,em]=b.end_time.split(':').map(Number);return a+(eh*60+em-sh*60-sm);},0);
-  return tm+bm;
+
+  return taskMin+blockMin;
 }
 
 // ============================================================
@@ -635,16 +689,23 @@ function calcDayRemaining(date){
   const nowMin=now.getHours()*60+now.getMinutes();
   const startMin=date===TODAY_STR?Math.max(sm,nowMin):sm;
   const totalMin=Math.max(0,WORK_END-startMin);
-  // ブロックが食う時間
+
+  // ブロック・不在をマージして重複除去
   const allB=[...allBlocks.filter(b=>b.date===date),...getDefaultBlocks(date)];
   const absenceBlocks=date===TODAY_STR?(window._absences||[]).map(a=>({start_time:toTimeStr(a.start),end_time:toTimeStr(a.end)})):[];
-  const blockMin=[...allB,...absenceBlocks].reduce((a,b)=>{
+  // 将来登録済み不在ブロック
+  const futureAbsences=allBlocks.filter(b=>b.date===date&&b._is_absence).map(b=>({start_time:b.start_time,end_time:b.end_time}));
+  const blockRanges=[...allB,...absenceBlocks,...futureAbsences].map(b=>{
     const[sh,bsm]=b.start_time.split(':').map(Number);
     const[eh,em]=b.end_time.split(':').map(Number);
-    const bStart=sh*60+bsm,bEnd=eh*60+em;
-    return a+Math.max(0,Math.min(bEnd,WORK_END)-Math.max(bStart,startMin));
-  },0);
-  // 固定タスクが食う時間
+    return{start:Math.max(sh*60+bsm,startMin),end:Math.min(eh*60+em,WORK_END)};
+  }).filter(r=>r.end>r.start).sort((a,b)=>a.start-b.start);
+  const merged=[];
+  for(const r of blockRanges){
+    if(merged.length&&r.start<=merged[merged.length-1].end){merged[merged.length-1].end=Math.max(merged[merged.length-1].end,r.end);}
+    else merged.push({...r});
+  }
+  const blockMin=merged.reduce((a,r)=>a+(r.end-r.start),0);
   const pinnedMin=allTasks.filter(t=>t.status==='pending'&&t.pinned&&t.scheduled_date===date).reduce((a,t)=>a+(t.estimated_minutes||30),0);
   return Math.max(0,totalMin-blockMin-pinnedMin);
 }
@@ -1009,7 +1070,25 @@ function renderSchedule(){
   const items=[...baseItems,...gaps].sort((a,b)=>a.time.localeCompare(b.time));
   if(!items.length){wrap.innerHTML='<div class="empty">今日のスケジュールはまだありません</div>';return;}
   wrap.innerHTML='';
+
+  const now=new Date();
+  const nowMin=now.getHours()*60+now.getMinutes();
+  const nowStr=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  let nowLineInserted=false;
+
   items.forEach((item,i)=>{
+    // 現在時刻ラインを適切な位置に挿入
+    if(!nowLineInserted){
+      const itemMin=item.time==='99:99'?9999:parseInt(item.time.split(':')[0])*60+parseInt(item.time.split(':')[1]);
+      if(itemMin>nowMin){
+        nowLineInserted=true;
+        const nowLine=document.createElement('div');
+        nowLine.style.cssText='display:flex;align-items:center;gap:8px;margin:2px 0;';
+        nowLine.innerHTML=`<div style="font-family:var(--font-num);font-size:11px;color:#E65100;font-weight:700;width:44px;flex-shrink:0;">${nowStr}</div><div style="flex:1;height:2px;background:#E65100;border-radius:1px;position:relative;"><div style="position:absolute;left:-3px;top:-3px;width:8px;height:8px;border-radius:50%;background:#E65100;"></div></div>`;
+        wrap.appendChild(nowLine);
+      }
+    }
+
     const row=document.createElement('div');row.className='sched-row';
     const timeStr=item.time==='99:99'?'--:--':item.time.slice(0,5),isLast=i===items.length-1;
     if(item.type==='gap'){row.innerHTML=`<div class="sched-time" style="opacity:.4;">${timeStr}</div><div class="sched-line"><div style="width:8px;height:8px;border-radius:50%;border:1.5px dashed var(--text3);flex-shrink:0;"></div>${!isLast?'<div class="sched-connector" style="opacity:.3;"></div>':''}</div><div class="sched-content"><div style="font-size:11px;color:var(--text3);padding:6px 0;">空き ${item.gapMin}min</div></div>`;wrap.appendChild(row);return;}
@@ -1595,6 +1674,13 @@ document.getElementById('start-save-btn').addEventListener('click',()=>{
   document.getElementById('start-time-btn').textContent=`⏰ ${sh}:${String(sm).padStart(2,'0')}〜${eh}:00`;
   closeModal('start-modal');renderToday();showToast('スケジュール設定を更新しました');
 });
+
+// 現在時刻ラインを1分ごとに更新
+setInterval(()=>{
+  if(document.getElementById('page-today').classList.contains('active')){
+    renderSchedule();
+  }
+},60000);
 
 // ============================================================
 // MODAL CLOSE
