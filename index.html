@@ -368,43 +368,71 @@ kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); b
 <div class="modal-overlay" id="detail-modal"><div class="modal"><div class="modal-handle"></div><div id="detail-body"></div></div></div>
 <div class="modal-overlay" id="review-modal"><div class="modal"><div class="modal-handle"></div><div class="modal-title">週次レビュー</div><div id="review-body"></div></div></div>
 <div class="modal-overlay" id="start-modal">
-  <div class="modal"><div class="modal-handle"></div><div class="modal-title">今日のスケジュール設定</div>
-  <label style="font-size:11px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:6px;">始業時間</label>
-  <div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;">
-    <button class="start-opt" data-h="8" data-m="0" style="height:36px;padding:0 10px;border:0.5px solid var(--sep);border-radius:var(--radius-sm);background:var(--white);font-size:12px;font-family:var(--font);cursor:pointer;">8:00</button>
-    <button class="start-opt" data-h="8" data-m="30" style="height:36px;padding:0 10px;border:0.5px solid var(--sep);border-radius:var(--radius-sm);background:var(--white);font-size:12px;font-family:var(--font);cursor:pointer;">8:30</button>
-    <button class="start-opt" data-h="9" data-m="0" style="height:36px;padding:0 10px;border:0.5px solid var(--sep);border-radius:var(--radius-sm);background:var(--white);font-size:12px;font-family:var(--font);cursor:pointer;">9:00</button>
-    <button class="start-opt" data-h="9" data-m="30" style="height:36px;padding:0 10px;border:0.5px solid var(--accent);border-radius:var(--radius-sm);background:var(--accent-light);font-size:12px;font-weight:500;color:var(--accent);font-family:var(--font);cursor:pointer;">9:30</button>
-    <button class="start-opt" data-h="10" data-m="0" style="height:36px;padding:0 10px;border:0.5px solid var(--sep);border-radius:var(--radius-sm);background:var(--white);font-size:12px;font-family:var(--font);cursor:pointer;">10:00</button>
-    <button class="start-opt" data-h="10" data-m="30" style="height:36px;padding:0 10px;border:0.5px solid var(--sep);border-radius:var(--radius-sm);background:var(--white);font-size:12px;font-family:var(--font);cursor:pointer;">10:30</button>
-    <button class="start-opt" data-h="11" data-m="0" style="height:36px;padding:0 10px;border:0.5px solid var(--sep);border-radius:var(--radius-sm);background:var(--white);font-size:12px;font-family:var(--font);cursor:pointer;">11:00</button>
+  <div class="modal"><div class="modal-handle"></div><div class="modal-title">スケジュール設定</div>
+  <!-- タブ -->
+  <div style="display:flex;gap:0;margin-bottom:16px;border-bottom:1px solid var(--sep);">
+    <button id="tab-today" onclick="switchScheduleTab('today')" style="flex:1;height:36px;border:none;border-bottom:2px solid var(--accent);background:none;font-size:12px;font-weight:500;color:var(--accent);font-family:var(--font);cursor:pointer;">今日の設定</button>
+    <button id="tab-future" onclick="switchScheduleTab('future')" style="flex:1;height:36px;border:none;border-bottom:2px solid transparent;background:none;font-size:12px;color:var(--text3);font-family:var(--font);cursor:pointer;">不在日の登録</button>
   </div>
-  <label style="font-size:11px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:6px;">終業時間</label>
-  <div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;">
-    <button class="end-opt" data-h="15" style="height:36px;padding:0 10px;border:0.5px solid var(--sep);border-radius:var(--radius-sm);background:var(--white);font-size:12px;font-family:var(--font);cursor:pointer;">15:00</button>
-    <button class="end-opt" data-h="16" style="height:36px;padding:0 10px;border:0.5px solid var(--sep);border-radius:var(--radius-sm);background:var(--white);font-size:12px;font-family:var(--font);cursor:pointer;">16:00</button>
-    <button class="end-opt" data-h="17" style="height:36px;padding:0 10px;border:0.5px solid var(--sep);border-radius:var(--radius-sm);background:var(--white);font-size:12px;font-family:var(--font);cursor:pointer;">17:00</button>
-    <button class="end-opt" data-h="18" style="height:36px;padding:0 10px;border:0.5px solid var(--accent);border-radius:var(--radius-sm);background:var(--accent-light);font-size:12px;font-weight:500;color:var(--accent);font-family:var(--font);cursor:pointer;">18:00</button>
-    <button class="end-opt" data-h="19" style="height:36px;padding:0 10px;border:0.5px solid var(--sep);border-radius:var(--radius-sm);background:var(--white);font-size:12px;font-family:var(--font);cursor:pointer;">19:00</button>
-    <button class="end-opt" data-h="20" style="height:36px;padding:0 10px;border:0.5px solid var(--sep);border-radius:var(--radius-sm);background:var(--white);font-size:12px;font-family:var(--font);cursor:pointer;">20:00</button>
-    <button class="end-opt" data-h="21" style="height:36px;padding:0 10px;border:0.5px solid var(--sep);border-radius:var(--radius-sm);background:var(--white);font-size:12px;font-family:var(--font);cursor:pointer;">21:00</button>
+  <!-- 今日の設定 -->
+  <div id="panel-today">
+    <label style="font-size:11px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:6px;">始業時間</label>
+    <div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;">
+      <button class="start-opt" data-h="8" data-m="0" style="height:36px;padding:0 10px;border:0.5px solid var(--sep);border-radius:var(--radius-sm);background:var(--white);font-size:12px;font-family:var(--font);cursor:pointer;">8:00</button>
+      <button class="start-opt" data-h="8" data-m="30" style="height:36px;padding:0 10px;border:0.5px solid var(--sep);border-radius:var(--radius-sm);background:var(--white);font-size:12px;font-family:var(--font);cursor:pointer;">8:30</button>
+      <button class="start-opt" data-h="9" data-m="0" style="height:36px;padding:0 10px;border:0.5px solid var(--sep);border-radius:var(--radius-sm);background:var(--white);font-size:12px;font-family:var(--font);cursor:pointer;">9:00</button>
+      <button class="start-opt" data-h="9" data-m="30" style="height:36px;padding:0 10px;border:0.5px solid var(--accent);border-radius:var(--radius-sm);background:var(--accent-light);font-size:12px;font-weight:500;color:var(--accent);font-family:var(--font);cursor:pointer;">9:30</button>
+      <button class="start-opt" data-h="10" data-m="0" style="height:36px;padding:0 10px;border:0.5px solid var(--sep);border-radius:var(--radius-sm);background:var(--white);font-size:12px;font-family:var(--font);cursor:pointer;">10:00</button>
+      <button class="start-opt" data-h="10" data-m="30" style="height:36px;padding:0 10px;border:0.5px solid var(--sep);border-radius:var(--radius-sm);background:var(--white);font-size:12px;font-family:var(--font);cursor:pointer;">10:30</button>
+      <button class="start-opt" data-h="11" data-m="0" style="height:36px;padding:0 10px;border:0.5px solid var(--sep);border-radius:var(--radius-sm);background:var(--white);font-size:12px;font-family:var(--font);cursor:pointer;">11:00</button>
+    </div>
+    <label style="font-size:11px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:6px;">終業時間</label>
+    <div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;">
+      <button class="end-opt" data-h="15" style="height:36px;padding:0 10px;border:0.5px solid var(--sep);border-radius:var(--radius-sm);background:var(--white);font-size:12px;font-family:var(--font);cursor:pointer;">15:00</button>
+      <button class="end-opt" data-h="16" style="height:36px;padding:0 10px;border:0.5px solid var(--sep);border-radius:var(--radius-sm);background:var(--white);font-size:12px;font-family:var(--font);cursor:pointer;">16:00</button>
+      <button class="end-opt" data-h="17" style="height:36px;padding:0 10px;border:0.5px solid var(--sep);border-radius:var(--radius-sm);background:var(--white);font-size:12px;font-family:var(--font);cursor:pointer;">17:00</button>
+      <button class="end-opt" data-h="18" style="height:36px;padding:0 10px;border:0.5px solid var(--accent);border-radius:var(--radius-sm);background:var(--accent-light);font-size:12px;font-weight:500;color:var(--accent);font-family:var(--font);cursor:pointer;">18:00</button>
+      <button class="end-opt" data-h="19" style="height:36px;padding:0 10px;border:0.5px solid var(--sep);border-radius:var(--radius-sm);background:var(--white);font-size:12px;font-family:var(--font);cursor:pointer;">19:00</button>
+      <button class="end-opt" data-h="20" style="height:36px;padding:0 10px;border:0.5px solid var(--sep);border-radius:var(--radius-sm);background:var(--white);font-size:12px;font-family:var(--font);cursor:pointer;">20:00</button>
+      <button class="end-opt" data-h="21" style="height:36px;padding:0 10px;border:0.5px solid var(--sep);border-radius:var(--radius-sm);background:var(--white);font-size:12px;font-family:var(--font);cursor:pointer;">21:00</button>
+    </div>
+    <label style="font-size:11px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:6px;">今日の不在時間</label>
+    <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center;">
+      <select id="absence-label" class="wiz-input" style="flex:1.5;height:36px;font-size:12px;">
+        <option value="時間休">時間休</option>
+        <option value="午後休">午後休</option>
+        <option value="終日休暇">終日休暇</option>
+        <option value="移動時間">移動時間</option>
+        <option value="その他">その他</option>
+      </select>
+      <select id="absence-start" class="wiz-input" style="flex:1;height:36px;font-size:12px;"></select>
+      <span style="font-size:12px;color:var(--text3);">〜</span>
+      <select id="absence-end" class="wiz-input" style="flex:1;height:36px;font-size:12px;"></select>
+      <button id="absence-add-btn" style="height:36px;padding:0 12px;background:var(--accent);color:white;border:none;border-radius:var(--radius-sm);font-size:12px;font-family:var(--font);cursor:pointer;">追加</button>
+    </div>
+    <div id="absence-list" style="margin-bottom:16px;display:flex;flex-direction:column;gap:6px;"></div>
+    <button class="btn-next" id="start-save-btn">設定する</button>
   </div>
-  <label style="font-size:11px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:6px;">不在時間を追加</label>
-  <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center;">
-    <select id="absence-label" class="wiz-input" style="flex:1.5;height:36px;font-size:12px;">
-      <option value="時間休">時間休</option>
-      <option value="午後休">午後休</option>
-      <option value="終日休暇">終日休暇</option>
-      <option value="移動時間">移動時間</option>
-      <option value="その他">その他</option>
-    </select>
-    <select id="absence-start" class="wiz-input" style="flex:1;height:36px;font-size:12px;"></select>
-    <span style="font-size:12px;color:var(--text3);">〜</span>
-    <select id="absence-end" class="wiz-input" style="flex:1;height:36px;font-size:12px;"></select>
-    <button id="absence-add-btn" style="height:36px;padding:0 12px;background:var(--accent);color:white;border:none;border-radius:var(--radius-sm);font-size:12px;font-family:var(--font);cursor:pointer;">追加</button>
+  <!-- 不在日の登録 -->
+  <div id="panel-future" style="display:none;">
+    <div style="font-size:12px;color:var(--text3);margin-bottom:12px;">会議以外の不在（休暇・移動など）を事前に登録できます。最適化に反映されます。</div>
+    <div class="wiz-input-wrap"><label class="wiz-label">日付</label><input class="wiz-input" type="date" id="future-absence-date"></div>
+    <div style="display:flex;gap:8px;margin-bottom:14px;align-items:center;">
+      <select id="future-absence-label" class="wiz-input" style="flex:1.5;height:44px;font-size:13px;">
+        <option value="休暇">休暇</option>
+        <option value="午前休">午前休</option>
+        <option value="午後休">午後休</option>
+        <option value="終日休暇">終日休暇</option>
+        <option value="移動時間">移動時間</option>
+        <option value="その他">その他</option>
+      </select>
+      <select id="future-absence-start" class="wiz-input" style="flex:1;height:44px;font-size:13px;"></select>
+      <span style="font-size:12px;color:var(--text3);">〜</span>
+      <select id="future-absence-end" class="wiz-input" style="flex:1;height:44px;font-size:13px;"></select>
+    </div>
+    <button class="btn-next" id="future-absence-add-btn" style="margin-bottom:16px;">登録する</button>
+    <div id="future-absence-list" style="display:flex;flex-direction:column;gap:6px;"></div>
   </div>
-  <div id="absence-list" style="margin-bottom:16px;display:flex;flex-direction:column;gap:6px;"></div>
-  <button class="btn-next" id="start-save-btn">設定する</button>
   </div>
 </div>
 <div class="modal-overlay" id="block-modal">
@@ -499,8 +527,11 @@ function getAvailableSlots(date, excludeTaskId=null, fromNow=false){
   const nowMin=now.getHours()*60+now.getMinutes();
   const WORK_START=(fromNow&&date===TODAY_STR)?Math.max(sm,nowMin):sm;
   const allB=[...allBlocks.filter(b=>b.date===date),...getDefaultBlocks(date)];
-  // 不在時間を今日のブロックとして追加
-  const absenceBlocks=date===TODAY_STR?(window._absences||[]).map(a=>({start_time:toTimeStr(a.start),end_time:toTimeStr(a.end)})):[];
+  // 今日の不在時間（window._absences）+ 将来登録済み不在ブロック（_is_absence）
+  const absenceBlocks=[
+    ...(date===TODAY_STR?(window._absences||[]).map(a=>({start_time:toTimeStr(a.start),end_time:toTimeStr(a.end)})):[]),
+    ...allBlocks.filter(b=>b.date===date&&b._is_absence).map(b=>({start_time:b.start_time,end_time:b.end_time}))
+  ];
   const blockedRanges=[...allB,...absenceBlocks].map(b=>{const[sh,sm]=b.start_time.split(':').map(Number);const[eh,em]=b.end_time.split(':').map(Number);return{start:sh*60+sm,end:eh*60+em};});
   const scheduled=allTasks.filter(t=>t.scheduled_date===date&&t.scheduled_time&&t.status!=='done'&&t.id!==excludeTaskId).map(t=>{const[h,m]=t.scheduled_time.split(':').map(Number);return{start:h*60+m,end:h*60+m+(t.estimated_minutes||30)};});
   const busy=[...blockedRanges,...scheduled].sort((a,b)=>a.start-b.start);
@@ -582,15 +613,13 @@ function autoPlotDate(task){
   const usedToday=calcUsedMinutes(TODAY_STR);
   const usedTomorrow=calcUsedMinutes(TOMORROW_STR);
   // dependentは金曜に翌営業日送り
-  if(task.type==='dependent'&&TODAY.getDay()===5){
-    return nextBizDay(TODAY,1);
-  }
-  // 期限が今日・明日なら今日に強制（バッファ超えでも）
+  if(task.type==='dependent'&&TODAY.getDay()===5)return nextBizDay(TODAY,1);
+  // 期限が今日・明日なら終業超えでも今日に強制（残業してでもやる）
   if(task.deadline){
     const daysLeft=Math.ceil((new Date(task.deadline)-TODAY)/(1000*60*60*24));
     if(daysLeft<=1)return TODAY_STR;
   }
-  // 基本方針：今日に入れられるなら今日（期限に関わらず早めにやる）
+  // 基本方針：今日に入れられるなら今日
   if(usedToday+(task.estimated_minutes||30)<=BUFFER_LIMIT)return TODAY_STR;
   if(usedTomorrow+(task.estimated_minutes||30)<=BUFFER_LIMIT)return TOMORROW_STR;
   return DAY_AFTER_STR;
@@ -873,7 +902,8 @@ async function loadAll(){
     db.from('blocks').select('*').eq('user_id',currentUser.id).order('start_time')
   ]);
   allTasks=(tasks||[]).map(t=>({...t,scheduled_date:normalizeDate(t.scheduled_date)}));
-  allSubtasks=subtasks||[];allBlocks=blocks||[];
+  allSubtasks=subtasks||[];
+  allBlocks=(blocks||[]).map(b=>({...b,_is_absence:b._is_absence||false}));
   renderToday();renderRightPanel();
 }
 
@@ -929,8 +959,17 @@ function renderNextAction(){
 
 function renderBuffer(){
   const wrap=document.getElementById('buffer-wrap');
-  const used=calcUsedMinutes(TODAY_STR);// 完了タスクは除外済み
-  wrap.innerHTML=`<div class="buffer-bar"><div class="buffer-top"><span class="buffer-label">今日の使用時間</span><span class="buffer-nums"><span>${used}</span>/${BUFFER_LIMIT}min上限 · 空き${Math.max(0,BUFFER_LIMIT-used)}min</span></div><div class="buffer-track"><div class="buffer-fill ${used>BUFFER_LIMIT?'warn':''}" style="width:${Math.min(100,Math.round(used/BUFFER_LIMIT*100))}%"></div></div></div>`;
+  const used=calcUsedMinutes(TODAY_STR);
+  const eh=(window._dayEndHour||DEFAULT_END_HOUR);
+  const sm=(window._dayStartHour||DEFAULT_START_HOUR)*60+(window._dayStartMin||DEFAULT_START_MIN);
+  const workMin=eh*60-sm;
+  const overtime=Math.max(0,used-workMin);
+  const overLimit=used>BUFFER_LIMIT;
+  let overtimeHtml='';
+  if(overtime>0){
+    overtimeHtml=`<div style="font-size:11px;color:#E65100;margin-top:6px;">⚠️ 終業時間を${overtime}min超過します。タスクを減らすか最適化してください。</div>`;
+  }
+  wrap.innerHTML=`<div class="buffer-bar"><div class="buffer-top"><span class="buffer-label">今日の使用時間</span><span class="buffer-nums"><span>${used}</span>/${BUFFER_LIMIT}min上限 · 空き${Math.max(0,BUFFER_LIMIT-used)}min</span></div><div class="buffer-track"><div class="buffer-fill ${overLimit?'warn':''}" style="width:${Math.min(100,Math.round(used/BUFFER_LIMIT*100))}%"></div></div>${overtimeHtml}</div>`;
 }
 
 function renderGoals(){
@@ -1232,6 +1271,15 @@ function openDetail(taskId){
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
       <div class="task-type-badge type-${task.type}">${typeLabel(task.type)}</div>
       <span style="font-size:16px;font-weight:500;flex:1;">${task.title}</span>
+      <button id="detail-edit-btn" style="font-size:11px;color:var(--accent);background:none;border:0.5px solid var(--accent);border-radius:6px;padding:3px 10px;cursor:pointer;font-family:var(--font);">編集</button>
+    </div>
+    <!-- 編集フォーム（初期非表示） -->
+    <div id="detail-edit-form" style="display:none;margin-bottom:14px;background:var(--bg2);border-radius:var(--radius-sm);padding:12px;">
+      <div style="margin-bottom:8px;"><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px;">タスク名</label><input id="edit-title" class="wiz-input" value="${task.title.replace(/"/g,'&quot;')}" style="height:40px;font-size:13px;"></div>
+      <div style="margin-bottom:8px;"><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px;">所要時間 (min)</label><input id="edit-minutes" type="number" min="5" max="480" step="5" class="wiz-input" value="${task.estimated_minutes}" style="height:40px;font-size:13px;"></div>
+      <div style="margin-bottom:8px;"><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px;">期限</label><input id="edit-deadline" type="date" class="wiz-input" value="${task.deadline||''}" style="height:40px;font-size:13px;"></div>
+      <div style="margin-bottom:10px;"><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px;">メモ・URL</label><textarea id="edit-memo" style="width:100%;min-height:60px;border:0.5px solid var(--bg3);border-radius:var(--radius-sm);background:var(--white);padding:8px 10px;font-size:12px;font-family:var(--font);color:var(--text);outline:none;resize:vertical;">${task.memo||''}</textarea></div>
+      <div style="display:flex;gap:8px;"><button id="edit-save-btn" style="flex:1;height:36px;background:var(--accent);color:white;border:none;border-radius:var(--radius-sm);font-size:13px;font-family:var(--font);cursor:pointer;">保存</button><button id="edit-cancel-btn" style="height:36px;padding:0 12px;background:var(--white);border:0.5px solid var(--sep);border-radius:var(--radius-sm);font-size:13px;font-family:var(--font);color:var(--text3);cursor:pointer;">キャンセル</button></div>
     </div>
     <div style="display:flex;gap:16px;margin-bottom:12px;">
       <div><div style="font-size:9px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px;">所要時間</div><div style="font-family:var(--font-num);font-size:22px;color:var(--accent);">${task.estimated_minutes}<span style="font-size:11px;">min</span></div></div>
@@ -1251,11 +1299,33 @@ function openDetail(taskId){
     </div>
     ${subs.length?`<div style="font-size:9px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;">サブタスク</div><div class="subtask-list" style="margin-top:0;padding-top:0;border-top:none;">${subs.map(s=>`<div class="subtask-item"><div class="subtask-check ${s.status==='done'?'done':''}" data-sub-id="${s.id}">${s.status==='done'?'<svg width="7" height="7" viewBox="0 0 7 7"><polyline points="1,3.5 2.8,5.5 6,1.5" stroke="white" stroke-width="1.5" fill="none"/></svg>':''}</div><span class="subtask-title ${s.status==='done'?'done':''}">${s.title}</span><span class="subtask-min">${s.estimated_minutes}min</span></div>`).join('')}</div>`:''}
     <div class="detail-actions">
-      <button class="btn-done" id="dd-btn">完了</button>
+      <button class="btn-done" id="dd-btn">${task.status==='done'?'完了取消':'完了'}</button>
       <button class="btn-delete" id="ddel-btn">削除</button>
     </div>
   `;
   body.querySelectorAll('.subtask-check').forEach(el=>el.addEventListener('click',()=>toggleSubtask(el.dataset.subId)));
+
+  // 編集ボタン
+  document.getElementById('detail-edit-btn').addEventListener('click',()=>{
+    const form=document.getElementById('detail-edit-form');
+    form.style.display=form.style.display==='none'?'block':'none';
+  });
+  document.getElementById('edit-cancel-btn').addEventListener('click',()=>{
+    document.getElementById('detail-edit-form').style.display='none';
+  });
+  document.getElementById('edit-save-btn').addEventListener('click',async()=>{
+    const newTitle=document.getElementById('edit-title').value.trim();
+    const newMin=parseInt(document.getElementById('edit-minutes').value)||30;
+    const newDeadline=document.getElementById('edit-deadline').value||null;
+    const newMemo=document.getElementById('edit-memo').value.trim()||null;
+    if(!newTitle){showToast('タスク名を入力してください');return;}
+    await db.from('tasks').update({title:newTitle,estimated_minutes:newMin,deadline:newDeadline,memo:newMemo}).eq('id',taskId);
+    const t=allTasks.find(x=>x.id===taskId);
+    if(t){t.title=newTitle;t.estimated_minutes=newMin;t.deadline=newDeadline;t.memo=newMemo;}
+    closeModal('detail-modal');
+    showToast('タスクを更新しました');
+    setTimeout(()=>{renderToday();renderTaskList();},350);
+  });
   document.getElementById('dd-btn').addEventListener('click',async()=>{
     await toggleTask(taskId);
     closeModal('detail-modal');
@@ -1383,9 +1453,20 @@ window.reviewDrop=async(id)=>{if(!confirm('削除しますか？'))return;await 
 // ============================================================
 // START MODAL（始業・終業・不在時間）
 // ============================================================
-document.getElementById('start-time-btn').addEventListener('click',()=>{
+window.switchScheduleTab=function(tab){
+  document.getElementById('panel-today').style.display=tab==='today'?'block':'none';
+  document.getElementById('panel-future').style.display=tab==='future'?'block':'none';
+  document.getElementById('tab-today').style.borderBottomColor=tab==='today'?'var(--accent)':'transparent';
+  document.getElementById('tab-today').style.color=tab==='today'?'var(--accent)':'var(--text3)';
+  document.getElementById('tab-today').style.fontWeight=tab==='today'?'500':'400';
+  document.getElementById('tab-future').style.borderBottomColor=tab==='future'?'var(--accent)':'transparent';
+  document.getElementById('tab-future').style.color=tab==='future'?'var(--accent)':'var(--text3)';
+  document.getElementById('tab-future').style.fontWeight=tab==='future'?'500':'400';
+  if(tab==='future'){initFutureAbsenceSelects();renderFutureAbsenceList();}
+};
   initAbsenceSelects();
   renderAbsenceList();
+  switchScheduleTab('today');
   openModal('start-modal');
 });
 
@@ -1398,8 +1479,60 @@ function initAbsenceSelects(){
     startSel.innerHTML+=`<option value="${h*60}">${h}:00</option>`;
     endSel.innerHTML+=`<option value="${h*60+60}">${h+1}:00</option>`;
   }
-  startSel.value='780';endSel.value='840'; // デフォルト13:00〜14:00
+  startSel.value='780';endSel.value='840';
 }
+
+function initFutureAbsenceSelects(){
+  const startSel=document.getElementById('future-absence-start');
+  const endSel=document.getElementById('future-absence-end');
+  if(!startSel||!endSel)return;
+  startSel.innerHTML='';endSel.innerHTML='';
+  for(let h=8;h<=20;h++){
+    startSel.innerHTML+=`<option value="${String(h).padStart(2,'0')}:00">${h}:00</option>`;
+    endSel.innerHTML+=`<option value="${String(h+1).padStart(2,'0')}:00">${h+1}:00</option>`;
+  }
+  startSel.value='09:00';endSel.value='18:00';
+  // デフォルト日付を明日に
+  const d=document.getElementById('future-absence-date');
+  if(d&&!d.value)d.value=TOMORROW_STR;
+}
+
+function renderFutureAbsenceList(){
+  const list=document.getElementById('future-absence-list');if(!list)return;
+  // blocksから不在系のものを取得（_absenceフラグ付きで登録したもの）
+  const futureAbsences=allBlocks.filter(b=>b._is_absence&&b.date>=TODAY_STR).sort((a,b)=>a.date.localeCompare(b.date)||a.start_time.localeCompare(b.start_time));
+  if(!futureAbsences.length){list.innerHTML='<div style="font-size:12px;color:var(--text3);">登録された不在日なし</div>';return;}
+  list.innerHTML=futureAbsences.map(b=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg2);border-radius:6px;padding:8px 10px;">
+      <span style="font-size:12px;color:var(--text);">${b.date} ${b.title} ${b.start_time.slice(0,5)}〜${b.end_time.slice(0,5)}</span>
+      <button onclick="removeFutureAbsence('${b.id}')" style="font-size:11px;color:var(--accent);background:none;border:none;cursor:pointer;font-family:var(--font);">削除</button>
+    </div>
+  `).join('');
+}
+
+window.removeFutureAbsence=async function(id){
+  await db.from('blocks').delete().eq('id',id);
+  allBlocks=allBlocks.filter(b=>b.id!==id);
+  renderFutureAbsenceList();
+  renderToday();renderRightPanel();
+};
+
+document.getElementById('future-absence-add-btn')?.addEventListener('click',async()=>{
+  const date=document.getElementById('future-absence-date').value;
+  const label=document.getElementById('future-absence-label').value;
+  const start=document.getElementById('future-absence-start').value;
+  const end=document.getElementById('future-absence-end').value;
+  if(!date){showToast('日付を入力してください');return;}
+  if(start>=end){showToast('終了時間は開始より後にしてください');return;}
+  const{data}=await db.from('blocks').insert({
+    user_id:currentUser.id,title:label,
+    start_time:start+':00',end_time:end+':00',
+    date,_is_absence:true
+  }).select().single();
+  if(data){allBlocks.push({...data,_is_absence:true});}
+  renderFutureAbsenceList();
+  showToast('不在時間を登録しました');
+});
 
 function renderAbsenceList(){
   const list=document.getElementById('absence-list');
