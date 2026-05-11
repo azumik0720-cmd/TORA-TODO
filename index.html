@@ -429,11 +429,12 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {auth:{autoRefreshToken:true,persistSession:true,detectSessionInUrl:false}});
 let currentUser=null, allTasks=[], allSubtasks=[], allBlocks=[], currentFilter='all';
 const TODAY=new Date();
-const TODAY_STR=TODAY.toISOString().split('T')[0];
+function localDateStr(d){return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+const TODAY_STR=localDateStr(TODAY);
 const TOMORROW=new Date(TODAY); TOMORROW.setDate(TODAY.getDate()+1);
-const TOMORROW_STR=TOMORROW.toISOString().split('T')[0];
+const TOMORROW_STR=localDateStr(TOMORROW);
 const DAY_AFTER=new Date(TODAY); DAY_AFTER.setDate(TODAY.getDate()+2);
-const DAY_AFTER_STR=DAY_AFTER.toISOString().split('T')[0];
+const DAY_AFTER_STR=localDateStr(DAY_AFTER);
 const DAYS=['日','月','火','水','木','金','土'];
 const BUFFER_LIMIT=360;
 const DEFAULT_START_HOUR=9, DEFAULT_START_MIN=30;
@@ -442,6 +443,13 @@ const TYPE_BUFFER={routine:0,unknown:15,judgment:10,dependent:5};
 // 不在時間リスト（{label, start, end} in minutes）
 window._absences=[];
 window._dayEndHour=DEFAULT_END_HOUR;
+// セッション設定を復元
+(function(){
+  try{
+    const s=sessionStorage.getItem('tora_settings');
+    if(s){const p=JSON.parse(s);window._dayStartHour=p.sh||DEFAULT_START_HOUR;window._dayStartMin=p.sm||DEFAULT_START_MIN;window._dayEndHour=p.eh||DEFAULT_END_HOUR;window._absences=p.absences||[];}
+  }catch(e){}
+})();
 
 const PATTERNS={
   check:{name:'チェック・フィードバック系',types:['routine'],baseMin:30,countable:false,subtasks:[{title:'動画・内容を確認する',minutes:15},{title:'修正点・フィードバックをまとめる',minutes:10},{title:'修正指示・フィードバックを送る',minutes:5}]},
@@ -465,7 +473,7 @@ let addState={type:null,patternKey:null,count:1,subtasks:[],totalMin:0,scheduled
 // ============================================================
 function typeLabel(t){return{routine:'ルーティン',unknown:'初めて',judgment:'判断',dependent:'他者依存',creative:'制作',block:'固定'}[t]||t;}
 function toTimeStr(m){const h=Math.floor(m/60),mn=m%60;return String(h).padStart(2,'0')+':'+String(mn).padStart(2,'0')+':00';}
-function nextBizDay(date,n){let d=new Date(date),a=0;while(a<n){d.setDate(d.getDate()+1);if(d.getDay()!==0&&d.getDay()!==6)a++;}return d.toISOString().split('T')[0];}
+function nextBizDay(date,n){let d=new Date(date),a=0;while(a<n){d.setDate(d.getDate()+1);if(d.getDay()!==0&&d.getDay()!==6)a++;}return localDateStr(d);}
 function normalizeDate(d){if(!d)return null;return String(d).slice(0,10);}
 function fmt(d){return`${d.getMonth()+1}/${d.getDate()} (${DAYS[d.getDay()]})`;}
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
@@ -480,6 +488,7 @@ function getDefaultBlocks(date){
     {date,title:'メール・チャット確認（昼後）',start_time:'13:00:00',end_time:'13:15:00',_default:true},
   ];
   if(window._aftOff)blocks.push({date,title:'午後休',start_time:'13:00:00',end_time:'18:00:00',_default:true});
+  // 不在時間（今日のみ）はgetAvailableSlotsとrenderScheduleで別途処理
   return blocks;
 }
 
@@ -572,7 +581,6 @@ function buildReason(task){
 function autoPlotDate(task){
   const usedToday=calcUsedMinutes(TODAY_STR);
   const usedTomorrow=calcUsedMinutes(TOMORROW_STR);
-  console.log('[autoPlotDate]',{type:task.type,min:task.estimated_minutes,usedToday,usedTomorrow,BUFFER_LIMIT,deadline:task.deadline});
   // dependentは金曜に翌営業日送り
   if(task.type==='dependent'&&TODAY.getDay()===5){
     return nextBizDay(TODAY,1);
@@ -759,6 +767,11 @@ db.auth.onAuthStateChange((event,session)=>{
     document.getElementById('app').style.display='flex';
     document.getElementById('header-date').textContent=fmt(TODAY);
     document.getElementById('block-date').value=TOMORROW_STR;
+    // 復元した設定をボタンに反映
+    const sh=window._dayStartHour||DEFAULT_START_HOUR;
+    const sm2=window._dayStartMin||DEFAULT_START_MIN;
+    const eh=window._dayEndHour||DEFAULT_END_HOUR;
+    document.getElementById('start-time-btn').textContent=`⏰ ${sh}:${String(sm2).padStart(2,'0')}〜${eh}:00`;
     loadAll();
   }else{
     currentUser=null;
@@ -832,7 +845,8 @@ function renderNextAction(){
 }
 
 function renderBuffer(){
-  const wrap=document.getElementById('buffer-wrap'),used=calcUsedMinutes(TODAY_STR);
+  const wrap=document.getElementById('buffer-wrap');
+  const used=calcUsedMinutes(TODAY_STR);// 完了タスクは除外済み
   wrap.innerHTML=`<div class="buffer-bar"><div class="buffer-top"><span class="buffer-label">今日の使用時間</span><span class="buffer-nums"><span>${used}</span>/${BUFFER_LIMIT}min上限 · 空き${Math.max(0,BUFFER_LIMIT-used)}min</span></div><div class="buffer-track"><div class="buffer-fill ${used>BUFFER_LIMIT?'warn':''}" style="width:${Math.min(100,Math.round(used/BUFFER_LIMIT*100))}%"></div></div></div>`;
 }
 
@@ -846,12 +860,26 @@ function renderGoals(){
 
 function renderSchedule(){
   const wrap=document.getElementById('schedule-list');
-  const todayTasks=allTasks.filter(t=>t.scheduled_date===TODAY_STR&&t.status!=='done').sort((a,b)=>(a.scheduled_time||'99:99').localeCompare(b.scheduled_time||'99:99'));
+  // 完了タスクも含めて表示（完了はグレーで残す）
+  const todayTasks=allTasks.filter(t=>t.scheduled_date===TODAY_STR).sort((a,b)=>(a.scheduled_time||'99:99').localeCompare(b.scheduled_time||'99:99'));
   const todayBlocks=allBlocks.filter(b=>b.date===TODAY_STR).sort((a,b)=>a.start_time.localeCompare(b.start_time));
   const defaultBlocks=getDefaultBlocks(TODAY_STR);
-  const baseItems=[...todayBlocks.map(b=>({type:'block',time:b.start_time,data:b})),...defaultBlocks.map(b=>({type:'block',time:b.start_time,data:b})),...todayTasks.map(t=>({type:'task',time:t.scheduled_time||'99:99',data:t}))].sort((a,b)=>a.time.localeCompare(b.time));
+  // 不在時間をブロックとして追加
+  const absenceBlocks=(window._absences||[]).map(a=>({
+    date:TODAY_STR,title:a.label,
+    start_time:toTimeStr(a.start),end_time:toTimeStr(a.end),
+    _absence:true
+  }));
+  const baseItems=[
+    ...todayBlocks.map(b=>({type:'block',time:b.start_time,data:b})),
+    ...defaultBlocks.map(b=>({type:'block',time:b.start_time,data:b})),
+    ...absenceBlocks.map(b=>({type:'block',time:b.start_time,data:b})),
+    ...todayTasks.map(t=>({type:'task',time:t.scheduled_time||'99:99',data:t}))
+  ].sort((a,b)=>a.time.localeCompare(b.time));
   const ws=(window._dayStartHour||9)*60+(window._dayStartMin||30),we=(window._dayEndHour||DEFAULT_END_HOUR)*60;
-  const busy=baseItems.map(it=>{if(it.type==='block'){const[sh,sm]=it.data.start_time.split(':').map(Number);const[eh,em]=it.data.end_time.split(':').map(Number);return{start:sh*60+sm,end:eh*60+em};}if(!it.data.scheduled_time)return null;const[sh,sm]=it.data.scheduled_time.split(':').map(Number);return{start:sh*60+sm,end:sh*60+sm+(it.data.estimated_minutes||0)};}).filter(Boolean).sort((a,b)=>a.start-b.start);
+  // gap計算は未完了タスクとブロックのみで
+  const busyItems=baseItems.filter(it=>it.type==='block'||(it.type==='task'&&it.data.status!=='done'));
+  const busy=busyItems.map(it=>{if(it.type==='block'){const[sh,sm]=it.data.start_time.split(':').map(Number);const[eh,em]=it.data.end_time.split(':').map(Number);return{start:sh*60+sm,end:eh*60+em};}if(!it.data.scheduled_time)return null;const[sh,sm]=it.data.scheduled_time.split(':').map(Number);return{start:sh*60+sm,end:sh*60+sm+(it.data.estimated_minutes||0)};}).filter(Boolean).sort((a,b)=>a.start-b.start);
   const mrg=[];for(const b of busy){if(mrg.length&&b.start<=mrg[mrg.length-1].end)mrg[mrg.length-1].end=Math.max(mrg[mrg.length-1].end,b.end);else mrg.push({...b});}
   const gaps=[];let cur=ws;
   for(const b of mrg){if(b.start>cur+10){const h2=Math.floor(cur/60),m2=cur%60;gaps.push({type:'gap',time:String(h2).padStart(2,'0')+':'+String(m2).padStart(2,'0'),gapMin:b.start-cur});}cur=Math.max(cur,b.end);}
@@ -863,18 +891,29 @@ function renderSchedule(){
     const row=document.createElement('div');row.className='sched-row';
     const timeStr=item.time==='99:99'?'--:--':item.time.slice(0,5),isLast=i===items.length-1;
     if(item.type==='gap'){row.innerHTML=`<div class="sched-time" style="opacity:.4;">${timeStr}</div><div class="sched-line"><div style="width:8px;height:8px;border-radius:50%;border:1.5px dashed var(--text3);flex-shrink:0;"></div>${!isLast?'<div class="sched-connector" style="opacity:.3;"></div>':''}</div><div class="sched-content"><div style="font-size:11px;color:var(--text3);padding:6px 0;">空き ${item.gapMin}min</div></div>`;wrap.appendChild(row);return;}
-    if(item.type==='block'){const b=item.data,isDef=b._default||false;row.innerHTML=`<div class="sched-time" style="${isDef?'opacity:.5':''}">${timeStr}<div style="font-size:10px;color:var(--text3);margin-top:1px;">〜${b.end_time.slice(0,5)}</div></div><div class="sched-line"><div class="sched-dot block-dot" style="${isDef?'opacity:.4':''}"></div>${!isLast?'<div class="sched-connector"></div>':''}</div><div class="sched-content"><div class="task-card block-card" style="${isDef?'opacity:.6;border-style:dashed;':''}"><div class="task-card-top"><div class="task-card-left"><div class="task-type-badge type-block">${isDef?'自動':'固定'}</div><span class="task-title">${b.title}</span></div><span class="task-time">${b.start_time.slice(0,5)}〜${b.end_time.slice(0,5)}</span></div></div></div>`;}
-    else{
+    if(item.type==='block'){
+      const b=item.data,isDef=b._default||false,isAbsence=b._absence||false;
+      const blockStyle=isAbsence?'background:#FFF3E0;border-color:#FFCC80;':isDef?'opacity:.6;border-style:dashed;':'';
+      const blockLabel=isAbsence?b.title:isDef?'自動':'固定';
+      const badgeStyle=isAbsence?'background:#FFE0B2;color:#E65100;':'';
+      row.innerHTML=`<div class="sched-time" style="${isDef&&!isAbsence?'opacity:.5':''}">${timeStr}<div style="font-size:10px;color:var(--text3);margin-top:1px;">〜${b.end_time.slice(0,5)}</div></div><div class="sched-line"><div class="sched-dot block-dot" style="${isDef&&!isAbsence?'opacity:.4':''}"></div>${!isLast?'<div class="sched-connector"></div>':''}</div><div class="sched-content"><div class="task-card block-card" style="${blockStyle}"><div class="task-card-top"><div class="task-card-left"><div class="task-type-badge type-block" style="${badgeStyle}">${blockLabel}</div><span class="task-title">${b.title}</span></div><span class="task-time">${b.start_time.slice(0,5)}〜${b.end_time.slice(0,5)}</span></div></div></div>`;
+    } else {
       const t=item.data,subs=allSubtasks.filter(s=>s.task_id===t.id),reason=buildReason(t);
+      const isDone=t.status==='done';
       let endStr='';if(t.scheduled_time){const[sh,sm]=t.scheduled_time.split(':').map(Number);const em2=sh*60+sm+(t.estimated_minutes||0);endStr=`〜${String(Math.floor(em2/60)).padStart(2,'0')}:${String(em2%60).padStart(2,'0')}`;}
       const doneCount=subs.filter(s=>s.status==='done').length;
       const pinnedClass=t.pinned?'pinned':'';
-      row.innerHTML=`<div class="sched-time">${timeStr}<div style="font-size:10px;color:var(--text3);margin-top:1px;">${endStr}</div></div><div class="sched-line"><div class="sched-dot"></div>${!isLast?'<div class="sched-connector"></div>':''}</div><div class="sched-content"><div class="task-card ${pinnedClass}" data-id="${t.id}"><div class="task-card-top"><div class="task-card-left"><div class="task-type-badge type-${t.type}">${typeLabel(t.type)}</div><span class="task-title">${t.title}</span></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">${subs.length?`<span style="font-size:10px;color:var(--text3);">${doneCount}/${subs.length}</span>`:''}<span class="task-time">${t.estimated_minutes}min</span><button class="pin-switch ${t.pinned?'on':''}" data-id="${t.id}" title="${t.pinned?'固定中（タップで解除）':'タップで固定'}"></button>${subs.length?`<div class="sub-toggle" data-tid="${t.id}" style="width:18px;height:18px;border-radius:50%;background:var(--bg2);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path class="tarr" d="M2 3.5L5 6.5L8 3.5" stroke="var(--text3)" stroke-width="1.5" stroke-linecap="round"/></svg></div>`:''}</div></div><div class="subtask-list" id="sl-${t.id}" style="display:none;">${subs.map(s=>`<div class="subtask-item"><div class="subtask-check ${s.status==='done'?'done':''}" data-sub-id="${s.id}">${s.status==='done'?'<svg width="7" height="7" viewBox="0 0 7 7"><polyline points="1,3.5 2.8,5.5 6,1.5" stroke="white" stroke-width="1.5" fill="none"/></svg>':''}</div><span class="subtask-title ${s.status==='done'?'done':''}">${s.title}</span><span class="subtask-min">${s.estimated_minutes}min</span></div>`).join('')}</div>${reason?`<div class="task-reason">${reason}</div>`:''}</div></div>`;
-      row.querySelector('.task-card').addEventListener('click',e=>{if(e.target.closest('.sub-toggle')||e.target.closest('.subtask-check')||e.target.closest('.pin-switch'))return;openDetail(t.id);});
-      row.querySelector('.pin-switch').addEventListener('click',e=>{e.stopPropagation();togglePin(t.id);});
-      const tog=row.querySelector('.sub-toggle');
-      if(tog)tog.addEventListener('click',e=>{e.stopPropagation();const sl=document.getElementById('sl-'+tog.dataset.tid);const open=sl.style.display!=='none';sl.style.display=open?'none':'flex';tog.querySelector('.tarr').setAttribute('d',open?'M2 3.5L5 6.5L8 3.5':'M2 6.5L5 3.5L8 6.5');});
-      row.querySelectorAll('.subtask-check').forEach(el=>el.addEventListener('click',e=>{e.stopPropagation();toggleSubtask(el.dataset.subId);}));
+      if(isDone){
+        row.innerHTML=`<div class="sched-time" style="opacity:.4;">${timeStr}<div style="font-size:10px;color:var(--text3);margin-top:1px;">${endStr}</div></div><div class="sched-line"><div class="sched-dot" style="background:var(--text3);opacity:.4;"></div>${!isLast?'<div class="sched-connector"></div>':''}</div><div class="sched-content"><div class="task-card" style="opacity:.4;cursor:pointer;" data-id="${t.id}"><div class="task-card-top"><div class="task-card-left"><div class="task-type-badge type-${t.type}">${typeLabel(t.type)}</div><span class="task-title" style="text-decoration:line-through;color:var(--text3);">${t.title}</span></div><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" fill="var(--accent)"/><polyline points="4,7 6,9 10,5" stroke="white" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg></div></div></div>`;
+        row.querySelector('.task-card').addEventListener('click',()=>openDetail(t.id));
+      } else {
+        row.innerHTML=`<div class="sched-time">${timeStr}<div style="font-size:10px;color:var(--text3);margin-top:1px;">${endStr}</div></div><div class="sched-line"><div class="sched-dot"></div>${!isLast?'<div class="sched-connector"></div>':''}</div><div class="sched-content"><div class="task-card ${pinnedClass}" data-id="${t.id}"><div class="task-card-top"><div class="task-card-left"><div class="task-type-badge type-${t.type}">${typeLabel(t.type)}</div><span class="task-title">${t.title}</span></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">${subs.length?`<span style="font-size:10px;color:var(--text3);">${doneCount}/${subs.length}</span>`:''}<span class="task-time">${t.estimated_minutes}min</span><button class="pin-switch ${t.pinned?'on':''}" data-id="${t.id}"></button>${subs.length?`<div class="sub-toggle" data-tid="${t.id}" style="width:18px;height:18px;border-radius:50%;background:var(--bg2);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path class="tarr" d="M2 3.5L5 6.5L8 3.5" stroke="var(--text3)" stroke-width="1.5" stroke-linecap="round"/></svg></div>`:''}</div></div><div class="subtask-list" id="sl-${t.id}" style="display:none;">${subs.map(s=>`<div class="subtask-item"><div class="subtask-check ${s.status==='done'?'done':''}" data-sub-id="${s.id}">${s.status==='done'?'<svg width="7" height="7" viewBox="0 0 7 7"><polyline points="1,3.5 2.8,5.5 6,1.5" stroke="white" stroke-width="1.5" fill="none"/></svg>':''}</div><span class="subtask-title ${s.status==='done'?'done':''}">${s.title}</span><span class="subtask-min">${s.estimated_minutes}min</span></div>`).join('')}</div>${reason?`<div class="task-reason">${reason}</div>`:''}</div></div>`;
+        row.querySelector('.task-card').addEventListener('click',e=>{if(e.target.closest('.sub-toggle')||e.target.closest('.subtask-check')||e.target.closest('.pin-switch'))return;openDetail(t.id);});
+        row.querySelector('.pin-switch')?.addEventListener('click',e=>{e.stopPropagation();togglePin(t.id);});
+        const tog=row.querySelector('.sub-toggle');
+        if(tog)tog.addEventListener('click',e=>{e.stopPropagation();const sl=document.getElementById('sl-'+tog.dataset.tid);const open=sl.style.display!=='none';sl.style.display=open?'none':'flex';tog.querySelector('.tarr').setAttribute('d',open?'M2 3.5L5 6.5L8 3.5':'M2 6.5L5 3.5L8 6.5');});
+        row.querySelectorAll('.subtask-check').forEach(el=>el.addEventListener('click',e=>{e.stopPropagation();toggleSubtask(el.dataset.subId);}));
+      }
     }
     wrap.appendChild(row);
   });
@@ -1055,7 +1094,7 @@ function updatePlotInfo(){
 async function saveTask(data){
   const tmpTask={type:data.type,estimated_minutes:data.estimated_minutes||30,deadline:data.deadline||null,created_at:new Date().toISOString()};
   const targetDate=autoPlotDate(tmpTask);
-  const plotTime=autoPlotTime(data.type,data.estimated_minutes||30,targetDate);
+  const plotTime=autoPlotTime(data.type,data.estimated_minutes||30,targetDate,null,targetDate===TODAY_STR);
   const insertData={
     user_id:currentUser.id,
     title:data.title,
@@ -1134,7 +1173,11 @@ function openDetail(taskId){
     </div>
   `;
   body.querySelectorAll('.subtask-check').forEach(el=>el.addEventListener('click',()=>toggleSubtask(el.dataset.subId)));
-  document.getElementById('dd-btn').addEventListener('click',async()=>{await toggleTask(taskId);closeModal('detail-modal');});
+  document.getElementById('dd-btn').addEventListener('click',async()=>{
+    await toggleTask(taskId);
+    closeModal('detail-modal');
+    setTimeout(()=>{renderToday();renderTaskList();},350);
+  });
   document.getElementById('detail-pin-btn').addEventListener('click',async()=>{
     await togglePin(taskId);
     const task=allTasks.find(t=>t.id===taskId);
@@ -1185,7 +1228,7 @@ function renderTomorrow(){
   blockList.innerHTML=tmBlocks.length?tmBlocks.map(b=>`<div class="task-card block-card" style="margin-bottom:6px;"><div class="task-card-top"><div class="task-card-left"><div class="task-type-badge type-block">固定</div><span class="task-title">${b.title}</span></div><span class="task-time">${b.start_time.slice(0,5)}〜${b.end_time.slice(0,5)}</span></div></div>`).join(''):'<div style="font-size:13px;color:var(--text3);padding:8px 0 12px;">明日の固定ブロックなし</div>';
   const tmTasks=allTasks.filter(t=>t.scheduled_date===TOMORROW_STR&&t.status!=='done').sort((a,b)=>(a.scheduled_time||'99:99').localeCompare(b.scheduled_time||'99:99'));
   const tmList=document.getElementById('tomorrow-task-list');
-  tmList.innerHTML=tmTasks.length?tmTasks.map(t=>`<div class="task-card ${t.pinned?'pinned':''}" style="margin-bottom:6px;" onclick="openDetail('${t.id}')"><div class="task-card-top"><div class="task-card-left"><div class="task-type-badge type-${t.type}">${typeLabel(t.type)}</div><span class="task-title">${t.title}</span></div><span class="task-time">${t.scheduled_time?t.scheduled_time.slice(0,5):'--:--'} · ${t.estimated_minutes}min</span></div><div class="task-reason">${buildReason(t)}${t.pinned?' · 📌固定':''}</div></div>`).join(''):'<div style="font-size:13px;color:var(--text3);padding:8px 0;">明日のタスクなし</div>';
+  tmList.innerHTML=tmTasks.length?tmTasks.map(t=>`<div class="task-card ${t.pinned?'pinned':''}" style="margin-bottom:6px;" onclick="openDetail('${t.id}')"><div class="task-card-top"><div class="task-card-left"><div class="task-type-badge type-${t.type}">${typeLabel(t.type)}</div><span class="task-title">${t.title}</span></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0;"><span class="task-time">${t.scheduled_time?t.scheduled_time.slice(0,5):'--:--'} · ${t.estimated_minutes}min</span>${t.pinned?'<span style="font-size:10px;color:var(--accent);">📌</span>':''}</div></div><div class="task-reason">${buildReason(t)}</div></div>`).join(''):'<div style="font-size:13px;color:var(--text3);padding:8px 0;">明日のタスクなし</div>';
 }
 
 // ============================================================
@@ -1249,7 +1292,7 @@ document.getElementById('review-btn').addEventListener('click',()=>{
 });
 window.reviewMoveNextWeek=async(id)=>{const nm=new Date(TODAY);nm.setDate(TODAY.getDate()+7);const nStr=nm.toISOString().split('T')[0];await db.from('tasks').update({scheduled_date:nStr,status:'pending'}).eq('id',id);const t=allTasks.find(x=>x.id===id);if(t){t.scheduled_date=nStr;t.status='pending';}showToast('来週に移しました');document.getElementById('review-btn').click();};
 window.reviewKeep=()=>{showToast('今週継続します');closeModal('review-modal');};
-window.reviewDrop=async(id)=>{if(!confirm('削除しますか？'))return;await db.from('tasks').delete().eq('id',id);allTasks=allTasks.filter(t=>t.id!==id);showToast('削除しました');document.getElementById('review-btn').click();};
+window.reviewDrop=async(id)=>{if(!confirm('削除しますか？'))return;await db.from('tasks').delete().eq('id',id);allTasks=allTasks.filter(t=>t.id!==id);allSubtasks=allSubtasks.filter(s=>s.task_id!==id);showToast('削除しました');renderTaskList();document.getElementById('review-btn').click();};
 
 // ============================================================
 // START TIME
@@ -1330,6 +1373,7 @@ document.getElementById('start-save-btn').addEventListener('click',()=>{
   const sh=window._dayStartHour||DEFAULT_START_HOUR;
   const sm=window._dayStartMin||0;
   const eh=window._dayEndHour||DEFAULT_END_HOUR;
+  try{sessionStorage.setItem('tora_settings',JSON.stringify({sh,sm,eh,absences:window._absences||[]}));}catch(e){}
   document.getElementById('start-time-btn').textContent=`⏰ ${sh}:${String(sm).padStart(2,'0')}〜${eh}:00`;
   closeModal('start-modal');renderToday();showToast('スケジュール設定を更新しました');
 });
