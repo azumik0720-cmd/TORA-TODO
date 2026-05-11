@@ -104,6 +104,7 @@ kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); b
 .type-unknown { background: #C4603A16; color: #C4603A; }
 .type-judgment { background: #4A6FA516; color: #4A6FA5; }
 .type-dependent { background: #B5566A16; color: #B5566A; }
+.type-creative { background: #7B5EA716; color: #7B5EA7; }
 .type-block { background: var(--bg3); color: var(--text3); }
 .task-title { font-size: 13px; color: var(--text); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .task-time { font-family: var(--font-num); font-size: 13px; color: var(--text3); letter-spacing: .04em; flex-shrink: 0; }
@@ -261,6 +262,7 @@ kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); b
               <div class="type-opt" data-type="unknown"><div class="type-opt-name">初めて</div><div class="type-opt-desc">新規・不確実</div></div>
               <div class="type-opt" data-type="judgment"><div class="type-opt-name">判断</div><div class="type-opt-desc">意思決定が主</div></div>
               <div class="type-opt" data-type="dependent"><div class="type-opt-name">他者依存</div><div class="type-opt-desc">相手のアクション待ち</div></div>
+              <div class="type-opt" data-type="creative" style="grid-column:span 2;"><div class="type-opt-name">制作</div><div class="type-opt-desc">動画・デザイン・文章などの成果物をつくる</div></div>
             </div>
           </div>
           <div class="add-step" id="step-pattern" style="display:none;">
@@ -282,7 +284,9 @@ kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); b
           </div>
           <div class="add-step" id="step-plot" style="display:none;">
             <div id="plot-info" style="margin-bottom:14px;"></div>
-            <button class="btn-ok" id="plot-btn">スケジュールに追加 🐯</button>
+            <div class="add-step-title" style="margin-bottom:6px;">メモ・URL（任意）</div>
+            <textarea id="memo-input" placeholder="関連URLや補足情報を入力" style="width:100%;min-height:72px;border:0.5px solid var(--bg3);border-radius:var(--radius-sm);background:var(--white);padding:10px 12px;font-size:13px;font-family:var(--font);color:var(--text);outline:none;resize:vertical;line-height:1.5;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--bg3)'"></textarea>
+            <button class="btn-ok" id="plot-btn" style="margin-top:12px;">スケジュールに追加 🐯</button>
           </div>
         </div>
       </div>
@@ -415,7 +419,7 @@ let addState={type:null,patternKey:null,count:1,subtasks:[],totalMin:0,scheduled
 // ============================================================
 // ユーティリティ
 // ============================================================
-function typeLabel(t){return{routine:'ルーティン',unknown:'初めて',judgment:'判断',dependent:'他者依存',block:'固定'}[t]||t;}
+function typeLabel(t){return{routine:'ルーティン',unknown:'初めて',judgment:'判断',dependent:'他者依存',creative:'制作',block:'固定'}[t]||t;}
 function toTimeStr(m){const h=Math.floor(m/60),mn=m%60;return String(h).padStart(2,'0')+':'+String(mn).padStart(2,'0')+':00';}
 function nextBizDay(date,n){let d=new Date(date),a=0;while(a<n){d.setDate(d.getDate()+1);if(d.getDay()!==0&&d.getDay()!==6)a++;}return d.toISOString().split('T')[0];}
 function normalizeDate(d){if(!d)return null;return String(d).slice(0,10);}
@@ -453,7 +457,7 @@ function autoPlotTime(type, estimatedMin, date, excludeTaskId=null){
   const needed=estimatedMin+(TYPE_BUFFER[type]||0);
   const NOON=12*60, CONC=16*60;
   let candidates;
-  if(type==='judgment'||type==='unknown'){candidates=[...slots.filter(s=>s.start<NOON),...slots.filter(s=>s.start>=CONC),...slots.filter(s=>s.start>=NOON&&s.start<CONC)];}
+  if(type==='judgment'||type==='unknown'||type==='creative'){candidates=[...slots.filter(s=>s.start<NOON),...slots.filter(s=>s.start>=CONC),...slots.filter(s=>s.start>=NOON&&s.start<CONC)];}
   else if(type==='routine'||type==='dependent'){candidates=[...slots.filter(s=>s.start>=9*60&&s.start<CONC),...slots.filter(s=>s.start>=CONC)];}
   else{candidates=slots;}
   for(const slot of candidates){if(slot.end-slot.start>=needed){const h=Math.floor(slot.start/60),m=slot.start%60;return`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;}}
@@ -481,7 +485,7 @@ function calcPriorityScore(task){
     else if(daysLeft<=7)score+=20;
   }
   // タイプスコア
-  const typeScore={judgment:30,unknown:25,dependent:35,routine:10};
+  const typeScore={judgment:30,unknown:25,dependent:35,routine:10,creative:25};
   score+=typeScore[task.type]||10;
   // 放置日数スコア（1日ごとに5点、最大30点）
   if(task.created_at){
@@ -508,27 +512,21 @@ function buildReason(task){
 // 自動プロット日付決定
 // ============================================================
 function autoPlotDate(task){
-  // 期限が今日・明日なら強制的に今日
+  // 期限が明日以内なら今日
   if(task.deadline){
     const daysLeft=Math.ceil((new Date(task.deadline)-TODAY)/(1000*60*60*24));
-    if(daysLeft<=0)return TODAY_STR;
-    if(daysLeft===1)return TODAY_STR;
+    if(daysLeft<=1)return TODAY_STR;
     if(daysLeft===2)return TOMORROW_STR;
   }
-  // dependentは今日・明日優先（金曜は月曜送り）
-  if(task.type==='dependent'){
-    if(TODAY.getDay()===5)return nextBizDay(TODAY,1);
-    const used=calcUsedMinutes(TODAY_STR);
-    if(used+(task.estimated_minutes||30)<=BUFFER_LIMIT)return TODAY_STR;
-    return TOMORROW_STR;
+  // dependentは金曜に翌営業日送り
+  if(task.type==='dependent'&&TODAY.getDay()===5){
+    return nextBizDay(TODAY,1);
   }
-  // 今日に入るか判定
+  // 基本方針：今日に入れられるなら今日
   const usedToday=calcUsedMinutes(TODAY_STR);
   if(usedToday+(task.estimated_minutes||30)<=BUFFER_LIMIT)return TODAY_STR;
-  // 明日に入るか判定
   const usedTomorrow=calcUsedMinutes(TOMORROW_STR);
   if(usedTomorrow+(task.estimated_minutes||30)<=BUFFER_LIMIT)return TOMORROW_STR;
-  // 明後日
   return DAY_AFTER_STR;
 }
 
@@ -537,42 +535,57 @@ function autoPlotDate(task){
 // ============================================================
 function calcOptimizeProposals(){
   const proposals=[];
-  // 固定スイッチONのタスクは除外
   const targets=allTasks.filter(t=>t.status==='pending'&&!t.pinned);
-  // スコア順にソート
   const scored=targets.map(t=>({...t,score:calcPriorityScore(t)})).sort((a,b)=>b.score-a.score);
-  // 各候補日のバッファをリセットして再配置
+
+  // 各日の使用時間を正確に計算（固定タスク＋ブロックを先に計上）
   const dayUsed={[TODAY_STR]:0,[TOMORROW_STR]:0,[DAY_AFTER_STR]:0};
-  // 固定タスクの分を先に計上
-  allTasks.filter(t=>t.status==='pending'&&t.pinned&&t.scheduled_date).forEach(t=>{
-    if(dayUsed[t.scheduled_date]!==undefined)dayUsed[t.scheduled_date]+=(t.estimated_minutes||30);
-  });
-  // ブロックの分も計上
+
+  // ブロックの分を計上
   [TODAY_STR,TOMORROW_STR,DAY_AFTER_STR].forEach(date=>{
-    const bm=allBlocks.filter(b=>b.date===date).reduce((a,b)=>{const[sh,sm]=b.start_time.split(':').map(Number);const[eh,em]=b.end_time.split(':').map(Number);return a+(eh*60+em-sh*60-sm);},0);
+    const bm=allBlocks.filter(b=>b.date===date).reduce((a,b)=>{
+      const[sh,sm]=b.start_time.split(':').map(Number);
+      const[eh,em]=b.end_time.split(':').map(Number);
+      return a+(eh*60+em-sh*60-sm);
+    },0);
     dayUsed[date]=(dayUsed[date]||0)+bm;
+  });
+
+  // 固定タスクの分を計上
+  allTasks.filter(t=>t.status==='pending'&&t.pinned&&t.scheduled_date).forEach(t=>{
+    if(dayUsed[t.scheduled_date]!==undefined){
+      dayUsed[t.scheduled_date]+=(t.estimated_minutes||30);
+    }
   });
 
   for(const task of scored){
     let targetDate=null;
-    // 期限考慮
+
+    // 期限が明日以内なら今日に強制
     if(task.deadline){
       const daysLeft=Math.ceil((new Date(task.deadline)-TODAY)/(1000*60*60*24));
       if(daysLeft<=1)targetDate=TODAY_STR;
       else if(daysLeft===2)targetDate=TOMORROW_STR;
     }
-    // dependentは金曜に月曜送り
+
+    // dependentは金曜に翌営業日送り
     if(task.type==='dependent'&&TODAY.getDay()===5&&!targetDate){
       targetDate=nextBizDay(TODAY,1);
     }
-    // バッファで日付決定
+
+    // 基本方針：今日→明日→明後日の順でバッファを確認
     if(!targetDate){
-      if((dayUsed[TODAY_STR]||0)+(task.estimated_minutes||30)<=BUFFER_LIMIT)targetDate=TODAY_STR;
-      else if((dayUsed[TOMORROW_STR]||0)+(task.estimated_minutes||30)<=BUFFER_LIMIT)targetDate=TOMORROW_STR;
-      else targetDate=DAY_AFTER_STR;
+      if((dayUsed[TODAY_STR]||0)+(task.estimated_minutes||30)<=BUFFER_LIMIT){
+        targetDate=TODAY_STR;
+      } else if((dayUsed[TOMORROW_STR]||0)+(task.estimated_minutes||30)<=BUFFER_LIMIT){
+        targetDate=TOMORROW_STR;
+      } else {
+        targetDate=DAY_AFTER_STR;
+      }
     }
+
     dayUsed[targetDate]=(dayUsed[targetDate]||0)+(task.estimated_minutes||30);
-    // 変更がある場合のみ提案
+
     if(normalizeDate(task.scheduled_date)!==targetDate){
       const fromLabel=task.scheduled_date===TODAY_STR?'今日':task.scheduled_date===TOMORROW_STR?'明日':task.scheduled_date===DAY_AFTER_STR?'明後日':task.scheduled_date?task.scheduled_date:'未設定';
       const toLabel=targetDate===TODAY_STR?'今日':targetDate===TOMORROW_STR?'明日':'明後日';
@@ -832,6 +845,7 @@ function initAddPage(){
   addState={type:null,patternKey:null,count:1,subtasks:[],totalMin:0,scheduledTime:null,plotDate:TODAY_STR};
   const ne=document.getElementById('task-name-input');if(ne)ne.value='';
   const de=document.getElementById('deadline-input');if(de)de.value='';
+  const me=document.getElementById('memo-input');if(me)me.value='';
   document.querySelectorAll('.type-opt').forEach(o=>{o.style.borderColor='var(--sep)';o.style.background='var(--white)';});
   ['step-pattern','step-count','step-preview','step-plot'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
 }
@@ -859,7 +873,8 @@ document.getElementById('plot-btn').addEventListener('click',async()=>{
   if(!addState.type){showToast('タイプを選択してください');return;}
   if(!addState.patternKey){showToast('作業パターンを選択してください');return;}
   const deadline=document.getElementById('deadline-input').value||null;
-  await saveTask({title,type:addState.type,estimated_minutes:addState.totalMin,deadline,subtasks:addState.subtasks});
+  const memo=document.getElementById('memo-input').value.trim()||null;
+  await saveTask({title,type:addState.type,estimated_minutes:addState.totalMin,deadline,memo,subtasks:addState.subtasks});
 });
 
 function renderPatternList(){
@@ -976,6 +991,7 @@ function openDetail(taskId){
       ${task.deadline?`<div><div style="font-size:9px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px;">期限</div><div style="font-size:13px;color:var(--accent);margin-top:6px;">${task.deadline}</div></div>`:''}
     </div>
     <div style="font-size:11px;color:var(--text3);background:var(--bg2);border-radius:6px;padding:8px 10px;margin-bottom:14px;">🐯 ${reason||'ルーティンタスク'}</div>
+    ${task.memo?`<div style="margin-bottom:14px;background:var(--bg2);border-radius:var(--radius-sm);padding:10px 12px;font-size:13px;color:var(--text2);line-height:1.6;word-break:break-all;">${task.memo.replace(/https?:\/\/[^\s]+/g,url=>`<a href="${url}" target="_blank" style="color:var(--accent);text-decoration:none;">${url}</a>`)}</div>`:''}
     <!-- 固定スイッチ -->
     <div style="display:flex;align-items:center;justify-content:space-between;background:var(--white);border:0.5px solid var(--sep);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:14px;">
       <div>
