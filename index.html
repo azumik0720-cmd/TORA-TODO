@@ -533,8 +533,20 @@ function getDefaultBlocks(date){
   const sm=(window._dayStartHour||DEFAULT_START_HOUR)*60+(window._dayStartMin||DEFAULT_START_MIN);
   const WORK_END=(window._dayEndHour||DEFAULT_END_HOUR)*60;
 
-  // 固定ブロックの占有範囲を取得
-  const fixedBlocks=allBlocks.filter(b=>b.date===date).map(b=>{
+  // 繰り返しブロックも含めてその日に有効なブロックを取得
+  function isBlockActiveOnDate(b, targetDate){
+    if(b.date===targetDate)return true;
+    if(!b.repeat||b.repeat==='none')return false;
+    const base=new Date(b.date+'T00:00:00');
+    const target=new Date(targetDate+'T00:00:00');
+    if(target<base)return false;
+    const diffDays=Math.round((target-base)/(1000*60*60*24));
+    if(b.repeat==='weekly')return diffDays%7===0;
+    if(b.repeat==='biweekly')return diffDays%14===0;
+    return false;
+  }
+
+  const fixedBlocks=allBlocks.filter(b=>!b._is_absence&&isBlockActiveOnDate(b,date)).map(b=>{
     const[sh,bsm]=b.start_time.split(':').map(Number);
     const[eh,em]=b.end_time.split(':').map(Number);
     return{start:sh*60+bsm,end:eh*60+em};
@@ -577,10 +589,25 @@ function getAvailableSlots(date, excludeTaskId=null, fromNow=false){
   const WORK_END=(window._dayEndHour||DEFAULT_END_HOUR)*60;
   const now=new Date();
   const nowMin=now.getHours()*60+now.getMinutes();
-  // 始業時間を絶対下限にする（fromNowのときは現在時刻と始業時間の大きい方）
   const WORK_START=fromNow&&date===TODAY_STR?Math.max(sm,nowMin):sm;
-  const allB=[...allBlocks.filter(b=>b.date===date),...getDefaultBlocks(date)];
-  // 今日の不在時間（window._absences）+ 将来登録済み不在ブロック（_is_absence）
+
+  // 繰り返しブロックを対象日に展開する
+  function isBlockActiveOnDate(b, targetDate){
+    if(b.date===targetDate)return true;
+    if(!b.repeat||b.repeat==='none')return false;
+    const base=new Date(b.date+'T00:00:00');
+    const target=new Date(targetDate+'T00:00:00');
+    if(target<base)return false;
+    const diffDays=Math.round((target-base)/(1000*60*60*24));
+    if(b.repeat==='weekly')return diffDays%7===0;
+    if(b.repeat==='biweekly')return diffDays%14===0;
+    return false;
+  }
+
+  const allB=[
+    ...allBlocks.filter(b=>!b._is_absence&&isBlockActiveOnDate(b,date)),
+    ...getDefaultBlocks(date)
+  ];
   const absenceBlocks=[
     ...(date===TODAY_STR?(window._absences||[]).map(a=>({start_time:toTimeStr(a.start),end_time:toTimeStr(a.end)})):[]),
     ...allBlocks.filter(b=>b.date===date&&b._is_absence).map(b=>({start_time:b.start_time,end_time:b.end_time}))
@@ -1414,7 +1441,7 @@ function updatePlotInfo(){
   const targetDate=autoPlotDate(tmpTask);
   addState.plotDate=targetDate;
   const dateLabel=targetDate===TODAY_STR?'今日':targetDate===TOMORROW_STR?'明日':'明後日';
-  const plotTime=autoPlotTime(addState.type,addState.totalMin,targetDate);
+  const plotTime=autoPlotTime(addState.type,addState.totalMin,targetDate,null,targetDate===TODAY_STR);
   addState.scheduledTime=plotTime;
   const parts=[];
   if(deadline){const d=Math.ceil((new Date(deadline)-TODAY)/(1000*60*60*24));if(d<=0)parts.push('期限超過');else if(d===1)parts.push('期限明日');else if(d<=3)parts.push(`期限${d}日`);}
