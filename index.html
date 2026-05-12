@@ -438,7 +438,7 @@ kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); b
 <div class="modal-overlay" id="block-modal">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div class="modal-title">会議・MTGを追加</div>
+    <div class="modal-title" id="block-modal-title">会議・MTGを追加</div>
     <div class="wiz-input-wrap"><label class="wiz-label">内容</label><input class="wiz-input" id="block-title" placeholder="例：週次MTG" maxlength="40"></div>
     <div class="wiz-row">
       <div class="wiz-input-wrap"><label class="wiz-label">開始</label><input class="wiz-input" type="time" id="block-start" value="10:00"></div>
@@ -446,7 +446,10 @@ kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); b
     </div>
     <div class="wiz-input-wrap"><label class="wiz-label">日付</label><input class="wiz-input" type="date" id="block-date"></div>
     <div class="wiz-input-wrap"><label class="wiz-label">繰り返し</label><select class="wiz-input" id="block-repeat"><option value="none">繰り返しなし</option><option value="weekly">毎週</option><option value="biweekly">隔週</option></select></div>
-    <button class="btn-next" id="block-save-btn">追加する</button>
+    <div style="display:flex;gap:8px;">
+      <button class="btn-next" id="block-save-btn">追加する</button>
+      <button id="block-delete-btn" style="display:none;height:44px;padding:0 16px;background:none;border:0.5px solid #C4603A35;border-radius:var(--radius-sm);font-size:13px;font-family:var(--font);color:var(--accent);cursor:pointer;">削除</button>
+    </div>
   </div>
 </div>
 <div class="toast" id="toast"></div>
@@ -1097,7 +1100,8 @@ function renderSchedule(){
       const blockStyle=isAbsence?'background:#FFF3E0;border-color:#FFCC80;':isDef?'opacity:.6;border-style:dashed;':'';
       const blockLabel=isAbsence?b.title:isDef?'自動':'固定';
       const badgeStyle=isAbsence?'background:#FFE0B2;color:#E65100;':'';
-      row.innerHTML=`<div class="sched-time" style="${isDef&&!isAbsence?'opacity:.5':''}">${timeStr}<div style="font-size:10px;color:var(--text3);margin-top:1px;">〜${b.end_time.slice(0,5)}</div></div><div class="sched-line"><div class="sched-dot block-dot" style="${isDef&&!isAbsence?'opacity:.4':''}"></div>${!isLast?'<div class="sched-connector"></div>':''}</div><div class="sched-content"><div class="task-card block-card" style="${blockStyle}"><div class="task-card-top"><div class="task-card-left"><div class="task-type-badge type-block" style="${badgeStyle}">${blockLabel}</div><span class="task-title">${b.title}</span></div><span class="task-time">${b.start_time.slice(0,5)}〜${b.end_time.slice(0,5)}</span></div></div></div>`;
+      const editBtn=(!isDef&&!isAbsence&&b.id)?`<button onclick="openBlockModal('${b.id}')" style="font-size:11px;color:var(--accent);background:none;border:0.5px solid var(--accent);border-radius:5px;padding:2px 8px;cursor:pointer;font-family:var(--font);">編集</button>`:'';
+      row.innerHTML=`<div class="sched-time" style="${isDef&&!isAbsence?'opacity:.5':''}">${timeStr}<div style="font-size:10px;color:var(--text3);margin-top:1px;">〜${b.end_time.slice(0,5)}</div></div><div class="sched-line"><div class="sched-dot block-dot" style="${isDef&&!isAbsence?'opacity:.4':''}"></div>${!isLast?'<div class="sched-connector"></div>':''}</div><div class="sched-content"><div class="task-card block-card" style="${blockStyle}"><div class="task-card-top"><div class="task-card-left"><div class="task-type-badge type-block" style="${badgeStyle}">${blockLabel}</div><span class="task-title">${b.title}</span></div><div style="display:flex;align-items:center;gap:8px;"><span class="task-time">${b.start_time.slice(0,5)}〜${b.end_time.slice(0,5)}</span>${editBtn}</div></div></div></div>`;
     } else {
       const t=item.data,subs=allSubtasks.filter(s=>s.task_id===t.id),reason=buildReason(t);
       const isDone=t.status==='done';
@@ -1457,7 +1461,7 @@ function renderTomorrow(){
   const loadWrap=document.getElementById('tomorrow-load-wrap'),tmUsed=calcUsedMinutes(TOMORROW_STR),tmPct=Math.min(100,Math.round(tmUsed/BUFFER_LIMIT*100));
   loadWrap.innerHTML=`<div class="tomorrow-load-bar"><div class="tomorrow-load-label"><span>明日の使用時間</span><span class="tomorrow-load-nums"><span>${tmUsed}</span>/${BUFFER_LIMIT}min</span></div><div class="buffer-track"><div class="buffer-fill ${tmUsed>BUFFER_LIMIT?'warn':''}" style="width:${tmPct}%"></div></div></div>`;
   const blockList=document.getElementById('block-list'),tmBlocks=allBlocks.filter(b=>b.date===TOMORROW_STR);
-  blockList.innerHTML=tmBlocks.length?tmBlocks.map(b=>`<div class="task-card block-card" style="margin-bottom:6px;"><div class="task-card-top"><div class="task-card-left"><div class="task-type-badge type-block">固定</div><span class="task-title">${b.title}</span></div><span class="task-time">${b.start_time.slice(0,5)}〜${b.end_time.slice(0,5)}</span></div></div>`).join(''):'<div style="font-size:13px;color:var(--text3);padding:8px 0 12px;">明日の固定ブロックなし</div>';
+  blockList.innerHTML=tmBlocks.length?tmBlocks.map(b=>`<div class="task-card block-card" style="margin-bottom:6px;"><div class="task-card-top"><div class="task-card-left"><div class="task-type-badge type-block">固定</div><span class="task-title">${b.title}</span></div><div style="display:flex;align-items:center;gap:8px;"><span class="task-time">${b.start_time.slice(0,5)}〜${b.end_time.slice(0,5)}</span><button onclick="openBlockModal('${b.id}')" style="font-size:11px;color:var(--accent);background:none;border:0.5px solid var(--accent);border-radius:5px;padding:2px 8px;cursor:pointer;font-family:var(--font);">編集</button></div></div></div>`).join(''):'<div style="font-size:13px;color:var(--text3);padding:8px 0 12px;">明日の固定ブロックなし</div>';
   const tmTasks=allTasks.filter(t=>t.scheduled_date===TOMORROW_STR&&t.status!=='done').sort((a,b)=>(a.scheduled_time||'99:99').localeCompare(b.scheduled_time||'99:99'));
   const tmList=document.getElementById('tomorrow-task-list');
   tmList.innerHTML=tmTasks.length?tmTasks.map(t=>`<div class="task-card ${t.pinned?'pinned':''}" style="margin-bottom:6px;" onclick="openDetail('${t.id}')"><div class="task-card-top"><div class="task-card-left"><div class="task-type-badge type-${t.type}">${typeLabel(t.type)}</div><span class="task-title">${t.title}</span></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0;"><span class="task-time">${t.scheduled_time?t.scheduled_time.slice(0,5):'--:--'} · ${t.estimated_minutes}min</span>${t.pinned?'<span style="font-size:10px;color:var(--accent);">📌</span>':''}</div></div><div class="task-reason">${buildReason(t)}</div></div>`).join(''):'<div style="font-size:13px;color:var(--text3);padding:8px 0;">明日のタスクなし</div>';
@@ -1466,19 +1470,75 @@ function renderTomorrow(){
 // ============================================================
 // BLOCKS（追加時に自動再配置）
 // ============================================================
-document.getElementById('add-block-btn').addEventListener('click',()=>openModal('block-modal'));
-document.getElementById('add-block-right-btn')?.addEventListener('click',()=>{document.getElementById('block-date').value=TODAY_STR;openModal('block-modal');});
+// ============================================================
+// BLOCKS
+// ============================================================
+let _editingBlockId=null;
+window.openBlockModal=openBlockModal;
+function openBlockModal(blockId=null){
+  _editingBlockId=blockId;
+  const isEdit=!!blockId;
+  document.getElementById('block-modal-title').textContent=isEdit?'会議・MTGを編集':'会議・MTGを追加';
+  document.getElementById('block-save-btn').textContent=isEdit?'更新する':'追加する';
+  document.getElementById('block-delete-btn').style.display=isEdit?'block':'none';
+  if(isEdit){
+    const b=allBlocks.find(x=>x.id===blockId);
+    if(!b)return;
+    document.getElementById('block-title').value=b.title;
+    document.getElementById('block-start').value=b.start_time.slice(0,5);
+    document.getElementById('block-end').value=b.end_time.slice(0,5);
+    document.getElementById('block-date').value=b.date;
+    document.getElementById('block-repeat').value=b.repeat||'none';
+  } else {
+    document.getElementById('block-title').value='';
+    document.getElementById('block-start').value='10:00';
+    document.getElementById('block-end').value='11:00';
+    document.getElementById('block-date').value=TOMORROW_STR;
+    document.getElementById('block-repeat').value='none';
+  }
+  openModal('block-modal');
+}
+
+document.getElementById('add-block-btn').addEventListener('click',()=>openBlockModal());
+document.getElementById('add-block-right-btn')?.addEventListener('click',()=>{
+  openBlockModal();
+  document.getElementById('block-date').value=TODAY_STR;
+});
+
 document.getElementById('block-save-btn').addEventListener('click',async()=>{
-  const title=document.getElementById('block-title').value.trim(),start=document.getElementById('block-start').value,end=document.getElementById('block-end').value,date=document.getElementById('block-date').value;
+  const title=document.getElementById('block-title').value.trim();
+  const start=document.getElementById('block-start').value;
+  const end=document.getElementById('block-end').value;
+  const date=document.getElementById('block-date').value;
   if(!title||!start||!end){showToast('内容・時間を入力してください');return;}
-  const{data}=await db.from('blocks').insert({user_id:currentUser.id,title,start_time:start+':00',end_time:end+':00',date}).select().single();
-  if(data)allBlocks.push(data);
+  if(_editingBlockId){
+    // 更新
+    await db.from('blocks').update({title,start_time:start+':00',end_time:end+':00',date}).eq('id',_editingBlockId);
+    const b=allBlocks.find(x=>x.id===_editingBlockId);
+    if(b){b.title=title;b.start_time=start+':00';b.end_time=end+':00';b.date=date;}
+    showToast('更新しました');
+  } else {
+    // 追加
+    const{data}=await db.from('blocks').insert({user_id:currentUser.id,title,start_time:start+':00',end_time:end+':00',date}).select().single();
+    if(data)allBlocks.push(data);
+    await autoReplaceAfterBlock(date);
+    showToast('固定ブロックを追加しました');
+  }
   document.getElementById('block-title').value='';
   closeModal('block-modal');
-  // ブロック追加後に自動でタスクを再配置
-  await autoReplaceAfterBlock(date);
   renderTomorrow();renderToday();renderRightPanel();
-  showToast('固定ブロックを追加しました');
+});
+
+document.getElementById('block-delete-btn').addEventListener('click',async()=>{
+  if(!_editingBlockId)return;
+  const b=allBlocks.find(x=>x.id===_editingBlockId);
+  if(!b)return;
+  if(!confirm(`「${b.title}」を削除しますか？`))return;
+  await db.from('blocks').delete().eq('id',_editingBlockId);
+  allBlocks=allBlocks.filter(x=>x.id!==_editingBlockId);
+  closeModal('block-modal');
+  renderTomorrow();renderToday();renderRightPanel();
+  showToast('削除しました');
 });
 
 async function autoReplaceAfterBlock(date){
