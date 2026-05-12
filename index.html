@@ -255,7 +255,6 @@ kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); b
     <div class="main" id="main-content">
       <!-- 今日 -->
       <div class="page active" id="page-today">
-        <div id="conflict-area"></div>
         <div id="optimize-area"></div>
         <div id="buffer-wrap"></div>
         <div class="sec-label" style="margin-top:12px;">今日のスケジュール</div>
@@ -745,7 +744,23 @@ function calcDayRemaining(date){
 function calcOptimizeProposals(){
   const proposals=[];
   const targets=allTasks.filter(t=>t.status==='pending'&&!t.pinned);
-  const scored=targets.map(t=>({...t,score:calcPriorityScore(t)})).sort((a,b)=>b.score-a.score);
+
+  // コンフリクト検出：ブロックと重なっているタスクをフラグ
+  const allTodayBlocks=[...allBlocks.filter(b=>b.date===TODAY_STR),...getDefaultBlocks(TODAY_STR)];
+  const conflictTaskIds=new Set();
+  targets.filter(t=>t.scheduled_date===TODAY_STR&&t.scheduled_time).forEach(t=>{
+    const[th,tm]=t.scheduled_time.split(':').map(Number);
+    const tStart=th*60+tm,tEnd=tStart+(t.estimated_minutes||30);
+    allTodayBlocks.forEach(b=>{
+      const[bsh,bsm]=b.start_time.split(':').map(Number);
+      const[beh,bem]=b.end_time.split(':').map(Number);
+      const bStart=bsh*60+bsm,bEnd=beh*60+bem;
+      if(tStart<bEnd&&tEnd>bStart)conflictTaskIds.add(t.id);
+    });
+  });
+
+  // コンフリクトタスクは強制的にスコアを最大にして先頭に持ってくる
+  const scored=targets.map(t=>({...t,score:conflictTaskIds.has(t.id)?99999:calcPriorityScore(t)})).sort((a,b)=>b.score-a.score);
 
   // 各日の残り容量
   const dayRemaining={
@@ -1037,7 +1052,6 @@ document.addEventListener('keydown',e=>{
 // TODAY
 // ============================================================
 function renderToday(){
-  checkConflicts();
   renderOptimizeArea();
   renderBuffer();
   renderSchedule();
@@ -1055,6 +1069,40 @@ function renderNextAction(){
   document.getElementById('next-action-card').addEventListener('click',()=>openDetail(next.id));
 }
 
+function calcRequiredEndHour(){
+  // 期限なしタスクは3日、期限ありは期限日までに消化する前提で
+  // 今日必要な作業時間を計算して必要な終業時間を返す
+  const now=new Date();
+  const nowMin=now.getHours()*60+now.getMinutes();
+  const sm=(window._dayStartHour||DEFAULT_START_HOUR)*60+(window._dayStartMin||DEFAULT_START_MIN);
+
+  // 今日のブロック（会議等）の合計
+  const todayBlockMin=[...allBlocks.filter(b=>b.date===TODAY_STR),...getDefaultBlocks(TODAY_STR)].reduce((a,b)=>{
+    const[sh,bsm]=b.start_time.split(':').map(Number);
+    const[eh,em]=b.end_time.split(':').map(Number);
+    return a+(eh*60+em-sh*60-bsm);
+  },0);
+
+  // 今日やるべきタスク（今日プロット済み・未完了）
+  const todayTasks=allTasks.filter(t=>t.scheduled_date===TODAY_STR&&t.status==='pending');
+  const todayTaskMin=todayTasks.reduce((a,t)=>a+(t.estimated_minutes||30),0);
+
+  // 今から残り作業時間
+  const remainTaskMin=allTasks.filter(t=>t.scheduled_date===TODAY_STR&&t.status==='pending'&&t.scheduled_time).reduce((a,t)=>{
+    const[h,m]=t.scheduled_time.split(':').map(Number);
+    return h*60+m>=nowMin?a+(t.estimated_minutes||30):a;
+  },0);
+
+  // 必要な終業時間
+  const requiredEnd=Math.max(nowMin,sm)+remainTaskMin+todayBlockMin;
+  // ただし既に終業時間を過ぎているブロックは除く
+  const eh=(window._dayEndHour||DEFAULT_END_HOUR)*60;
+  if(requiredEnd>eh){
+    return{required:requiredEnd,current:eh,over:requiredEnd-eh};
+  }
+  return null;
+}
+
 function renderBuffer(){
   const wrap=document.getElementById('buffer-wrap');
   const used=calcUsedMinutes(TODAY_STR);
@@ -1062,13 +1110,52 @@ function renderBuffer(){
   const sm=(window._dayStartHour||DEFAULT_START_HOUR)*60+(window._dayStartMin||DEFAULT_START_MIN);
   const workMin=eh*60-sm;
   const overtime=Math.max(0,used-workMin);
-  const overLimit=used>BUFFER_LIMIT;
   let overtimeHtml='';
   if(overtime>0){
     overtimeHtml=`<div style="font-size:11px;color:#E65100;margin-top:6px;">⚠️ 終業時間を${overtime}min超過します。タスクを減らすか最適化してください。</div>`;
   }
-  wrap.innerHTML=`<div class="buffer-bar"><div class="buffer-top"><span class="buffer-label">今日の使用時間</span><span class="buffer-nums"><span>${used}</span>/${BUFFER_LIMIT}min上限 · 空き${Math.max(0,BUFFER_LIMIT-used)}min</span></div><div class="buffer-track"><div class="buffer-fill ${overLimit?'warn':''}" style="width:${Math.min(100,Math.round(used/BUFFER_LIMIT*100))}%"></div></div>${overtimeHtml}</div>`;
+  // タスク消化アラート
+  const digestAlert=calcRequiredEndHour();
+  let digestHtml='';
+  if(digestAlert){
+    const reqH=Math.floor(digestAlert.required/60),reqM=digestAlert.required%60;
+    digestHtml=`<div style="margin-top:8px;background:#FFF3E0;border:0.5px solid #FFCC80;border-radius:6px;padding:10px 12px;">
+      <div style="font-size:12px;color:#E65100;margin-bottom:8px;">🐯 今日のタスクを全部終わらせるには <strong>${String(reqH).padStart(2,'0')}:${String(reqM).padStart(2,'0')}</strong> まで必要です</div>
+      <div style="display:flex;gap:8px;">
+        <button onclick="extendEndTime(${reqH})" style="flex:1;height:32px;background:var(--accent);color:white;border:none;border-radius:6px;font-size:12px;font-family:var(--font);cursor:pointer;">${reqH}:00まで延長</button>
+        <button onclick="sendTomorrowOverflow()" style="flex:1;height:32px;background:var(--white);border:0.5px solid var(--sep);border-radius:6px;font-size:12px;font-family:var(--font);color:var(--text3);cursor:pointer;">${eh}:00で終わり（明日送り）</button>
+      </div>
+    </div>`;
+  }
+  wrap.innerHTML=`<div class="buffer-bar"><div class="buffer-top"><span class="buffer-label">今日の使用時間</span><span class="buffer-nums"><span>${used}</span>/${BUFFER_LIMIT}min上限 · 空き${Math.max(0,BUFFER_LIMIT-used)}min</span></div><div class="buffer-track"><div class="buffer-fill ${used>BUFFER_LIMIT?'warn':''}" style="width:${Math.min(100,Math.round(used/BUFFER_LIMIT*100))}%"></div></div>${overtimeHtml}${digestHtml}</div>`;
 }
+
+window.extendEndTime=function(h){
+  window._dayEndHour=h+1; // 切り上げで+1時間確保
+  try{const s=JSON.parse(sessionStorage.getItem('tora_settings')||'{}');s.eh=window._dayEndHour;sessionStorage.setItem('tora_settings',JSON.stringify(s));}catch(e){}
+  const sh=window._dayStartHour||DEFAULT_START_HOUR;
+  const sm2=window._dayStartMin||DEFAULT_START_MIN;
+  document.getElementById('start-time-btn').textContent=`⏰ ${sh}:${String(sm2).padStart(2,'0')}〜${window._dayEndHour}:00`;
+  renderToday();showToast(`終業時間を${window._dayEndHour}:00に延長しました`);
+};
+
+window.sendTomorrowOverflow=async function(){
+  // 現在時刻以降・終業時間を超えるタスクを明日に移動
+  const eh=(window._dayEndHour||DEFAULT_END_HOUR)*60;
+  const overTasks=allTasks.filter(t=>{
+    if(t.scheduled_date!==TODAY_STR||t.status==='done'||t.pinned)return false;
+    if(!t.scheduled_time)return false;
+    const[h,m]=t.scheduled_time.split(':').map(Number);
+    return h*60+m+(t.estimated_minutes||30)>eh;
+  });
+  for(const t of overTasks){
+    const newTime=autoPlotTime(t.type,t.estimated_minutes||30,TOMORROW_STR);
+    await db.from('tasks').update({scheduled_date:TOMORROW_STR,scheduled_time:newTime}).eq('id',t.id);
+    t.scheduled_date=TOMORROW_STR;t.scheduled_time=newTime;
+  }
+  showToast(`${overTasks.length}件を明日に移動しました`);
+  renderToday();renderRightPanel();
+};
 
 function renderGoals(){
   const list=document.getElementById('goals-list');
