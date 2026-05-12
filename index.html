@@ -578,7 +578,7 @@ function getAvailableSlots(date, excludeTaskId=null, fromNow=false){
     ...(date===TODAY_STR?(window._absences||[]).map(a=>({start_time:toTimeStr(a.start),end_time:toTimeStr(a.end)})):[]),
     ...allBlocks.filter(b=>b.date===date&&b._is_absence).map(b=>({start_time:b.start_time,end_time:b.end_time}))
   ];
-  const blockedRanges=[...allB,...absenceBlocks].map(b=>{const[sh,sm]=b.start_time.split(':').map(Number);const[eh,em]=b.end_time.split(':').map(Number);return{start:sh*60+sm,end:eh*60+em};});
+  const blockedRanges=[...allB,...absenceBlocks].map(b=>{const[bsh,bsm]=b.start_time.split(':').map(Number);const[beh,bem]=b.end_time.split(':').map(Number);return{start:bsh*60+bsm,end:beh*60+bem};});
   const scheduled=allTasks.filter(t=>t.scheduled_date===date&&t.scheduled_time&&t.status!=='done'&&t.id!==excludeTaskId).map(t=>{const[h,m]=t.scheduled_time.split(':').map(Number);return{start:h*60+m,end:h*60+m+(t.estimated_minutes||30)};});
   const busy=[...blockedRanges,...scheduled].sort((a,b)=>a.start-b.start);
   const slots=[];let cursor=WORK_START;
@@ -1102,8 +1102,8 @@ function renderSchedule(){
   const busy=busyItems.map(it=>{if(it.type==='block'){const[sh,sm]=it.data.start_time.split(':').map(Number);const[eh,em]=it.data.end_time.split(':').map(Number);return{start:sh*60+sm,end:eh*60+em};}if(!it.data.scheduled_time)return null;const[sh,sm]=it.data.scheduled_time.split(':').map(Number);return{start:sh*60+sm,end:sh*60+sm+(it.data.estimated_minutes||0)};}).filter(Boolean).sort((a,b)=>a.start-b.start);
   const mrg=[];for(const b of busy){if(mrg.length&&b.start<=mrg[mrg.length-1].end)mrg[mrg.length-1].end=Math.max(mrg[mrg.length-1].end,b.end);else mrg.push({...b});}
   const gaps=[];let cur=ws;
-  for(const b of mrg){if(b.start>cur+10){const h2=Math.floor(cur/60),m2=cur%60;gaps.push({type:'gap',time:String(h2).padStart(2,'0')+':'+String(m2).padStart(2,'0'),gapMin:b.start-cur});}cur=Math.max(cur,b.end);}
-  if(cur<we-10){const h2=Math.floor(cur/60),m2=cur%60;gaps.push({type:'gap',time:String(h2).padStart(2,'0')+':'+String(m2).padStart(2,'0'),gapMin:we-cur});}
+  for(const b of mrg){if(b.start>cur+5){const h2=Math.floor(cur/60),m2=cur%60;gaps.push({type:'gap',time:String(h2).padStart(2,'0')+':'+String(m2).padStart(2,'0'),gapMin:b.start-cur});}cur=Math.max(cur,b.end);}
+  if(cur<we-5){const h2=Math.floor(cur/60),m2=cur%60;gaps.push({type:'gap',time:String(h2).padStart(2,'0')+':'+String(m2).padStart(2,'0'),gapMin:we-cur});}
   const items=[...baseItems,...gaps].sort((a,b)=>a.time.localeCompare(b.time));
   if(!items.length){wrap.innerHTML='<div class="empty">今日のスケジュールはまだありません</div>';return;}
   // 縦線コンテナ
@@ -1131,7 +1131,7 @@ function renderSchedule(){
     const row=document.createElement('div');row.className='sched-row';
     const timeStr=item.time==='99:99'?'--:--':item.time.slice(0,5),isLast=i===items.length-1;
     if(item.type==='gap'){
-      row.innerHTML=`<div class="sched-dot gap-dot"></div><div class="sched-time" style="opacity:.4;">${timeStr}</div><div class="sched-content"><div style="font-size:11px;color:var(--text3);padding:4px 0;">空き ${item.gapMin}min</div></div>`;
+      row.innerHTML=`<div class="sched-dot" style="background:var(--bg2);border:1.5px dashed var(--text3);"></div><div class="sched-time" style="opacity:.4;">${timeStr}</div><div class="sched-content"><div style="font-size:11px;color:var(--text3);padding:3px 0 3px 2px;">空き ${item.gapMin}min</div></div>`;
       wrap.appendChild(row);return;
     }
     if(item.type==='block'){
