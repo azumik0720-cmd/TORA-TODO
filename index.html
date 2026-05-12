@@ -476,11 +476,10 @@ const TOMORROW_STR=localDateStr(TOMORROW);
 const DAY_AFTER=new Date(TODAY); DAY_AFTER.setDate(TODAY.getDate()+2);
 const DAY_AFTER_STR=localDateStr(DAY_AFTER);
 const DAYS=['日','月','火','水','木','金','土'];
-const BUFFER_LIMIT=360;
+const BUFFER_LIMIT=360; // 明日タブの負荷バー表示用のみ
 const DEFAULT_START_HOUR=9, DEFAULT_START_MIN=30;
 const DEFAULT_END_HOUR=18;
 const TYPE_BUFFER={routine:0,unknown:15,judgment:10,dependent:5};
-// 不在時間リスト（{label, start, end} in minutes）
 window._absences=[];
 window._dayEndHour=DEFAULT_END_HOUR;
 // セッション設定を復元
@@ -490,6 +489,16 @@ window._dayEndHour=DEFAULT_END_HOUR;
     if(s){const p=JSON.parse(s);window._dayStartHour=p.sh||DEFAULT_START_HOUR;window._dayStartMin=p.sm||DEFAULT_START_MIN;window._dayEndHour=p.eh||DEFAULT_END_HOUR;window._absences=p.absences||[];}
   }catch(e){}
 })();
+
+// 終業時間の single source of truth
+function setEndHour(h){
+  window._dayEndHour=h;
+  try{const s=JSON.parse(sessionStorage.getItem('tora_settings')||'{}');s.eh=h;sessionStorage.setItem('tora_settings',JSON.stringify(s));}catch(e){}
+  const sh=window._dayStartHour||DEFAULT_START_HOUR;
+  const sm2=window._dayStartMin||DEFAULT_START_MIN;
+  const btn=document.getElementById('start-time-btn');
+  if(btn)btn.textContent=`⏰ ${sh}:${String(sm2).padStart(2,'0')}〜${h}:00`;
+}
 
 const PATTERNS={
   check:{name:'チェック・フィードバック系',types:['routine'],baseMin:30,countable:false,subtasks:[{title:'動画・内容を確認する',minutes:15},{title:'修正点・フィードバックをまとめる',minutes:10},{title:'修正指示・フィードバックを送る',minutes:5}]},
@@ -699,18 +708,18 @@ function buildReason(task){
 // 自動プロット日付決定
 // ============================================================
 function autoPlotDate(task){
-  const usedToday=calcUsedMinutes(TODAY_STR);
-  const usedTomorrow=calcUsedMinutes(TOMORROW_STR);
   // dependentは金曜に翌営業日送り
   if(task.type==='dependent'&&TODAY.getDay()===5)return nextBizDay(TODAY,1);
-  // 期限が今日・明日なら終業超えでも今日に強制（残業してでもやる）
+  // 期限が今日・明日なら終業超えでも今日に強制
   if(task.deadline){
     const daysLeft=Math.ceil((new Date(task.deadline)-TODAY)/(1000*60*60*24));
     if(daysLeft<=1)return TODAY_STR;
   }
-  // 基本方針：今日に入れられるなら今日
-  if(usedToday+(task.estimated_minutes||30)<=BUFFER_LIMIT)return TODAY_STR;
-  if(usedTomorrow+(task.estimated_minutes||30)<=BUFFER_LIMIT)return TOMORROW_STR;
+  // 実際の空き時間ベースで日付を決定
+  const remToday=calcDayRemaining(TODAY_STR);
+  const remTomorrow=calcDayRemaining(TOMORROW_STR);
+  if(remToday>=(task.estimated_minutes||30))return TODAY_STR;
+  if(remTomorrow>=(task.estimated_minutes||30))return TOMORROW_STR;
   return DAY_AFTER_STR;
 }
 
@@ -833,20 +842,26 @@ function calcOptimizeProposals(){
 
   function consumeSlot(date, type, min){
     const needed=min+(TYPE_BUFFER[type]||0);
-    const slotSm=(window._dayStartHour||DEFAULT_START_HOUR)*60+(window._dayStartMin||DEFAULT_START_MIN);
+    const fromNow=date===TODAY_STR;
+    // getAvailableSlots を使って統一（virtualSlots はブロック・固定タスクを除いた純粋な空き枠）
+    // ただし既にこのループで消費した分を反映するため virtualSlots を使う
+    const slots=virtualSlots[date];
+    const sm=(window._dayStartHour||DEFAULT_START_HOUR)*60+(window._dayStartMin||DEFAULT_START_MIN);
+    const now=new Date();
+    const nowMin=now.getHours()*60+now.getMinutes();
+    const startFloor=fromNow?Math.max(sm,nowMin):sm;
     const NOON=12*60, CONC=16*60;
-    let slots=virtualSlots[date];
 
-    // タイプ別優先順でスロットのインデックスを候補リストとして作る
+    // タイプ別優先順でインデックスリストを作る
     let candidateIdxs=[];
     if(type==='judgment'||type==='unknown'||type==='creative'){
-      const am=slots.map((s,i)=>({s,i})).filter(({s})=>s.start>=slotSm&&s.start<NOON).map(({i})=>i);
-      const conc=slots.map((s,i)=>({s,i})).filter(({s})=>s.start>=CONC).map(({i})=>i);
-      const pm=slots.map((s,i)=>({s,i})).filter(({s})=>s.start>=NOON&&s.start<CONC).map(({i})=>i);
+      const am=slots.map((s,i)=>({s,i})).filter(({s})=>s.start>=startFloor&&s.start<NOON).map(({i})=>i);
+      const conc=slots.map((s,i)=>({s,i})).filter(({s})=>s.start>=Math.max(startFloor,CONC)).map(({i})=>i);
+      const pm=slots.map((s,i)=>({s,i})).filter(({s})=>s.start>=Math.max(startFloor,NOON)&&s.start<CONC).map(({i})=>i);
       candidateIdxs=[...am,...conc,...pm];
     } else {
-      const daytime=slots.map((s,i)=>({s,i})).filter(({s})=>s.start>=slotSm&&s.start<CONC).map(({i})=>i);
-      const eve=slots.map((s,i)=>({s,i})).filter(({s})=>s.start>=CONC).map(({i})=>i);
+      const daytime=slots.map((s,i)=>({s,i})).filter(({s})=>s.start>=startFloor&&s.start<CONC).map(({i})=>i);
+      const eve=slots.map((s,i)=>({s,i})).filter(({s})=>s.start>=Math.max(startFloor,CONC)).map(({i})=>i);
       candidateIdxs=[...daytime,...eve];
     }
 
@@ -863,8 +878,8 @@ function calcOptimizeProposals(){
       }
     }
 
-    // フォールバック：始業時間以降の最初の空き
-    const validIdx=slots.findIndex(s=>s.start>=slotSm);
+    // フォールバック：startFloor以降の最初の空き
+    const validIdx=slots.findIndex(s=>s.start>=startFloor);
     if(validIdx>=0){
       const slot=slots[validIdx];
       const h=Math.floor(slot.start/60),m=slot.start%60;
@@ -877,11 +892,10 @@ function calcOptimizeProposals(){
     if(slots.length){
       const slot=slots[0];
       const h=Math.floor(slot.start/60),m=slot.start%60;
-      const timeStr=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
       slots.splice(0,1);
-      return timeStr;
+      return`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
     }
-    return`${String(Math.floor(slotSm/60)).padStart(2,'0')}:${String(slotSm%60).padStart(2,'0')}`;
+    return`${String(Math.floor(startFloor/60)).padStart(2,'0')}:${String(startFloor%60).padStart(2,'0')}`;
   }
 
   for(const task of scored){
@@ -1093,12 +1107,7 @@ window.showEarlyLeaveOptions=function(){
 };
 
 window.applyEarlyLeave=async function(endH){
-  window._dayEndHour=endH;
-  try{const s=JSON.parse(sessionStorage.getItem('tora_settings')||'{}');s.eh=endH;sessionStorage.setItem('tora_settings',JSON.stringify(s));}catch(e){}
-  const sh=window._dayStartHour||DEFAULT_START_HOUR;
-  const sm2=window._dayStartMin||DEFAULT_START_MIN;
-  document.getElementById('start-time-btn').textContent=`⏰ ${sh}:${String(sm2).padStart(2,'0')}〜${endH}:00`;
-  // 終業時間を超えるタスクを明日以降に移動
+  setEndHour(endH);
   const ehMin=endH*60;
   const overTasks=allTasks.filter(t=>{
     if(t.scheduled_date!==TODAY_STR||t.status==='done'||t.pinned)return false;
@@ -1785,7 +1794,7 @@ async function autoReplaceAfterBlock(date){
     const taskStart=th*60+tm,taskEnd=taskStart+(task.estimated_minutes||30);
     const hasConflict=dateBlocks.some(b=>{const[bsh,bsm]=b.start_time.split(':').map(Number);const[beh,bem]=b.end_time.split(':').map(Number);return taskStart<beh*60+bem&&taskEnd>bsh*60+bsm;});
     if(hasConflict){
-      const newTime=autoPlotTime(task.type,task.estimated_minutes||30,date,task.id);
+      const newTime=autoPlotTime(task.type,task.estimated_minutes||30,date,task.id,date===TODAY_STR);
       updates.push({id:task.id,newTime});
     }
   }
@@ -1959,17 +1968,16 @@ document.getElementById('start-save-btn').addEventListener('click',async()=>{
     window._dayStartMin=window._selectedStartM||0;
   }
   if(window._selectedEndH!==undefined){
-    window._dayEndHour=window._selectedEndH;
+    setEndHour(window._selectedEndH);
+  } else {
+    setEndHour(window._dayEndHour||DEFAULT_END_HOUR);
   }
-  const sh=window._dayStartHour||DEFAULT_START_HOUR;
-  const sm=window._dayStartMin||0;
-  const eh=window._dayEndHour||DEFAULT_END_HOUR;
-  try{sessionStorage.setItem('tora_settings',JSON.stringify({sh,sm,eh,absences:window._absences||[]}));}catch(e){}
-  document.getElementById('start-time-btn').textContent=`⏰ ${sh}:${String(sm).padStart(2,'0')}〜${eh}:00`;
+  // sessionStorage に始業時間も保存
+  try{const s=JSON.parse(sessionStorage.getItem('tora_settings')||'{}');s.sh=window._dayStartHour||DEFAULT_START_HOUR;s.sm=window._dayStartMin||0;sessionStorage.setItem('tora_settings',JSON.stringify(s));}catch(e){}
   closeModal('start-modal');
 
   // 終業時間を超えるタスクを明日以降に移動
-  const ehMin=eh*60;
+  const ehMin=(window._dayEndHour||DEFAULT_END_HOUR)*60;
   const overTasks=allTasks.filter(t=>{
     if(t.scheduled_date!==TODAY_STR||t.status==='done'||t.pinned)return false;
     if(!t.scheduled_time)return false;
