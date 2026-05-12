@@ -833,14 +833,22 @@ function calcOptimizeProposals(){
 
   function consumeSlot(date, type, min){
     const needed=min+(TYPE_BUFFER[type]||0);
+    const slotSm=(window._dayStartHour||DEFAULT_START_HOUR)*60+(window._dayStartMin||DEFAULT_START_MIN);
     const NOON=12*60, CONC=16*60;
     let slots=virtualSlots[date];
-    // タイプ別優先順
+    // タイプ別優先順（始業時間以降のスロットのみ対象）
     let candidates;
     if(type==='judgment'||type==='unknown'||type==='creative'){
-      candidates=[...slots.filter(s=>s.start<NOON),...slots.filter(s=>s.start>=CONC),...slots.filter(s=>s.start>=NOON&&s.start<CONC)];
+      candidates=[
+        ...slots.filter(s=>s.start>=slotSm&&s.start<NOON),
+        ...slots.filter(s=>s.start>=CONC),
+        ...slots.filter(s=>s.start>=NOON&&s.start<CONC)
+      ];
     } else {
-      candidates=[...slots.filter(s=>s.start>=9*60&&s.start<CONC),...slots.filter(s=>s.start>=CONC)];
+      candidates=[
+        ...slots.filter(s=>s.start>=slotSm&&s.start<CONC),
+        ...slots.filter(s=>s.start>=CONC)
+      ];
     }
     for(const slot of candidates){
       if(slot.end-slot.start>=needed){
@@ -855,9 +863,17 @@ function calcOptimizeProposals(){
         return timeStr;
       }
     }
-    // フォールバック
+    // フォールバック：始業時間以降の最初の空き
+    const validSlots=slots.filter(s=>s.start>=slotSm);
+    if(validSlots.length){
+      const h=Math.floor(validSlots[0].start/60),m=validSlots[0].start%60;
+      const timeStr=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+      validSlots[0].start+=min;
+      if(validSlots[0].start>=validSlots[0].end)slots.splice(slots.indexOf(validSlots[0]),1);
+      return timeStr;
+    }
     if(slots.length){const h=Math.floor(slots[0].start/60),m=slots[0].start%60;const timeStr=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;slots.splice(0,1);return timeStr;}
-    return'09:00';
+    return`${String(Math.floor(slotSm/60)).padStart(2,'0')}:${String(slotSm%60).padStart(2,'0')}`;
   }
 
   for(const task of scored){
@@ -942,7 +958,8 @@ window.applyProposal=async function(i){
   if(t){t.scheduled_date=p.targetDate;t.scheduled_time=p.newTime;}
   document.getElementById(`proposal-${i}`)?.remove();
   showToast(`${p.task.title}を${p.toLabel}に移動しました`);
-  renderToday();
+  renderSchedule();
+  renderRightPanel();
 };
 
 window.applyAllProposals=async function(){
@@ -954,8 +971,12 @@ window.applyAllProposals=async function(){
     const t=allTasks.find(x=>x.id===p.task.id);
     if(t){t.scheduled_date=p.targetDate;t.scheduled_time=p.newTime;}
   }));
+  window._currentProposals=[];
   showToast('最適化を適用しました 🐯');
-  renderToday();
+  // 適用後は提案エリアを閉じてスケジュールだけ再描画
+  dismissOptimize();
+  renderSchedule();
+  renderRightPanel();
 };
 
 // ============================================================
