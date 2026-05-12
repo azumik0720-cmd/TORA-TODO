@@ -85,13 +85,20 @@ kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); b
 .goal-text { font-size: 13px; color: var(--text); flex: 1; line-height: 1.4; }
 .goal-text.done { color: var(--text3); text-decoration: line-through; }
 .goal-reason { font-size: 10px; color: var(--text3); margin-top: 2px; }
-.sched-row { display: flex; gap: 12px; align-items: flex-start; padding: 4px 0; }
-.sched-time { font-family: var(--font-num); font-size: 13px; color: var(--text3); width: 44px; flex-shrink: 0; padding-top: 3px; letter-spacing: .04em; }
-.sched-line { display: flex; flex-direction: column; align-items: center; padding-top: 5px; }
-.sched-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
-.sched-dot.block-dot { background: var(--text3); }
-.sched-connector { width: 1px; background: var(--sep); flex: 1; min-height: 20px; margin-top: 3px; }
-.sched-content { flex: 1; padding-bottom: 8px; }
+.sched-wrap { position: relative; padding-left: 20px; }
+.sched-line-bar { position: absolute; left: 7px; top: 0; bottom: 0; width: 1.5px; background: var(--sep); border-radius: 1px; }
+.sched-row { display: flex; gap: 12px; align-items: flex-start; padding: 6px 0; position: relative; }
+.sched-dot { position: absolute; left: -16px; width: 10px; height: 10px; border-radius: 50%; background: var(--bg3); border: 1.5px solid var(--bg3); flex-shrink: 0; top: 12px; }
+.sched-dot.active-dot { background: #E65100; border-color: #E65100; width: 12px; height: 12px; left: -17px; top: 10px; box-shadow: 0 0 0 3px rgba(230,81,0,.15); }
+.sched-dot.block-dot { background: var(--text3); border-color: var(--text3); }
+.sched-dot.done-dot { background: var(--bg3); border-color: var(--bg3); }
+.sched-time { font-family: var(--font-num); font-size: 12px; color: var(--text3); width: 36px; flex-shrink: 0; padding-top: 2px; letter-spacing: .04em; }
+.sched-time.now-time { color: #E65100; font-weight: 700; }
+.sched-content { flex: 1; padding-bottom: 4px; }
+/* 現在時刻行 */
+.sched-now-line { display: flex; align-items: center; gap: 12px; padding: 2px 0; position: relative; }
+.sched-now-line .sched-time { color: #E65100; font-weight: 700; }
+.sched-now-label { font-size: 11px; color: #E65100; font-weight: 500; letter-spacing: .04em; }
 .task-card { background: var(--white); border: 0.5px solid var(--sep); border-radius: var(--radius); padding: 11px 13px; margin-bottom: 8px; cursor: pointer; transition: background .15s; }
 .task-card:active { background: var(--bg2); }
 .task-card.done { opacity: .45; }
@@ -559,7 +566,8 @@ function getAvailableSlots(date, excludeTaskId=null, fromNow=false){
   const WORK_END=(window._dayEndHour||DEFAULT_END_HOUR)*60;
   const now=new Date();
   const nowMin=now.getHours()*60+now.getMinutes();
-  const WORK_START=(fromNow&&date===TODAY_STR)?Math.max(sm,nowMin):sm;
+  // 始業時間を絶対下限にする（fromNowのときは現在時刻と始業時間の大きい方）
+  const WORK_START=fromNow&&date===TODAY_STR?Math.max(sm,nowMin):sm;
   const allB=[...allBlocks.filter(b=>b.date===date),...getDefaultBlocks(date)];
   // 今日の不在時間（window._absences）+ 将来登録済み不在ブロック（_is_absence）
   const absenceBlocks=[
@@ -578,14 +586,27 @@ function getAvailableSlots(date, excludeTaskId=null, fromNow=false){
 function autoPlotTime(type, estimatedMin, date, excludeTaskId=null, fromNow=false){
   const slots=getAvailableSlots(date, excludeTaskId, fromNow);
   const needed=estimatedMin+(TYPE_BUFFER[type]||0);
+  const sm=(window._dayStartHour||DEFAULT_START_HOUR)*60+(window._dayStartMin||DEFAULT_START_MIN);
   const NOON=12*60, CONC=16*60;
   let candidates;
-  if(type==='judgment'||type==='unknown'||type==='creative'){candidates=[...slots.filter(s=>s.start<NOON),...slots.filter(s=>s.start>=CONC),...slots.filter(s=>s.start>=NOON&&s.start<CONC)];}
-  else if(type==='routine'||type==='dependent'){candidates=[...slots.filter(s=>s.start>=9*60&&s.start<CONC),...slots.filter(s=>s.start>=CONC)];}
-  else{candidates=slots;}
-  for(const slot of candidates){if(slot.end-slot.start>=needed){const h=Math.floor(slot.start/60),m=slot.start%60;return`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;}}
+  if(type==='judgment'||type==='unknown'||type==='creative'){
+    candidates=[...slots.filter(s=>s.start<NOON),...slots.filter(s=>s.start>=CONC),...slots.filter(s=>s.start>=NOON&&s.start<CONC)];
+  } else if(type==='routine'||type==='dependent'){
+    candidates=[...slots.filter(s=>s.start>=sm&&s.start<CONC),...slots.filter(s=>s.start>=CONC)];
+  } else {
+    candidates=slots;
+  }
+  for(const slot of candidates){
+    if(slot.end-slot.start>=needed){
+      const h=Math.floor(slot.start/60),m=slot.start%60;
+      return`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+    }
+  }
+  // フォールバック：始業時間以降の最初の空き
+  const validSlots=slots.filter(s=>s.start>=sm);
+  if(validSlots.length){const h=Math.floor(validSlots[0].start/60),m=validSlots[0].start%60;return`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;}
   if(slots.length){const h=Math.floor(slots[0].start/60),m=slots[0].start%60;return`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;}
-  return'09:00';
+  return`${String(Math.floor(sm/60)).padStart(2,'0')}:${String(sm%60).padStart(2,'0')}`;
 }
 
 function calcUsedMinutes(date, fromNow=false){
@@ -1072,7 +1093,9 @@ function renderSchedule(){
   if(cur<we-10){const h2=Math.floor(cur/60),m2=cur%60;gaps.push({type:'gap',time:String(h2).padStart(2,'0')+':'+String(m2).padStart(2,'0'),gapMin:we-cur});}
   const items=[...baseItems,...gaps].sort((a,b)=>a.time.localeCompare(b.time));
   if(!items.length){wrap.innerHTML='<div class="empty">今日のスケジュールはまだありません</div>';return;}
-  wrap.innerHTML='';
+  // 縦線コンテナ
+  wrap.innerHTML='<div class="sched-line-bar"></div>';
+  wrap.className='sched-wrap';
 
   const now=new Date();
   const nowMin=now.getHours()*60+now.getMinutes();
@@ -1080,28 +1103,31 @@ function renderSchedule(){
   let nowLineInserted=false;
 
   items.forEach((item,i)=>{
-    // 現在時刻ラインを適切な位置に挿入
+    // 現在時刻●を適切な位置に挿入
     if(!nowLineInserted){
       const itemMin=item.time==='99:99'?9999:parseInt(item.time.split(':')[0])*60+parseInt(item.time.split(':')[1]);
       if(itemMin>nowMin){
         nowLineInserted=true;
-        const nowLine=document.createElement('div');
-        nowLine.style.cssText='display:flex;align-items:center;gap:8px;margin:2px 0;';
-        nowLine.innerHTML=`<div style="font-family:var(--font-num);font-size:11px;color:#E65100;font-weight:700;width:44px;flex-shrink:0;">${nowStr}</div><div style="flex:1;height:2px;background:#E65100;border-radius:1px;position:relative;"><div style="position:absolute;left:-3px;top:-3px;width:8px;height:8px;border-radius:50%;background:#E65100;"></div></div>`;
-        wrap.appendChild(nowLine);
+        const nowRow=document.createElement('div');
+        nowRow.className='sched-row';
+        nowRow.innerHTML=`<div class="sched-dot active-dot"></div><div class="sched-time now-time">${nowStr}</div><div class="sched-content"><div class="sched-now-label">▶ いまここ</div></div>`;
+        wrap.appendChild(nowRow);
       }
     }
 
     const row=document.createElement('div');row.className='sched-row';
     const timeStr=item.time==='99:99'?'--:--':item.time.slice(0,5),isLast=i===items.length-1;
-    if(item.type==='gap'){row.innerHTML=`<div class="sched-time" style="opacity:.4;">${timeStr}</div><div class="sched-line"><div style="width:8px;height:8px;border-radius:50%;border:1.5px dashed var(--text3);flex-shrink:0;"></div>${!isLast?'<div class="sched-connector" style="opacity:.3;"></div>':''}</div><div class="sched-content"><div style="font-size:11px;color:var(--text3);padding:6px 0;">空き ${item.gapMin}min</div></div>`;wrap.appendChild(row);return;}
+    if(item.type==='gap'){
+      row.innerHTML=`<div class="sched-dot" style="background:transparent;border-color:transparent;"></div><div class="sched-time" style="opacity:.4;">${timeStr}</div><div class="sched-content"><div style="font-size:11px;color:var(--text3);padding:4px 0;">空き ${item.gapMin}min</div></div>`;
+      wrap.appendChild(row);return;
+    }
     if(item.type==='block'){
       const b=item.data,isDef=b._default||false,isAbsence=b._absence||false;
       const blockStyle=isAbsence?'background:#FFF3E0;border-color:#FFCC80;':isDef?'opacity:.6;border-style:dashed;':'';
       const blockLabel=isAbsence?b.title:isDef?'自動':'固定';
       const badgeStyle=isAbsence?'background:#FFE0B2;color:#E65100;':'';
       const editBtn=(!isDef&&!isAbsence&&b.id)?`<button onclick="openBlockModal('${b.id}')" style="font-size:11px;color:var(--accent);background:none;border:0.5px solid var(--accent);border-radius:5px;padding:2px 8px;cursor:pointer;font-family:var(--font);">編集</button>`:'';
-      row.innerHTML=`<div class="sched-time" style="${isDef&&!isAbsence?'opacity:.5':''}">${timeStr}<div style="font-size:10px;color:var(--text3);margin-top:1px;">〜${b.end_time.slice(0,5)}</div></div><div class="sched-line"><div class="sched-dot block-dot" style="${isDef&&!isAbsence?'opacity:.4':''}"></div>${!isLast?'<div class="sched-connector"></div>':''}</div><div class="sched-content"><div class="task-card block-card" style="${blockStyle}"><div class="task-card-top"><div class="task-card-left"><div class="task-type-badge type-block" style="${badgeStyle}">${blockLabel}</div><span class="task-title">${b.title}</span></div><div style="display:flex;align-items:center;gap:8px;"><span class="task-time">${b.start_time.slice(0,5)}〜${b.end_time.slice(0,5)}</span>${editBtn}</div></div></div></div>`;
+      row.innerHTML=`<div class="sched-dot block-dot" style="${isDef&&!isAbsence?'opacity:.4':''}"></div><div class="sched-time" style="${isDef&&!isAbsence?'opacity:.5':''}">${timeStr}</div><div class="sched-content"><div class="task-card block-card" style="${blockStyle}"><div class="task-card-top"><div class="task-card-left"><div class="task-type-badge type-block" style="${badgeStyle}">${blockLabel}</div><span class="task-title">${b.title}</span></div><div style="display:flex;align-items:center;gap:8px;"><span class="task-time">${b.start_time.slice(0,5)}〜${b.end_time.slice(0,5)}</span>${editBtn}</div></div></div></div>`;
     } else {
       const t=item.data,subs=allSubtasks.filter(s=>s.task_id===t.id),reason=buildReason(t);
       const isDone=t.status==='done';
@@ -1109,10 +1135,10 @@ function renderSchedule(){
       const doneCount=subs.filter(s=>s.status==='done').length;
       const pinnedClass=t.pinned?'pinned':'';
       if(isDone){
-        row.innerHTML=`<div class="sched-time" style="opacity:.4;">${timeStr}<div style="font-size:10px;color:var(--text3);margin-top:1px;">${endStr}</div></div><div class="sched-line"><div class="sched-dot" style="background:var(--text3);opacity:.4;"></div>${!isLast?'<div class="sched-connector"></div>':''}</div><div class="sched-content"><div class="task-card" style="opacity:.4;cursor:pointer;" data-id="${t.id}"><div class="task-card-top"><div class="task-card-left"><div class="task-type-badge type-${t.type}">${typeLabel(t.type)}</div><span class="task-title" style="text-decoration:line-through;color:var(--text3);">${t.title}</span></div><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" fill="var(--accent)"/><polyline points="4,7 6,9 10,5" stroke="white" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg></div></div></div>`;
+        row.innerHTML=`<div class="sched-dot done-dot"></div><div class="sched-time" style="opacity:.4;">${timeStr}</div><div class="sched-content"><div class="task-card" style="opacity:.4;cursor:pointer;" data-id="${t.id}"><div class="task-card-top"><div class="task-card-left"><div class="task-type-badge type-${t.type}">${typeLabel(t.type)}</div><span class="task-title" style="text-decoration:line-through;color:var(--text3);">${t.title}</span></div><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" fill="var(--accent)"/><polyline points="4,7 6,9 10,5" stroke="white" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg></div></div></div>`;
         row.querySelector('.task-card').addEventListener('click',()=>openDetail(t.id));
       } else {
-        row.innerHTML=`<div class="sched-time">${timeStr}<div style="font-size:10px;color:var(--text3);margin-top:1px;">${endStr}</div></div><div class="sched-line"><div class="sched-dot"></div>${!isLast?'<div class="sched-connector"></div>':''}</div><div class="sched-content"><div class="task-card ${pinnedClass}" data-id="${t.id}"><div class="task-card-top"><div class="task-card-left"><div class="task-type-badge type-${t.type}">${typeLabel(t.type)}</div><span class="task-title">${t.title}</span></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">${subs.length?`<span style="font-size:10px;color:var(--text3);">${doneCount}/${subs.length}</span>`:''}<span class="task-time">${t.estimated_minutes}min</span><button class="pin-switch ${t.pinned?'on':''}" data-id="${t.id}"></button>${subs.length?`<div class="sub-toggle" data-tid="${t.id}" style="width:18px;height:18px;border-radius:50%;background:var(--bg2);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path class="tarr" d="M2 3.5L5 6.5L8 3.5" stroke="var(--text3)" stroke-width="1.5" stroke-linecap="round"/></svg></div>`:''}</div></div><div class="subtask-list" id="sl-${t.id}" style="display:none;">${subs.map(s=>`<div class="subtask-item"><div class="subtask-check ${s.status==='done'?'done':''}" data-sub-id="${s.id}">${s.status==='done'?'<svg width="7" height="7" viewBox="0 0 7 7"><polyline points="1,3.5 2.8,5.5 6,1.5" stroke="white" stroke-width="1.5" fill="none"/></svg>':''}</div><span class="subtask-title ${s.status==='done'?'done':''}">${s.title}</span><span class="subtask-min">${s.estimated_minutes}min</span></div>`).join('')}</div>${reason?`<div class="task-reason">${reason}</div>`:''}</div></div>`;
+        row.innerHTML=`<div class="sched-dot"></div><div class="sched-time">${timeStr}</div><div class="sched-content"><div class="task-card ${pinnedClass}" data-id="${t.id}"><div class="task-card-top"><div class="task-card-left"><div class="task-type-badge type-${t.type}">${typeLabel(t.type)}</div><span class="task-title">${t.title}</span></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">${subs.length?`<span style="font-size:10px;color:var(--text3);">${doneCount}/${subs.length}</span>`:''}<span class="task-time">${t.estimated_minutes}min</span><button class="pin-switch ${t.pinned?'on':''}" data-id="${t.id}"></button>${subs.length?`<div class="sub-toggle" data-tid="${t.id}" style="width:18px;height:18px;border-radius:50%;background:var(--bg2);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path class="tarr" d="M2 3.5L5 6.5L8 3.5" stroke="var(--text3)" stroke-width="1.5" stroke-linecap="round"/></svg></div>`:''}</div></div><div class="subtask-list" id="sl-${t.id}" style="display:none;">${subs.map(s=>`<div class="subtask-item"><div class="subtask-check ${s.status==='done'?'done':''}" data-sub-id="${s.id}">${s.status==='done'?'<svg width="7" height="7" viewBox="0 0 7 7"><polyline points="1,3.5 2.8,5.5 6,1.5" stroke="white" stroke-width="1.5" fill="none"/></svg>':''}</div><span class="subtask-title ${s.status==='done'?'done':''}">${s.title}</span><span class="subtask-min">${s.estimated_minutes}min</span></div>`).join('')}</div>${reason?`<div class="task-reason">${reason}</div>`:''}</div></div>`;
         row.querySelector('.task-card').addEventListener('click',e=>{if(e.target.closest('.sub-toggle')||e.target.closest('.subtask-check')||e.target.closest('.pin-switch'))return;openDetail(t.id);});
         row.querySelector('.pin-switch')?.addEventListener('click',e=>{e.stopPropagation();togglePin(t.id);});
         const tog=row.querySelector('.sub-toggle');
@@ -1134,7 +1160,15 @@ function checkConflicts(){
   if(!conflicts.length){area.innerHTML='';return;}
   area.innerHTML=conflicts.map(({task,block})=>`<div class="conflict-banner"><div class="conflict-banner-text">「${task.title}」が「${block.title}」(${block.start_time.slice(0,5)}〜${block.end_time.slice(0,5)})と重なっています</div><div class="conflict-banner-actions"><button class="btn-conflict btn-conflict-move" onclick="moveConflictTask('${task.id}')">空き枠に移動</button><button class="btn-conflict btn-conflict-keep" onclick="dismissConflict(this)">このままにする</button></div></div>`).join('');
 }
-window.moveConflictTask=async function(taskId){const task=allTasks.find(t=>t.id===taskId);if(!task)return;const newTime=autoPlotTime(task.type,task.estimated_minutes,TODAY_STR,taskId);await db.from('tasks').update({scheduled_time:newTime}).eq('id',taskId);task.scheduled_time=newTime;renderToday();showToast(`${task.title}を${newTime}に移動しました`);};
+window.moveConflictTask=async function(taskId){
+  const task=allTasks.find(t=>t.id===taskId);if(!task)return;
+  // 始業時間以降・現在時刻以降で空き枠を探す
+  const newTime=autoPlotTime(task.type,task.estimated_minutes||30,TODAY_STR,taskId,true);
+  await db.from('tasks').update({scheduled_time:newTime}).eq('id',taskId);
+  task.scheduled_time=newTime;
+  showToast(`${task.title}を${newTime}に移動しました`);
+  renderToday();
+};
 window.dismissConflict=function(btn){btn.closest('.conflict-banner').remove();};
 
 // ============================================================
