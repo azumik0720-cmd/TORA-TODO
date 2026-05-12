@@ -305,6 +305,13 @@ kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); b
           </div>
           <div class="add-step" id="step-plot" style="display:none;">
             <div id="plot-info" style="margin-bottom:14px;"></div>
+            <div class="add-step-title" style="margin-bottom:6px;">繰り返し（任意）</div>
+            <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;">
+              <button class="repeat-opt selected" data-repeat="none" style="height:32px;padding:0 12px;border:0.5px solid var(--accent);border-radius:var(--radius-sm);background:var(--accent-light);font-size:12px;font-weight:500;color:var(--accent);font-family:var(--font);cursor:pointer;">なし</button>
+              <button class="repeat-opt" data-repeat="daily" style="height:32px;padding:0 12px;border:0.5px solid var(--sep);border-radius:var(--radius-sm);background:var(--white);font-size:12px;color:var(--text);font-family:var(--font);cursor:pointer;">毎日</button>
+              <button class="repeat-opt" data-repeat="weekly" style="height:32px;padding:0 12px;border:0.5px solid var(--sep);border-radius:var(--radius-sm);background:var(--white);font-size:12px;color:var(--text);font-family:var(--font);cursor:pointer;">毎週</button>
+              <button class="repeat-opt" data-repeat="biweekly" style="height:32px;padding:0 12px;border:0.5px solid var(--sep);border-radius:var(--radius-sm);background:var(--white);font-size:12px;color:var(--text);font-family:var(--font);cursor:pointer;">隔週</button>
+            </div>
             <div class="add-step-title" style="margin-bottom:6px;">メモ・URL（任意）</div>
             <textarea id="memo-input" placeholder="関連URLや補足情報を入力" style="width:100%;min-height:72px;border:0.5px solid var(--bg3);border-radius:var(--radius-sm);background:var(--white);padding:10px 12px;font-size:13px;font-family:var(--font);color:var(--text);outline:none;resize:vertical;line-height:1.5;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--bg3)'"></textarea>
             <button class="btn-ok" id="plot-btn" style="margin-top:12px;">スケジュールに追加 🐯</button>
@@ -315,7 +322,7 @@ kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); b
       <!-- 一覧 -->
       <div class="page" id="page-list">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;margin-bottom:10px;">
-          <div class="sec-label" style="margin:0;">すべてのタスク</div>
+          <div class="sec-label" style="margin:0;">タスク一覧</div>
           <button class="btn-sm" id="review-btn">週次レビュー</button>
         </div>
         <div class="chip-group" id="filter-chips">
@@ -325,6 +332,7 @@ kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); b
           <div class="chip" data-filter="unknown">初めて</div>
           <div class="chip" data-filter="judgment">判断</div>
           <div class="chip" data-filter="dependent">他者依存</div>
+          <div class="chip" data-filter="creative">制作</div>
         </div>
         <div id="task-list"></div>
       </div>
@@ -515,7 +523,7 @@ const PATTERNS={
   post:{name:'投稿・コンテンツ制作系',types:['creative'],baseMin:45,countable:true,subtasks:[{title:'素材・キャプションを準備する',minutes:10},{title:'制作・仕上げる',minutes:30},{title:'投稿・スケジュール設定する',minutes:5}]}
 };
 
-let addState={type:null,patternKey:null,count:1,subtasks:[],totalMin:0,scheduledTime:null,plotDate:TODAY_STR};
+let addState={type:null,patternKey:null,count:1,subtasks:[],totalMin:0,scheduledTime:null,plotDate:TODAY_STR,repeat:'none'};
 
 // ============================================================
 // ユーティリティ
@@ -529,22 +537,21 @@ function showToast(msg){const t=document.getElementById('toast');t.textContent=m
 function openModal(id){document.getElementById(id).classList.add('open');}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 
+function isBlockActiveOnDate(b, targetDate){
+  if(b.date===targetDate)return true;
+  if(!b.repeat||b.repeat==='none')return false;
+  const base=new Date(b.date+'T00:00:00');
+  const target=new Date(targetDate+'T00:00:00');
+  if(target<base)return false;
+  const diffDays=Math.round((target-base)/(1000*60*60*24));
+  if(b.repeat==='weekly')return diffDays%7===0;
+  if(b.repeat==='biweekly')return diffDays%14===0;
+  return false;
+}
+
 function getDefaultBlocks(date){
   const sm=(window._dayStartHour||DEFAULT_START_HOUR)*60+(window._dayStartMin||DEFAULT_START_MIN);
   const WORK_END=(window._dayEndHour||DEFAULT_END_HOUR)*60;
-
-  // 繰り返しブロックも含めてその日に有効なブロックを取得
-  function isBlockActiveOnDate(b, targetDate){
-    if(b.date===targetDate)return true;
-    if(!b.repeat||b.repeat==='none')return false;
-    const base=new Date(b.date+'T00:00:00');
-    const target=new Date(targetDate+'T00:00:00');
-    if(target<base)return false;
-    const diffDays=Math.round((target-base)/(1000*60*60*24));
-    if(b.repeat==='weekly')return diffDays%7===0;
-    if(b.repeat==='biweekly')return diffDays%14===0;
-    return false;
-  }
 
   const fixedBlocks=allBlocks.filter(b=>!b._is_absence&&isBlockActiveOnDate(b,date)).map(b=>{
     const[sh,bsm]=b.start_time.split(':').map(Number);
@@ -591,19 +598,7 @@ function getAvailableSlots(date, excludeTaskId=null, fromNow=false){
   const nowMin=now.getHours()*60+now.getMinutes();
   const WORK_START=fromNow&&date===TODAY_STR?Math.max(sm,nowMin):sm;
 
-  // 繰り返しブロックを対象日に展開する
-  function isBlockActiveOnDate(b, targetDate){
-    if(b.date===targetDate)return true;
-    if(!b.repeat||b.repeat==='none')return false;
-    const base=new Date(b.date+'T00:00:00');
-    const target=new Date(targetDate+'T00:00:00');
-    if(target<base)return false;
-    const diffDays=Math.round((target-base)/(1000*60*60*24));
-    if(b.repeat==='weekly')return diffDays%7===0;
-    if(b.repeat==='biweekly')return diffDays%14===0;
-    return false;
-  }
-
+  // 繰り返しブロックも含めて取得（グローバルの isBlockActiveOnDate を使用）
   const allB=[
     ...allBlocks.filter(b=>!b._is_absence&&isBlockActiveOnDate(b,date)),
     ...getDefaultBlocks(date)
@@ -781,41 +776,33 @@ function calcDayRemaining(date){
   return Math.max(0,totalMin-blockMin-pinnedMin);
 }
 
-// 今日の終了時間を計算（現在時刻以降の固定ブロック＋指定タスク群）
-function calcFinishTime(tasks){
+// 終了時間を計算（任意の日付対応。今日はnowMinから、他の日は始業時間から）
+function calcFinishTime(tasks, targetDate=TODAY_STR){
   const now=new Date();
   const nowMin=now.getHours()*60+now.getMinutes();
+  const sm=(window._dayStartHour||DEFAULT_START_HOUR)*60+(window._dayStartMin||DEFAULT_START_MIN);
+  const startMin=targetDate===TODAY_STR?nowMin:sm;
   const WORK_END_MAX=24*60;
 
-  // 現在時刻以降の固定ブロック（自動ブロック含む）
-  const allTodayB=[...allBlocks.filter(b=>b.date===TODAY_STR),...getDefaultBlocks(TODAY_STR)];
-  const blockRanges=allTodayB.map(b=>{
+  // 対象日の固定ブロック（繰り返し含む）
+  const allDayB=[...allBlocks.filter(b=>!b._is_absence&&isBlockActiveOnDate(b,targetDate)),...getDefaultBlocks(targetDate)];
+  const blockRanges=allDayB.map(b=>{
     const[sh,bsm]=b.start_time.split(':').map(Number);
     const[eh,em]=b.end_time.split(':').map(Number);
     return{start:sh*60+bsm,end:eh*60+em};
-  }).filter(r=>r.end>nowMin).sort((a,b)=>a.start-b.start);
+  }).filter(r=>r.end>startMin).sort((a,b)=>a.start-b.start);
 
-  // タスクを順番に空き枠に詰めていき、終了時間を求める
-  let cursor=nowMin;
+  let cursor=startMin;
   const taskMins=tasks.map(t=>t.estimated_minutes||30);
   for(const min of taskMins){
-    // ブロックを避けながらcursorを進める
     let placed=false;
     while(!placed){
-      // cursorがブロックに被っていたら抜ける
       const block=blockRanges.find(b=>b.start<=cursor&&b.end>cursor);
       if(block)cursor=block.end;
-      // 次のブロックまでの空き
       const nextBlock=blockRanges.find(b=>b.start>cursor);
       const spaceEnd=nextBlock?nextBlock.start:WORK_END_MAX;
-      if(spaceEnd-cursor>=min){
-        cursor+=min;
-        placed=true;
-      } else {
-        // この空き枠には入らない→次のブロック後へ
-        if(nextBlock)cursor=nextBlock.end;
-        else{cursor+=min;placed=true;}// 超過してでも配置
-      }
+      if(spaceEnd-cursor>=min){cursor+=min;placed=true;}
+      else{if(nextBlock)cursor=nextBlock.end;else{cursor+=min;placed=true;}}
     }
   }
   return cursor;
@@ -1123,6 +1110,19 @@ async function loadAll(){
   allTasks=(tasks||[]).map(t=>({...t,scheduled_date:normalizeDate(t.scheduled_date)}));
   allSubtasks=subtasks||[];
   allBlocks=(blocks||[]).map(b=>({...b,_is_absence:b._is_absence||false}));
+
+  // 繰り返しタスクの繰り越し処理：未完了かつ過去日付のものを今日以降に移動
+  const repeatOverdue=allTasks.filter(t=>
+    t.status==='pending'&&
+    t.repeat&&t.repeat!=='none'&&
+    t.scheduled_date<TODAY_STR
+  );
+  for(const t of repeatOverdue){
+    const newTime=autoPlotTime(t.type,t.estimated_minutes||30,TODAY_STR,null,true);
+    await db.from('tasks').update({scheduled_date:TODAY_STR,scheduled_time:newTime}).eq('id',t.id);
+    t.scheduled_date=TODAY_STR;t.scheduled_time=newTime;
+  }
+
   renderToday();renderRightPanel();
 }
 
@@ -1353,7 +1353,7 @@ function renderDeadlineCalendar(){
 // ADD PAGE
 // ============================================================
 function initAddPage(){
-  addState={type:null,patternKey:null,count:1,subtasks:[],totalMin:0,scheduledTime:null,plotDate:TODAY_STR};
+  addState={type:null,patternKey:null,count:1,subtasks:[],totalMin:0,scheduledTime:null,plotDate:TODAY_STR,repeat:'none'};
   const ne=document.getElementById('task-name-input');if(ne)ne.value='';
   const me=document.getElementById('memo-input');if(me)me.value='';
   selectedDeadline=null;
@@ -1362,6 +1362,14 @@ function initAddPage(){
   if(sel){sel.textContent='未設定';sel.style.color='var(--text3)';}
   renderDeadlineCalendar();
   document.querySelectorAll('.type-opt').forEach(o=>{o.style.borderColor='var(--sep)';o.style.background='var(--white)';});
+  // 繰り返しボタンをリセット
+  document.querySelectorAll('.repeat-opt').forEach(b=>{
+    const isNone=b.dataset.repeat==='none';
+    b.style.borderColor=isNone?'var(--accent)':'var(--sep)';
+    b.style.background=isNone?'var(--accent-light)':'var(--white)';
+    b.style.fontWeight=isNone?'500':'';
+    b.style.color=isNone?'var(--accent)':'var(--text)';
+  });
   ['step-pattern','step-count','step-preview','step-plot'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
 }
 
@@ -1387,13 +1395,23 @@ document.getElementById('deadline-clear-btn').addEventListener('click',()=>{
   if(addState.patternKey)updatePlotInfo();
 });
 
+document.querySelectorAll('.repeat-opt').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.repeat-opt').forEach(b=>{
+      b.style.borderColor='var(--sep)';b.style.background='var(--white)';b.style.fontWeight='';b.style.color='var(--text)';
+    });
+    btn.style.borderColor='var(--accent)';btn.style.background='var(--accent-light)';btn.style.fontWeight='500';btn.style.color='var(--accent)';
+    addState.repeat=btn.dataset.repeat;
+  });
+});
+
 document.getElementById('plot-btn').addEventListener('click',async()=>{
   const title=document.getElementById('task-name-input').value.trim();
   if(!title){showToast('タスク名を入力してください');return;}
   if(!addState.type){showToast('タイプを選択してください');return;}
   if(!addState.patternKey){showToast('作業パターンを選択してください');return;}
   const memo=document.getElementById('memo-input').value.trim()||null;
-  await saveTask({title,type:addState.type,estimated_minutes:addState.totalMin,deadline:selectedDeadline,memo,subtasks:addState.subtasks});
+  await saveTask({title,type:addState.type,estimated_minutes:addState.totalMin,deadline:selectedDeadline,memo,subtasks:addState.subtasks,repeat:addState.repeat||'none'});
 });
 
 function renderPatternList(){
@@ -1463,7 +1481,9 @@ async function saveTask(data){
     deadline:data.deadline||null,
     scheduled_date:targetDate,
     scheduled_time:plotTime,
-    pinned:false
+    pinned:false,
+    repeat:data.repeat||'none',
+    repeat_origin:data.repeat&&data.repeat!=='none'?targetDate:null
   };
   if(data.memo)insertData.memo=data.memo;
   const{data:task,error}=await db.from('tasks').insert(insertData).select().single();
@@ -1487,7 +1507,77 @@ async function toggleTask(taskId){
   const task=allTasks.find(t=>t.id===taskId);if(!task)return;
   const ns=task.status==='done'?'pending':'done';
   await db.from('tasks').update({status:ns}).eq('id',taskId);
-  task.status=ns;renderToday();if(ns==='done')showToast('完了！🐯');
+  task.status=ns;
+
+  // 繰り返しタスクの場合、完了時に次を生成
+  if(ns==='done'&&task.repeat&&task.repeat!=='none'){
+    await generateNextRepeatTask(task);
+  }
+
+  renderToday();if(ns==='done')showToast('完了！🐯');
+}
+
+// 次の繰り返しタスクを生成する
+async function generateNextRepeatTask(completedTask){
+  // 既に次の繰り返し（未完了）が存在するなら生成しない
+  const existing=allTasks.find(t=>
+    t.id!==completedTask.id&&
+    t.status==='pending'&&
+    t.repeat===completedTask.repeat&&
+    t.title===completedTask.title
+  );
+  if(existing)return;
+
+  // 次の日付を計算
+  const origin=new Date((completedTask.repeat_origin||completedTask.scheduled_date)+'T00:00:00');
+  const base=new Date(completedTask.scheduled_date+'T00:00:00');
+  let nextDate=new Date(base);
+
+  if(completedTask.repeat==='daily'){
+    nextDate.setDate(nextDate.getDate()+1);
+  } else if(completedTask.repeat==='weekly'){
+    nextDate.setDate(nextDate.getDate()+7);
+  } else if(completedTask.repeat==='biweekly'){
+    nextDate.setDate(nextDate.getDate()+14);
+  }
+
+  // 過去になってしまう場合は今日以降の最初の正しい日に
+  while(nextDate<TODAY){
+    if(completedTask.repeat==='daily'){nextDate.setDate(nextDate.getDate()+1);}
+    else if(completedTask.repeat==='weekly'){nextDate.setDate(nextDate.getDate()+7);}
+    else if(completedTask.repeat==='biweekly'){nextDate.setDate(nextDate.getDate()+14);}
+  }
+
+  const nextDateStr=localDateStr(nextDate);
+  const fromNow=nextDateStr===TODAY_STR;
+  const plotTime=autoPlotTime(completedTask.type,completedTask.estimated_minutes||30,nextDateStr,null,fromNow);
+
+  const{data:newTask,error}=await db.from('tasks').insert({
+    user_id:currentUser.id,
+    title:completedTask.title,
+    type:completedTask.type,
+    status:'pending',
+    estimated_minutes:completedTask.estimated_minutes||30,
+    deadline:null,
+    scheduled_date:nextDateStr,
+    scheduled_time:plotTime,
+    pinned:false,
+    repeat:completedTask.repeat,
+    repeat_origin:completedTask.repeat_origin||completedTask.scheduled_date,
+    memo:completedTask.memo||null
+  }).select().single();
+
+  if(newTask){
+    newTask.scheduled_date=normalizeDate(newTask.scheduled_date);
+    allTasks.unshift(newTask);
+    // 元タスクのサブタスクをコピー
+    const origSubs=allSubtasks.filter(s=>s.task_id===completedTask.id);
+    if(origSubs.length){
+      const newSubs=origSubs.map((s,i)=>({task_id:newTask.id,title:s.title,estimated_minutes:s.estimated_minutes||30,status:'pending',sort_order:i}));
+      const{data:saved}=await db.from('subtasks').insert(newSubs).select();
+      if(saved)allSubtasks.push(...saved);
+    }
+  }
 }
 async function toggleSubtask(subId){
   const sub=allSubtasks.find(s=>s.id===subId);if(!sub)return;
@@ -1515,6 +1605,7 @@ function openDetail(taskId){
       <div style="margin-bottom:8px;"><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px;">タスク名</label><input id="edit-title" class="wiz-input" value="${task.title.replace(/"/g,'&quot;')}" style="height:40px;font-size:13px;"></div>
       <div style="margin-bottom:8px;"><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px;">所要時間 (min)</label><input id="edit-minutes" type="number" min="5" max="480" step="5" class="wiz-input" value="${task.estimated_minutes}" style="height:40px;font-size:13px;"></div>
       <div style="margin-bottom:8px;"><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px;">期限</label><input id="edit-deadline" type="date" class="wiz-input" value="${task.deadline||''}" style="height:40px;font-size:13px;"></div>
+      <div style="margin-bottom:8px;"><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px;">繰り返し</label><select id="edit-repeat" class="wiz-input" style="height:40px;font-size:13px;"><option value="none"${(!task.repeat||task.repeat==='none')?' selected':''}>なし</option><option value="daily"${task.repeat==='daily'?' selected':''}>毎日</option><option value="weekly"${task.repeat==='weekly'?' selected':''}>毎週</option><option value="biweekly"${task.repeat==='biweekly'?' selected':''}>隔週</option></select></div>
       <div style="margin-bottom:10px;"><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px;">メモ・URL</label><textarea id="edit-memo" style="width:100%;min-height:60px;border:0.5px solid var(--bg3);border-radius:var(--radius-sm);background:var(--white);padding:8px 10px;font-size:12px;font-family:var(--font);color:var(--text);outline:none;resize:vertical;">${task.memo||''}</textarea></div>
       <div style="display:flex;gap:8px;"><button id="edit-save-btn" style="flex:1;height:36px;background:var(--accent);color:white;border:none;border-radius:var(--radius-sm);font-size:13px;font-family:var(--font);cursor:pointer;">保存</button><button id="edit-cancel-btn" style="height:36px;padding:0 12px;background:var(--white);border:0.5px solid var(--sep);border-radius:var(--radius-sm);font-size:13px;font-family:var(--font);color:var(--text3);cursor:pointer;">キャンセル</button></div>
     </div>
@@ -1524,7 +1615,7 @@ function openDetail(taskId){
       <div><div style="font-size:9px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px;">日付</div><div style="font-size:13px;color:var(--text2);margin-top:6px;">${dateLabel}</div></div>
       ${task.deadline?`<div><div style="font-size:9px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px;">期限</div><div style="font-size:13px;color:var(--accent);margin-top:6px;">${task.deadline}</div></div>`:''}
     </div>
-    <div style="font-size:11px;color:var(--text3);background:var(--bg2);border-radius:6px;padding:8px 10px;margin-bottom:14px;">🐯 ${reason||'ルーティンタスク'}</div>
+    <div style="font-size:11px;color:var(--text3);background:var(--bg2);border-radius:6px;padding:8px 10px;margin-bottom:14px;">🐯 ${reason||'ルーティンタスク'}${task.repeat&&task.repeat!=='none'?` · 🔁 ${{daily:'毎日',weekly:'毎週',biweekly:'隔週'}[task.repeat]||''}`:''}</div>
     ${task.memo?`<div style="margin-bottom:14px;background:var(--bg2);border-radius:var(--radius-sm);padding:10px 12px;font-size:13px;color:var(--text2);line-height:1.6;word-break:break-all;">${task.memo.replace(/https?:\/\/[^\s]+/g,url=>`<a href="${url}" target="_blank" style="color:var(--accent);text-decoration:none;">${url}</a>`)}</div>`:''}
     <!-- 固定スイッチ -->
     <div style="display:flex;align-items:center;justify-content:space-between;background:var(--white);border:0.5px solid var(--sep);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:14px;">
@@ -1555,10 +1646,11 @@ function openDetail(taskId){
     const newMin=parseInt(document.getElementById('edit-minutes').value)||30;
     const newDeadline=document.getElementById('edit-deadline').value||null;
     const newMemo=document.getElementById('edit-memo').value.trim()||null;
+    const newRepeat=document.getElementById('edit-repeat').value||'none';
     if(!newTitle){showToast('タスク名を入力してください');return;}
-    await db.from('tasks').update({title:newTitle,estimated_minutes:newMin,deadline:newDeadline,memo:newMemo}).eq('id',taskId);
+    await db.from('tasks').update({title:newTitle,estimated_minutes:newMin,deadline:newDeadline,memo:newMemo,repeat:newRepeat}).eq('id',taskId);
     const t=allTasks.find(x=>x.id===taskId);
-    if(t){t.title=newTitle;t.estimated_minutes=newMin;t.deadline=newDeadline;t.memo=newMemo;}
+    if(t){t.title=newTitle;t.estimated_minutes=newMin;t.deadline=newDeadline;t.memo=newMemo;t.repeat=newRepeat;}
     closeModal('detail-modal');
     showToast('タスクを更新しました');
     setTimeout(()=>{renderToday();renderTaskList();},350);
@@ -1590,19 +1682,92 @@ function openDetail(taskId){
 // ============================================================
 function renderTaskList(){
   const list=document.getElementById('task-list');
-  let tasks=[...allTasks];
-  if(currentFilter==='pending')tasks=tasks.filter(t=>t.status==='pending');
-  else if(['routine','unknown','judgment','dependent'].includes(currentFilter))tasks=tasks.filter(t=>t.type===currentFilter);
-  if(!tasks.length){list.innerHTML='<div class="empty">タスクがありません</div>';return;}
-  list.innerHTML='';
-  tasks.forEach(t=>{
-    const subs=allSubtasks.filter(s=>s.task_id===t.id);
-    const dateLabel=t.scheduled_date===TODAY_STR?'今日':t.scheduled_date===TOMORROW_STR?'明日':t.scheduled_date===DAY_AFTER_STR?'明後日':t.scheduled_date||'';
-    const card=document.createElement('div');
-    card.className=`task-card${t.status==='done'?' done':''}${t.pinned?' pinned':''}`;
-    card.innerHTML=`<div class="task-card-top"><div class="task-card-left"><div class="task-type-badge type-${t.type}">${typeLabel(t.type)}</div><span class="task-title">${t.title}</span></div><span class="task-time">${t.estimated_minutes}min</span></div><div class="task-card-bottom">${dateLabel?`<span class="task-min">${dateLabel}</span>`:''} ${t.deadline?`<span class="task-deadline">期限 ${t.deadline}</span>`:''} ${subs.length?`<span class="task-min">サブ ${subs.filter(s=>s.status==='done').length}/${subs.length}</span>`:''} ${t.pinned?'<span style="font-size:10px;color:var(--accent);">📌固定</span>':''}</div>`;
-    card.addEventListener('click',()=>openDetail(t.id));list.appendChild(card);
+
+  // フィルター適用
+  let allFiltered=[...allTasks];
+  if(currentFilter==='pending')allFiltered=allFiltered.filter(t=>t.status==='pending');
+  else if(['routine','unknown','judgment','dependent','creative'].includes(currentFilter))allFiltered=allFiltered.filter(t=>t.type===currentFilter);
+
+  if(!allFiltered.length){list.innerHTML='<div class="empty">タスクがありません</div>';return;}
+
+  // 日付ブロック定義
+  const DAY3=new Date(TODAY);DAY3.setDate(TODAY.getDate()+3);
+  const DAY3_STR=localDateStr(DAY3);
+  const blocks=[
+    {key:'tomorrow', label:`明日 ${fmt(TOMORROW)}`, dateStr:TOMORROW_STR, tasks:[]},
+    {key:'dayafter', label:`明後日 ${fmt(DAY_AFTER)}`, dateStr:DAY_AFTER_STR, tasks:[]},
+    {key:'later', label:'明明後日以降', dateStr:null, tasks:[]}
+  ];
+
+  allFiltered.forEach(t=>{
+    const d=t.scheduled_date;
+    if(d===TOMORROW_STR)blocks[0].tasks.push(t);
+    else if(d===DAY_AFTER_STR)blocks[1].tasks.push(t);
+    else if(!d||d<TOMORROW_STR){/* 今日以前は表示しない（今日タブで見る）*/}
+    else blocks[2].tasks.push(t);
   });
+
+  // フィルターが「すべて」「未完了」のときは日付ブロック表示
+  // タイプフィルター時はシンプルリスト表示
+  const isDateView=(currentFilter==='all'||currentFilter==='pending');
+
+  if(!isDateView){
+    // タイプフィルター時：シンプルリスト
+    list.innerHTML='';
+    allFiltered.sort((a,b)=>(a.scheduled_date||'9999').localeCompare(b.scheduled_date||'9999')||(a.scheduled_time||'99:99').localeCompare(b.scheduled_time||'99:99'))
+    .forEach(t=>{
+      const subs=allSubtasks.filter(s=>s.task_id===t.id);
+      const d=t.scheduled_date;
+      const dateLabel=d===TODAY_STR?'今日':d===TOMORROW_STR?'明日':d===DAY_AFTER_STR?'明後日':d?d.slice(5).replace('-','/'):'';
+      const card=document.createElement('div');
+      card.className=`task-card${t.status==='done'?' done':''}${t.pinned?' pinned':''}`;
+      card.innerHTML=`<div class="task-card-top"><div class="task-card-left"><div class="task-type-badge type-${t.type}">${typeLabel(t.type)}</div><span class="task-title">${t.title}</span></div><span class="task-time">${t.estimated_minutes}min</span></div><div class="task-card-bottom">${dateLabel?`<span class="task-min">${dateLabel}</span>`:''} ${t.deadline?`<span class="task-deadline">期限 ${t.deadline.slice(5).replace('-','/')}</span>`:''} ${subs.length?`<span class="task-min">サブ ${subs.filter(s=>s.status==='done').length}/${subs.length}</span>`:''} ${t.repeat&&t.repeat!=='none'?`<span style="font-size:10px;color:var(--blue);">🔁${{daily:'毎日',weekly:'毎週',biweekly:'隔週'}[t.repeat]}</span>`:''} ${t.pinned?'<span style="font-size:10px;color:var(--accent);">📌</span>':''}</div>`;
+      card.addEventListener('click',()=>openDetail(t.id));
+      list.appendChild(card);
+    });
+    return;
+  }
+
+  // 日付ブロック表示
+  list.innerHTML='';
+  blocks.forEach(block=>{
+    if(!block.tasks.length)return;
+
+    // 終了時間計算（明日・明後日のみ、それ以降は省略）
+    let finishLabel='';
+    if(block.dateStr){
+      const sorted=block.tasks.filter(t=>t.status==='pending').sort((a,b)=>(a.scheduled_time||'99:99').localeCompare(b.scheduled_time||'99:99'));
+      if(sorted.length){
+        const fm=calcFinishTime(sorted,block.dateStr);
+        const fh=Math.floor(fm/60),fmm=fm%60;
+        finishLabel=`終了予定 <strong>${String(fh).padStart(2,'0')}:${String(fmm).padStart(2,'0')}</strong>`;
+      }
+    }
+
+    // セクションヘッダー
+    const header=document.createElement('div');
+    header.style.cssText='display:flex;align-items:center;justify-content:space-between;margin:16px 0 8px;';
+    header.innerHTML=`<span style="font-size:11px;font-weight:600;color:var(--text2);letter-spacing:.05em;">${block.label}</span>${finishLabel?`<span style="font-size:11px;color:var(--text3);">${finishLabel}</span>`:''}`;
+    list.appendChild(header);
+
+    // タスク一覧
+    block.tasks.sort((a,b)=>(a.scheduled_time||'99:99').localeCompare(b.scheduled_time||'99:99'))
+    .forEach(t=>{
+      const subs=allSubtasks.filter(s=>s.task_id===t.id);
+      const timeLabel=t.scheduled_time?t.scheduled_time.slice(0,5):'--:--';
+      const card=document.createElement('div');
+      card.className=`task-card${t.status==='done'?' done':''}${t.pinned?' pinned':''}`;
+      card.style.marginBottom='6px';
+      card.innerHTML=`<div class="task-card-top"><div class="task-card-left"><div class="task-type-badge type-${t.type}">${typeLabel(t.type)}</div><span class="task-title">${t.title}</span></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0;"><span style="font-family:var(--font-num);font-size:12px;color:var(--text3);">${timeLabel}</span><span class="task-time">${t.estimated_minutes}min</span></div></div><div class="task-card-bottom">${t.deadline?`<span class="task-deadline">期限 ${t.deadline.slice(5).replace('-','/')}</span>`:''} ${subs.length?`<span class="task-min">サブ ${subs.filter(s=>s.status==='done').length}/${subs.length}</span>`:''} ${t.repeat&&t.repeat!=='none'?`<span style="font-size:10px;color:var(--blue);">🔁${{daily:'毎日',weekly:'毎週',biweekly:'隔週'}[t.repeat]}</span>`:''} ${t.pinned?'<span style="font-size:10px;color:var(--accent);">📌</span>':''}</div>`;
+      card.addEventListener('click',()=>openDetail(t.id));
+      list.appendChild(card);
+    });
+  });
+
+  // 全部空の場合
+  if(!list.children.length){
+    list.innerHTML='<div class="empty">明日以降のタスクがありません</div>';
+  }
 }
 document.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>{
   document.querySelectorAll('.chip').forEach(x=>x.classList.remove('selected'));c.classList.add('selected');currentFilter=c.dataset.filter;renderTaskList();
@@ -1666,14 +1831,14 @@ document.getElementById('block-save-btn').addEventListener('click',async()=>{
   const date=document.getElementById('block-date').value;
   if(!title||!start||!end){showToast('内容・時間を入力してください');return;}
   if(_editingBlockId){
-    // 更新
-    await db.from('blocks').update({title,start_time:start+':00',end_time:end+':00',date}).eq('id',_editingBlockId);
+    const repeatVal=document.getElementById('block-repeat').value;
+    await db.from('blocks').update({title,start_time:start+':00',end_time:end+':00',date,repeat:repeatVal}).eq('id',_editingBlockId);
     const b=allBlocks.find(x=>x.id===_editingBlockId);
-    if(b){b.title=title;b.start_time=start+':00';b.end_time=end+':00';b.date=date;}
+    if(b){b.title=title;b.start_time=start+':00';b.end_time=end+':00';b.date=date;b.repeat=repeatVal;}
     showToast('更新しました');
   } else {
-    // 追加
-    const{data}=await db.from('blocks').insert({user_id:currentUser.id,title,start_time:start+':00',end_time:end+':00',date}).select().single();
+    const repeatVal=document.getElementById('block-repeat').value;
+    const{data}=await db.from('blocks').insert({user_id:currentUser.id,title,start_time:start+':00',end_time:end+':00',date,repeat:repeatVal||'none'}).select().single();
     if(data)allBlocks.push(data);
     await autoReplaceAfterBlock(date);
     showToast('固定ブロックを追加しました');
@@ -1696,9 +1861,9 @@ document.getElementById('block-delete-btn').addEventListener('click',async()=>{
 });
 
 async function autoReplaceAfterBlock(date){
-  // そのdateのタスクで、ブロックと重なっているものを自動移動
   const dateTasks=allTasks.filter(t=>t.scheduled_date===date&&t.status==='pending'&&t.scheduled_time&&!t.pinned);
-  const dateBlocks=[...allBlocks.filter(b=>b.date===date),...getDefaultBlocks(date)];
+  // 繰り返しブロックも含めて取得
+  const dateBlocks=[...getDefaultBlocks(date)];
   const updates=[];
   for(const task of dateTasks){
     const[th,tm]=task.scheduled_time.split(':').map(Number);
@@ -1720,7 +1885,9 @@ async function autoReplaceAfterBlock(date){
 // RIGHT PANEL
 // ============================================================
 function renderRightPanel(){
-  const todayBlocks=allBlocks.filter(b=>b.date===TODAY_STR);
+  // 繰り返しブロックも含めて今日の会議を表示
+  const todayBlocks=allBlocks.filter(b=>!b._is_absence&&isBlockActiveOnDate(b,TODAY_STR))
+    .sort((a,b)=>a.start_time.localeCompare(b.start_time));
   const blockRight=document.getElementById('block-list-right');
   if(blockRight)blockRight.innerHTML=todayBlocks.length?todayBlocks.map(b=>`<div class="task-card block-card" style="margin-bottom:6px;cursor:default;"><div class="task-card-top"><div class="task-card-left"><div class="task-type-badge type-block">固定</div><span class="task-title">${b.title}</span></div><span class="task-time">${b.start_time.slice(0,5)}〜${b.end_time.slice(0,5)}</span></div></div>`).join(''):'<div style="font-size:12px;color:var(--text3);padding:4px 0;">今日の会議なし</div>';
   const miniLoad=document.getElementById('tomorrow-mini-load');
