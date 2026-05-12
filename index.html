@@ -836,43 +836,51 @@ function calcOptimizeProposals(){
     const slotSm=(window._dayStartHour||DEFAULT_START_HOUR)*60+(window._dayStartMin||DEFAULT_START_MIN);
     const NOON=12*60, CONC=16*60;
     let slots=virtualSlots[date];
-    // タイプ別優先順（始業時間以降のスロットのみ対象）
-    let candidates;
+
+    // タイプ別優先順でスロットのインデックスを候補リストとして作る
+    let candidateIdxs=[];
     if(type==='judgment'||type==='unknown'||type==='creative'){
-      candidates=[
-        ...slots.filter(s=>s.start>=slotSm&&s.start<NOON),
-        ...slots.filter(s=>s.start>=CONC),
-        ...slots.filter(s=>s.start>=NOON&&s.start<CONC)
-      ];
+      const am=slots.map((s,i)=>({s,i})).filter(({s})=>s.start>=slotSm&&s.start<NOON).map(({i})=>i);
+      const conc=slots.map((s,i)=>({s,i})).filter(({s})=>s.start>=CONC).map(({i})=>i);
+      const pm=slots.map((s,i)=>({s,i})).filter(({s})=>s.start>=NOON&&s.start<CONC).map(({i})=>i);
+      candidateIdxs=[...am,...conc,...pm];
     } else {
-      candidates=[
-        ...slots.filter(s=>s.start>=slotSm&&s.start<CONC),
-        ...slots.filter(s=>s.start>=CONC)
-      ];
+      const daytime=slots.map((s,i)=>({s,i})).filter(({s})=>s.start>=slotSm&&s.start<CONC).map(({i})=>i);
+      const eve=slots.map((s,i)=>({s,i})).filter(({s})=>s.start>=CONC).map(({i})=>i);
+      candidateIdxs=[...daytime,...eve];
     }
-    for(const slot of candidates){
+
+    for(const idx of candidateIdxs){
+      const slot=slots[idx];
+      if(!slot)continue;
       if(slot.end-slot.start>=needed){
         const h=Math.floor(slot.start/60),m=slot.start%60;
         const timeStr=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
-        // このスロットを消費（分割）
-        const idx=slots.indexOf(slot);
         const newStart=slot.start+min;
-        if(newStart<slot.end){slots.splice(idx,1,{start:newStart,end:slot.end});}
+        if(newStart<slot.end){slots[idx]={start:newStart,end:slot.end};}
         else{slots.splice(idx,1);}
-        virtualSlots[date]=slots;
         return timeStr;
       }
     }
+
     // フォールバック：始業時間以降の最初の空き
-    const validSlots=slots.filter(s=>s.start>=slotSm);
-    if(validSlots.length){
-      const h=Math.floor(validSlots[0].start/60),m=validSlots[0].start%60;
+    const validIdx=slots.findIndex(s=>s.start>=slotSm);
+    if(validIdx>=0){
+      const slot=slots[validIdx];
+      const h=Math.floor(slot.start/60),m=slot.start%60;
       const timeStr=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
-      validSlots[0].start+=min;
-      if(validSlots[0].start>=validSlots[0].end)slots.splice(slots.indexOf(validSlots[0]),1);
+      const newStart=slot.start+min;
+      if(newStart<slot.end){slots[validIdx]={start:newStart,end:slot.end};}
+      else{slots.splice(validIdx,1);}
       return timeStr;
     }
-    if(slots.length){const h=Math.floor(slots[0].start/60),m=slots[0].start%60;const timeStr=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;slots.splice(0,1);return timeStr;}
+    if(slots.length){
+      const slot=slots[0];
+      const h=Math.floor(slot.start/60),m=slot.start%60;
+      const timeStr=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+      slots.splice(0,1);
+      return timeStr;
+    }
     return`${String(Math.floor(slotSm/60)).padStart(2,'0')}:${String(slotSm%60).padStart(2,'0')}`;
   }
 
@@ -900,13 +908,17 @@ function calcOptimizeProposals(){
 
     const dateChanged=currentDate!==targetDate;
     const isConflict=conflictTaskIds.has(task.id);
+    // 現在時刻より前にプロットされているタスクも移動対象
+    const isPast=currentDate===TODAY_STR&&task.scheduled_time&&(()=>{
+      const[h,m]=task.scheduled_time.split(':').map(Number);
+      return h*60+m<nowMin;
+    })();
 
-    // 提案条件：日付が変わる、コンフリクトあり、の場合のみ提案
-    // 時刻だけの変更は提案しない（無限ループ防止）
-    if(dateChanged||isConflict){
+    // 提案条件：日付変更 or コンフリクト or 過去時刻
+    if(dateChanged||isConflict||isPast){
       const fromLabel=currentDate===TODAY_STR?'今日':currentDate===TOMORROW_STR?'明日':currentDate===DAY_AFTER_STR?'明後日':currentDate||'未設定';
       const toLabel=targetDate===TODAY_STR?'今日':targetDate===TOMORROW_STR?'明日':'明後日';
-      const changeLabel=dateChanged?`${fromLabel}→${toLabel} ${newTimeShort}`:`${toLabel} コンフリクト解消→${newTimeShort}`;
+      const changeLabel=dateChanged?`${fromLabel}→${toLabel} ${newTimeShort}`:isConflict?`${toLabel} コンフリクト解消→${newTimeShort}`:`${toLabel} 時刻→${newTimeShort}`;
       proposals.push({task,targetDate,newTime,fromLabel,toLabel,changeLabel});
     }
   }
