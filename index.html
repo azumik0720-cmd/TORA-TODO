@@ -85,13 +85,17 @@ kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); b
 .goal-text { font-size: 13px; color: var(--text); flex: 1; line-height: 1.4; }
 .goal-text.done { color: var(--text3); text-decoration: line-through; }
 .goal-reason { font-size: 10px; color: var(--text3); margin-top: 2px; }
-.sched-wrap { position: relative; padding-left: 20px; }
-.sched-line-bar { position: absolute; left: 7px; top: 0; bottom: 0; width: 1.5px; background: var(--sep); border-radius: 1px; }
-.sched-row { display: flex; gap: 12px; align-items: flex-start; padding: 6px 0; position: relative; }
-.sched-dot { position: absolute; left: -16px; width: 10px; height: 10px; border-radius: 50%; background: var(--bg3); border: 1.5px solid var(--bg3); flex-shrink: 0; top: 12px; }
-.sched-dot.active-dot { background: #E65100; border-color: #E65100; width: 12px; height: 12px; left: -17px; top: 10px; box-shadow: 0 0 0 3px rgba(230,81,0,.15); }
-.sched-dot.block-dot { background: var(--text3); border-color: var(--text3); }
-.sched-dot.done-dot { background: var(--bg3); border-color: var(--bg3); }
+.sched-wrap { position: relative; padding-left: 22px; }
+.sched-line-bar { position: absolute; left: 4px; top: 8px; bottom: 8px; width: 1.5px; background: var(--sep); border-radius: 1px; pointer-events: none; }
+.sched-row { display: flex; gap: 12px; align-items: flex-start; padding: 4px 0; position: relative; }
+.sched-dot { position: absolute; left: -18px; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex-shrink: 0; top: 6px; }
+.sched-dot.active-dot { background: #E65100; border: 2px solid #E65100; width: 12px; height: 12px; left: -20px; top: 4px; box-shadow: 0 0 0 3px rgba(230,81,0,.18); }
+.sched-dot.block-dot { background: var(--text3); }
+.sched-dot.done-dot { background: var(--bg3); }
+.sched-dot.gap-dot { background: var(--bg); border: 1.5px dashed var(--text3); }
+.sched-time { font-family: var(--font-num); font-size: 12px; color: var(--text3); width: 40px; flex-shrink: 0; padding-top: 2px; letter-spacing: .04em; }
+.sched-time.now-time { color: #E65100; font-weight: 700; }
+.sched-content { flex: 1; padding-bottom: 4px; }
 .sched-time { font-family: var(--font-num); font-size: 12px; color: var(--text3); width: 36px; flex-shrink: 0; padding-top: 2px; letter-spacing: .04em; }
 .sched-time.now-time { color: #E65100; font-weight: 700; }
 .sched-content { flex: 1; padding-bottom: 4px; }
@@ -578,7 +582,11 @@ function getAvailableSlots(date, excludeTaskId=null, fromNow=false){
   const scheduled=allTasks.filter(t=>t.scheduled_date===date&&t.scheduled_time&&t.status!=='done'&&t.id!==excludeTaskId).map(t=>{const[h,m]=t.scheduled_time.split(':').map(Number);return{start:h*60+m,end:h*60+m+(t.estimated_minutes||30)};});
   const busy=[...blockedRanges,...scheduled].sort((a,b)=>a.start-b.start);
   const slots=[];let cursor=WORK_START;
-  for(const b of busy){if(cursor<b.start)slots.push({start:cursor,end:b.start});cursor=Math.max(cursor,b.end);}
+  for(const b of busy){
+    if(b.end<=cursor)continue;
+    if(cursor<b.start)slots.push({start:cursor,end:b.start});
+    cursor=Math.max(cursor,b.end);
+  }
   if(cursor<WORK_END)slots.push({start:cursor,end:WORK_END});
   return slots.filter(s=>s.end>s.start);
 }
@@ -787,7 +795,12 @@ function calcOptimizeProposals(){
       ...pinnedTasks.filter(t=>t.scheduled_time).map(t=>{const[h,m]=t.scheduled_time.split(':').map(Number);return{start:h*60+m,end:h*60+m+(t.estimated_minutes||30)};})
     ].sort((a,b)=>a.start-b.start);
     const slots=[];let cursor=startMin;
-    for(const b of busy){if(cursor<b.start)slots.push({start:cursor,end:b.start});cursor=Math.max(cursor,b.end);}
+    for(const b of busy){
+      // ブロックが始業時間より前に終わる場合はスキップ
+      if(b.end<=cursor)continue;
+      if(cursor<b.start)slots.push({start:cursor,end:b.start});
+      cursor=Math.max(cursor,b.end);
+    }
     if(cursor<WORK_END)slots.push({start:cursor,end:WORK_END});
     return slots.filter(s=>s.end>s.start);
   }
@@ -1110,7 +1123,7 @@ function renderSchedule(){
         nowLineInserted=true;
         const nowRow=document.createElement('div');
         nowRow.className='sched-row';
-        nowRow.innerHTML=`<div class="sched-dot active-dot"></div><div class="sched-time now-time">${nowStr}</div><div class="sched-content"><div class="sched-now-label">▶ いまここ</div></div>`;
+        nowRow.innerHTML=`<div class="sched-dot active-dot"></div><div class="sched-time now-time">${nowStr}</div><div class="sched-content"></div>`;
         wrap.appendChild(nowRow);
       }
     }
@@ -1118,7 +1131,7 @@ function renderSchedule(){
     const row=document.createElement('div');row.className='sched-row';
     const timeStr=item.time==='99:99'?'--:--':item.time.slice(0,5),isLast=i===items.length-1;
     if(item.type==='gap'){
-      row.innerHTML=`<div class="sched-dot" style="background:transparent;border-color:transparent;"></div><div class="sched-time" style="opacity:.4;">${timeStr}</div><div class="sched-content"><div style="font-size:11px;color:var(--text3);padding:4px 0;">空き ${item.gapMin}min</div></div>`;
+      row.innerHTML=`<div class="sched-dot gap-dot"></div><div class="sched-time" style="opacity:.4;">${timeStr}</div><div class="sched-content"><div style="font-size:11px;color:var(--text3);padding:4px 0;">空き ${item.gapMin}min</div></div>`;
       wrap.appendChild(row);return;
     }
     if(item.type==='block'){
