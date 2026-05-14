@@ -1465,12 +1465,21 @@ function renderPatternList(){
 function renderSubtaskPreview(){
   const preview=document.getElementById('subtask-preview');if(!preview)return;
   preview.innerHTML=addState.subtasks.map((s,i)=>`
-    <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:0.5px solid var(--sep);">
-      <span style="flex:1;font-size:12px;color:var(--text2);">${s.title}</span>
+    <div style="display:flex;align-items:center;gap:6px;padding:8px 0;border-bottom:0.5px solid var(--sep);">
+      <input type="text" value="${(s.title||'').replace(/"/g,'&quot;')}" data-idx="${i}" class="sub-title-input" style="flex:1;height:28px;border:0.5px solid var(--bg3);border-radius:6px;background:var(--bg);padding:0 8px;font-size:12px;font-family:var(--font);color:var(--text);outline:none;min-width:0;">
       <input type="number" min="5" max="240" step="5" value="${s.minutes||s.estimated_minutes||15}" data-idx="${i}" class="sub-min-input" style="width:52px;height:28px;border:0.5px solid var(--bg3);border-radius:6px;background:var(--bg);padding:0 6px;font-size:12px;font-family:var(--font);color:var(--text);outline:none;text-align:center;">
       <span style="font-size:11px;color:var(--text3);">min</span>
-      <button data-idx="${i}" class="sub-del-btn" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;padding:0 4px;">×</button>
-    </div>`).join('');
+      <button data-idx="${i}" class="sub-del-btn" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;padding:0 4px;line-height:1;">×</button>
+    </div>`).join('')+`
+    <div style="margin-top:8px;">
+      <button id="sub-add-btn" style="font-size:12px;color:var(--accent);background:none;border:0.5px solid var(--accent);border-radius:6px;padding:5px 12px;cursor:pointer;font-family:var(--font);">＋ ステップを追加</button>
+    </div>`;
+  preview.querySelectorAll('.sub-title-input').forEach(input=>{
+    input.addEventListener('change',()=>{
+      const idx=parseInt(input.dataset.idx);
+      addState.subtasks[idx].title=input.value;
+    });
+  });
   preview.querySelectorAll('.sub-min-input').forEach(input=>{
     input.addEventListener('change',()=>{
       const idx=parseInt(input.dataset.idx);
@@ -1486,6 +1495,14 @@ function renderSubtaskPreview(){
       addState.totalMin=addState.subtasks.reduce((a,s)=>a+(s.minutes||s.estimated_minutes||15),0);
       renderSubtaskPreview();updatePlotInfo();
     });
+  });
+  preview.querySelector('#sub-add-btn')?.addEventListener('click',()=>{
+    addState.subtasks.push({title:'新しいステップ',minutes:15});
+    addState.totalMin=addState.subtasks.reduce((a,s)=>a+(s.minutes||s.estimated_minutes||15),0);
+    renderSubtaskPreview();updatePlotInfo();
+    // 追加したステップのタイトル入力にフォーカス
+    const inputs=preview.querySelectorAll('.sub-title-input');
+    if(inputs.length)inputs[inputs.length-1].focus();
   });
 }
 
@@ -1535,15 +1552,17 @@ document.querySelectorAll('.repeat-opt').forEach(btn=>{
   });
 });
 
-// plot-btn はstep-plotが非表示のときにもリスナーが効くよう委譲
-document.getElementById('main-content').addEventListener('click',async(e)=>{
-  if(!e.target.closest('#plot-btn'))return;
-  const title=document.getElementById('task-name-input').value.trim();
+// plot-btn：ページ全体でバブリングを受け取る
+document.addEventListener('click',async(e)=>{
+  const btn=e.target.closest('#plot-btn');
+  if(!btn)return;
+  const title=document.getElementById('task-name-input')?.value.trim();
   if(!title){showToast('タスク名を入力してください');return;}
   if(!addState.type){showToast('タイプを選択してください');return;}
   if(!addState.patternKey){showToast('作業パターンを選択してください');return;}
   if(selectedDeadline&&selectedDeadline<TODAY_STR){showToast('過去の期限は設定できません');return;}
-  const memo=document.getElementById('memo-input').value.trim()||null;
+  const memo=document.getElementById('memo-input')?.value.trim()||null;
+  btn.disabled=true;btn.textContent='追加中...';
   await saveTask({title,type:addState.type,estimated_minutes:addState.totalMin,deadline:selectedDeadline,memo,subtasks:addState.subtasks,repeat:addState.repeat||'none'});
   showToast('タスクを追加しました 🐯');
   initAddPage();
