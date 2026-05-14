@@ -256,6 +256,8 @@ kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); b
       <!-- 今日 -->
       <div class="page active" id="page-today">
         <div id="optimize-area"></div>
+        <div id="unplaced-banner"></div>
+        <div id="finish-banner-wrap"></div>
         <div class="sec-label" style="margin-top:12px;">今日のスケジュール</div>
         <div id="schedule-list"></div>
       </div>
@@ -844,10 +846,13 @@ window.runOptimize=async function(){
   // ローディング表示
   area.innerHTML=`<div style="display:flex;justify-content:flex-end;margin-bottom:8px;"><span style="font-size:11px;color:var(--text3);padding:4px 10px;">最適化中...</span></div>`;
 
-  // 全未完了・非固定タスクを現在時刻以降の空き枠に即再配置
+  // 全未完了・時刻固定でないタスクを対象（date_pinnedは日付固定のみ、時刻は再配置する）
   const targets=allTasks.filter(t=>t.status==='pending'&&!t.pinned)
     .map(t=>({...t,score:calcPriorityScore(t)}))
     .sort((a,b)=>b.score-a.score);
+
+  // 深夜（終業時間を過ぎている）場合は今日の空き=0
+  const todayAvailable=nowMin<WORK_END;
 
   // コンフリクトタスクを最優先
   const allTodayBlocks=[...allBlocks.filter(b=>b.date===TODAY_STR),...getDefaultBlocks(TODAY_STR)];
@@ -886,7 +891,7 @@ window.runOptimize=async function(){
   }
 
   const virtualSlots={
-    [TODAY_STR]:getVirtualSlots(TODAY_STR),
+    [TODAY_STR]:todayAvailable?getVirtualSlots(TODAY_STR):[],
     [TOMORROW_STR]:getVirtualSlots(TOMORROW_STR),
     [DAY_AFTER_STR]:getVirtualSlots(DAY_AFTER_STR)
   };
@@ -932,14 +937,23 @@ window.runOptimize=async function(){
   }
 
   function pickDate(task){
+    // 日付固定タスクは日付を動かさない
+    if(task.date_pinned&&task.scheduled_date)return task.scheduled_date;
     if(task.type==='dependent'&&now.getDay()===5)return nextBizDay(TODAY,1);
-    if(task.deadline){const dl=Math.ceil((new Date(task.deadline)-TODAY)/(1000*60*60*24));if(dl<=1)return TODAY_STR;}
+    // 期限今日・期限切れは今日に強制（深夜でも）
+    if(task.deadline){const dl=Math.ceil((new Date(task.deadline)-TODAY)/(1000*60*60*24));if(dl<=0)return TODAY_STR;}
+    // 深夜は今日の空き=0なので明日以降
+    if(!todayAvailable){
+      const remTomorrow=virtualSlots[TOMORROW_STR].reduce((a,s)=>a+(s.end-s.start),0);
+      if(remTomorrow>=(task.estimated_minutes||30))return TOMORROW_STR;
+      return DAY_AFTER_STR;
+    }
     const remToday=virtualSlots[TODAY_STR].reduce((a,s)=>a+(s.end-s.start),0);
     const remTomorrow=virtualSlots[TOMORROW_STR].reduce((a,s)=>a+(s.end-s.start),0);
     if(remToday>=(task.estimated_minutes||30))return TODAY_STR;
     if(remTomorrow>=(task.estimated_minutes||30))return TOMORROW_STR;
     return DAY_AFTER_STR;
-  }
+}
 
   // 全タスクを再配置してDB保存
   const updates=[];
@@ -963,6 +977,7 @@ window.runOptimize=async function(){
   renderSchedule();
   renderRightPanel();
   renderOptimizeArea();
+  renderUnplacedBanner();
   showFinishBanner();
   if(document.getElementById('page-plan').classList.contains('active'))renderPlan();
 };
@@ -1149,6 +1164,10 @@ async function loadAll(){
     t.scheduled_date=TODAY_STR;t.scheduled_time=newTime;
   }
 
+  // 未配置タスクがあれば最適化必要フラグを立てる
+  const unplaced=allTasks.filter(t=>t.status==='pending'&&!t.scheduled_date);
+  if(unplaced.length||repeatOverdue.length)_optimizeNeeded=true;
+
   renderToday();renderRightPanel();
 }
 
@@ -1182,8 +1201,17 @@ document.addEventListener('keydown',e=>{
 // ============================================================
 function renderToday(){
   renderOptimizeArea();
+  renderUnplacedBanner();
   renderSchedule();
   renderRightPanel();
+}
+
+function renderUnplacedBanner(){
+  const banner=document.getElementById('unplaced-banner');
+  if(!banner)return;
+  const unplaced=allTasks.filter(t=>t.status==='pending'&&!t.scheduled_date);
+  if(!unplaced.length){banner.innerHTML='';return;}
+  banner.innerHTML=`<div style="background:#FFF3E0;border:0.5px solid #FFCC80;border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;"><span style="font-size:12px;color:#E65100;">📋 ${unplaced.length}件のタスクが未配置です</span><button onclick="runOptimize()" style="font-size:11px;background:var(--accent);color:white;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;font-family:var(--font);">最適化する</button></div>`;
 }
 
 function renderNextAction(){
@@ -1492,9 +1520,7 @@ function updatePlotInfo(){
 }
 
 async function saveTask(data){
-  const tmpTask={type:data.type,estimated_minutes:data.estimated_minutes||30,deadline:data.deadline||null,created_at:new Date().toISOString()};
-  const targetDate=autoPlotDate(tmpTask);
-  const plotTime=autoPlotTime(data.type,data.estimated_minutes||30,targetDate,null,targetDate===TODAY_STR);
+  if(!currentUser){showToast('ログインが必要です');return false;}
   const insertData={
     user_id:currentUser.id,
     title:data.title,
@@ -1502,25 +1528,28 @@ async function saveTask(data){
     status:'pending',
     estimated_minutes:data.estimated_minutes||30,
     deadline:data.deadline||null,
-    scheduled_date:targetDate,
-    scheduled_time:plotTime,
+    scheduled_date:null,   // 未分配
+    scheduled_time:null,
     pinned:false,
+    date_pinned:false,
     repeat:data.repeat||'none',
-    repeat_origin:data.repeat&&data.repeat!=='none'?targetDate:null
+    repeat_origin:data.repeat&&data.repeat!=='none'?TODAY_STR:null
   };
   if(data.memo)insertData.memo=data.memo;
   const{data:task,error}=await db.from('tasks').insert(insertData).select().single();
-  if(error){showToast('ERR:'+error.message.slice(0,50));console.error(error);return;}
+  if(error||!task){showToast('追加に失敗しました');console.error(error);return false;}
   task.scheduled_date=normalizeDate(task.scheduled_date);
+  task.date_pinned=false;
   allTasks.unshift(task);
   if(data.subtasks?.length){
     const subs=data.subtasks.map((s,i)=>({task_id:task.id,title:s.title,estimated_minutes:s.minutes||s.estimated_minutes||30,status:'pending',sort_order:i}));
     const{data:saved}=await db.from('subtasks').insert(subs).select();
     if(saved)allSubtasks.push(...saved);
   }
-  const dateLabel=targetDate===TODAY_STR?'今日':targetDate===TOMORROW_STR?'明日':'明後日';
-  showToast(`${dateLabel} ${plotTime}に追加しました 🐯`);
+  markOptimizeNeeded();
+  showToast('タスクを追加しました 🐯');
   navigateTo('today');
+  return true;
 }
 
 // ============================================================
