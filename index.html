@@ -920,7 +920,7 @@ window.runOptimize=async function(){
   // 全未完了・時刻固定でないタスクを対象
   const targets=allTasks.filter(t=>t.status==='pending'&&!t.pinned)
     .map(t=>({...t,score:calcPriorityScore(t)}))
-    .sort((a,b)=>b.score-a.score);
+    .sort((a,b)=>b.score-a.score||a.id.localeCompare(b.id)); // 同スコアはID順で安定化
 
   // コンフリクトタスクを最優先
   const allTodayBlocks=[...allBlocks.filter(b=>!b._is_absence&&isBlockActiveOnDate(b,TODAY_STR)),...getDefaultBlocks(TODAY_STR)];
@@ -934,7 +934,7 @@ window.runOptimize=async function(){
     });
   });
   targets.forEach(t=>{if(conflictIds.has(t.id))t.score=99999;});
-  targets.sort((a,b)=>b.score-a.score);
+  targets.sort((a,b)=>b.score-a.score||a.id.localeCompare(b.id));
 
   function getVirtualSlots(date){
     const startMin=date===TODAY_STR?Math.max(sm,nowMin):sm;
@@ -1056,11 +1056,29 @@ window.runOptimize=async function(){
 function showFinishBanner(){
   const wrap=document.getElementById('finish-banner-wrap');
   if(!wrap)return;
+  // 最適化後のタスク配置で終了時間を計算（始業時間からの全体計算）
   const todayTasks=allTasks.filter(t=>t.scheduled_date===TODAY_STR&&t.status==='pending')
     .sort((a,b)=>(a.scheduled_time||'99:99').localeCompare(b.scheduled_time||'99:99'));
   if(!todayTasks.length){wrap.innerHTML='';return;}
-  const finishMin=calcFinishTime(todayTasks);
-  const finishStr=fmtFinishTime(finishMin);
+  // 始業時間から計算（最適化直後は全体が再配置済みのため始業から計算が正しい）
+  const sm=(window._dayStartHour||DEFAULT_START_HOUR)*60+(window._dayStartMin||DEFAULT_START_MIN);
+  const WORK_END=(window._dayEndHour||DEFAULT_END_HOUR)*60;
+  const blockRanges=[...allBlocks.filter(b=>!b._is_absence&&isBlockActiveOnDate(b,TODAY_STR)),...getDefaultBlocks(TODAY_STR)]
+    .map(b=>{const[sh,bsm]=b.start_time.split(':').map(Number);const[eh,em]=b.end_time.split(':').map(Number);return{start:sh*60+bsm,end:eh*60+em};})
+    .filter(r=>r.end>sm).sort((a,b)=>a.start-b.start);
+  let cursor=sm;
+  for(const min of todayTasks.map(t=>t.estimated_minutes||30)){
+    let placed=false;
+    while(!placed){
+      const block=blockRanges.find(b=>b.start<=cursor&&b.end>cursor);
+      if(block)cursor=block.end;
+      const nextBlock=blockRanges.find(b=>b.start>cursor);
+      const spaceEnd=nextBlock?nextBlock.start:24*60;
+      if(spaceEnd-cursor>=min){cursor+=min;placed=true;}
+      else{if(nextBlock)cursor=nextBlock.end;else{cursor+=min;placed=true;}}
+    }
+  }
+  const finishStr=fmtFinishTime(cursor);
   const timeLabel=_lastOptimizeTime?`${String(_lastOptimizeTime.getHours()).padStart(2,'0')}:${String(_lastOptimizeTime.getMinutes()).padStart(2,'0')}時点`:'';
   wrap.innerHTML=`
     <div style="background:var(--green);border-radius:var(--radius);padding:12px 16px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">
