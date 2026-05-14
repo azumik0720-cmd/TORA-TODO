@@ -914,8 +914,8 @@ window.runOptimize=async function(){
   const sm=(window._dayStartHour||DEFAULT_START_HOUR)*60+(window._dayStartMin||DEFAULT_START_MIN);
   const WORK_END=(window._dayEndHour||DEFAULT_END_HOUR)*60;
 
-  // 深夜（終業時間を過ぎている）場合は今日の空き=0
-  const todayAvailable=nowMin<WORK_END;
+  // 終業時間を過ぎている場合は今日の空き=0（深夜0時台も終業後と判定）
+  const todayAvailable=nowMin>=sm&&nowMin<WORK_END;
 
   // 全未完了・時刻固定でないタスクを対象
   const targets=allTasks.filter(t=>t.status==='pending'&&!t.pinned)
@@ -938,7 +938,7 @@ window.runOptimize=async function(){
 
   function getVirtualSlots(date){
     const startMin=date===TODAY_STR?Math.max(sm,nowMin):sm;
-    const allB=[...allBlocks.filter(b=>b.date===date),...getDefaultBlocks(date)];
+    const allB=[...allBlocks.filter(b=>!b._is_absence&&isBlockActiveOnDate(b,date)),...getDefaultBlocks(date)];
     const absenceBlocks=date===TODAY_STR?(window._absences||[]).map(a=>({start_time:toTimeStr(a.start),end_time:toTimeStr(a.end)})):[];
     const pinnedTasks=allTasks.filter(t=>t.status==='pending'&&t.pinned&&t.scheduled_date===date);
     const busy=[
