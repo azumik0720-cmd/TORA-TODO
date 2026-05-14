@@ -234,16 +234,16 @@ kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); b
     <div class="header-right">
       <div class="pc-nav" id="pc-nav">
         <button class="pc-nav-item active" data-page="today">
-          <svg viewBox="0 0 22 22" fill="none"><rect x="3" y="11" width="4" height="8" rx="1.5" fill="currentColor"/><rect x="9" y="7" width="4" height="12" rx="1.5" fill="currentColor" opacity=".55"/><rect x="15" y="3" width="4" height="16" rx="1.5" fill="currentColor" opacity=".3"/></svg>今日
+          <svg viewBox="0 0 22 22" fill="none"><rect x="3" y="4" width="16" height="16" rx="2" stroke="currentColor" stroke-width="1.5"/><line x1="7" y1="2" x2="7" y2="6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="15" y1="2" x2="15" y2="6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="3" y1="10" x2="19" y2="10" stroke="currentColor" stroke-width="1.5"/></svg>TODAY
+        </button>
+        <button class="pc-nav-item" data-page="plan">
+          <svg viewBox="0 0 22 22" fill="none"><rect x="2" y="3" width="5" height="16" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="9" y="3" width="5" height="16" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="16" y="3" width="4" height="16" rx="1.5" stroke="currentColor" stroke-width="1.5"/></svg>PLAN
         </button>
         <button class="pc-nav-item" data-page="add">
-          <svg viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="1.5"/><line x1="11" y1="7" x2="11" y2="15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="7" y1="11" x2="15" y2="11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>追加 <kbd>N</kbd>
+          <svg viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="1.5"/><line x1="11" y1="7" x2="11" y2="15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="7" y1="11" x2="15" y2="11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>ADD
         </button>
-        <button class="pc-nav-item" data-page="list">
-          <svg viewBox="0 0 22 22" fill="none"><line x1="4" y1="6" x2="18" y2="6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="4" y1="11" x2="18" y2="11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="4" y1="16" x2="13" y2="16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>一覧 <kbd>L</kbd>
-        </button>
-        <button class="pc-nav-item" data-page="tomorrow">
-          <svg viewBox="0 0 22 22" fill="none"><path d="M11 3 C7 3 3.5 6.5 3.5 11 C3.5 15.5 7 19 11 19" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M11 19 C15 19 18.5 15.5 18.5 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="2.5 2"/><polyline points="14,7.5 18.5,11 14,14.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>明日 <kbd>M</kbd>
+        <button class="pc-nav-item" data-page="setup">
+          <svg viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M11 2v2M11 18v2M2 11h2M18 11h2M4.9 4.9l1.4 1.4M15.7 15.7l1.4 1.4M4.9 17.1l1.4-1.4M15.7 6.3l1.4-1.4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>SETUP
         </button>
       </div>
       <div class="header-date" id="header-date"></div>
@@ -320,7 +320,12 @@ kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); b
       </div>
 
       <!-- 一覧 -->
-      <div class="page" id="page-list">
+      <div class="page" id="page-plan">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin:4px 0 12px;">
+          <div style="font-size:13px;font-weight:500;color:var(--text);">タスク計画</div>
+        </div>
+        <div id="plan-board" style="display:flex;gap:12px;overflow-x:auto;padding-bottom:16px;-webkit-overflow-scrolling:touch;"></div>
+      </div>
         <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;margin-bottom:10px;">
           <div class="sec-label" style="margin:0;">タスク一覧</div>
           <button class="btn-sm" id="review-btn">週次レビュー</button>
@@ -338,9 +343,13 @@ kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); b
       </div>
 
       <!-- 明日 -->
-      <div class="page" id="page-tomorrow">
-        <div id="tomorrow-load-wrap"></div>
-        <div class="sec-label" style="margin-top:4px;">固定ブロック（会議・MTG）</div>
+      <div class="page" id="page-setup">
+        <div class="sec-label" style="margin-top:4px;">今日の時間設定</div>
+        <div id="setup-time-wrap" style="background:var(--white);border:0.5px solid var(--sep);border-radius:var(--radius);padding:14px;margin-bottom:12px;">
+          <div style="font-size:11px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;">⏰ 始業・終業・不在</div>
+          <button id="setup-open-time-btn" style="width:100%;height:40px;background:var(--bg2);border:0.5px solid var(--sep);border-radius:var(--radius-sm);font-size:13px;font-family:var(--font);cursor:pointer;color:var(--text2);" id="start-time-btn-setup">時間設定を開く</button>
+        </div>
+        <div class="sec-label">会議・固定ブロック</div>
         <div id="block-list"></div>
         <button class="btn-sm btn-sm-accent" id="add-block-btn" style="margin-bottom:16px;">+ 会議・MTGを追加</button>
         <div class="sec-label">明日のタスク</div>
@@ -363,20 +372,20 @@ kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); b
   </div>
   <nav class="nav">
     <div class="nav-item active" data-page="today">
-      <svg class="nav-icon" viewBox="0 0 22 22" fill="none"><rect x="3" y="11" width="4" height="8" rx="1.5" fill="#C4603A"/><rect x="9" y="7" width="4" height="12" rx="1.5" fill="#C4603A" opacity=".5"/><rect x="15" y="3" width="4" height="16" rx="1.5" fill="#C4603A" opacity=".28"/></svg>
-      <span class="nav-label">今日</span>
+      <svg class="nav-icon" viewBox="0 0 22 22" fill="none"><rect x="3" y="4" width="16" height="16" rx="2" stroke="#9AA59B" stroke-width="1.5"/><line x1="7" y1="2" x2="7" y2="6" stroke="#9AA59B" stroke-width="1.5" stroke-linecap="round"/><line x1="15" y1="2" x2="15" y2="6" stroke="#9AA59B" stroke-width="1.5" stroke-linecap="round"/><line x1="3" y1="10" x2="19" y2="10" stroke="#9AA59B" stroke-width="1.5"/></svg>
+      <span class="nav-label">TODAY</span>
+    </div>
+    <div class="nav-item" data-page="plan">
+      <svg class="nav-icon" viewBox="0 0 22 22" fill="none"><rect x="2" y="3" width="5" height="16" rx="1.5" stroke="#9AA59B" stroke-width="1.5"/><rect x="9" y="3" width="5" height="16" rx="1.5" stroke="#9AA59B" stroke-width="1.5"/><rect x="16" y="3" width="4" height="16" rx="1.5" stroke="#9AA59B" stroke-width="1.5"/></svg>
+      <span class="nav-label">PLAN</span>
     </div>
     <div class="nav-item" data-page="add">
       <svg class="nav-icon" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="8" stroke="#9AA59B" stroke-width="1.5"/><line x1="11" y1="7" x2="11" y2="15" stroke="#9AA59B" stroke-width="1.5" stroke-linecap="round"/><line x1="7" y1="11" x2="15" y2="11" stroke="#9AA59B" stroke-width="1.5" stroke-linecap="round"/></svg>
-      <span class="nav-label">追加</span>
+      <span class="nav-label">ADD</span>
     </div>
-    <div class="nav-item" data-page="list">
-      <svg class="nav-icon" viewBox="0 0 22 22" fill="none"><line x1="4" y1="6" x2="18" y2="6" stroke="#9AA59B" stroke-width="1.5" stroke-linecap="round"/><line x1="4" y1="11" x2="18" y2="11" stroke="#9AA59B" stroke-width="1.5" stroke-linecap="round"/><line x1="4" y1="16" x2="13" y2="16" stroke="#9AA59B" stroke-width="1.5" stroke-linecap="round"/></svg>
-      <span class="nav-label">一覧</span>
-    </div>
-    <div class="nav-item" data-page="tomorrow">
-      <svg class="nav-icon" viewBox="0 0 22 22" fill="none"><path d="M11 3 C7 3 3.5 6.5 3.5 11 C3.5 15.5 7 19 11 19" stroke="#9AA59B" stroke-width="1.5" stroke-linecap="round"/><path d="M11 19 C15 19 18.5 15.5 18.5 11" stroke="#9AA59B" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="2.5 2"/><polyline points="14,7.5 18.5,11 14,14.5" stroke="#9AA59B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
-      <span class="nav-label">明日</span>
+    <div class="nav-item" data-page="setup">
+      <svg class="nav-icon" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="3" stroke="#9AA59B" stroke-width="1.5"/><path d="M11 2v2M11 18v2M2 11h2M18 11h2M4.9 4.9l1.4 1.4M15.7 15.7l1.4 1.4M4.9 17.1l1.4-1.4M15.7 6.3l1.4-1.4" stroke="#9AA59B" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <span class="nav-label">SETUP</span>
     </div>
   </nav>
 </div>
@@ -809,10 +818,23 @@ function calcFinishTime(tasks, targetDate=TODAY_STR){
 }
 
 // optimize-area の初期表示（ボタンのみ）
+let _optimizeNeeded=false;
+let _lastOptimizeTime=null;
+
+function markOptimizeNeeded(){
+  _optimizeNeeded=true;
+  renderOptimizeArea();
+}
+
 function renderOptimizeArea(){
   const area=document.getElementById('optimize-area');
   if(!area)return;
-  area.innerHTML=`<div style="display:flex;justify-content:flex-end;margin-bottom:8px;"><button onclick="runOptimize()" style="font-size:11px;color:var(--text3);background:var(--bg2);border:0.5px solid var(--sep);border-radius:6px;padding:4px 10px;cursor:pointer;font-family:var(--font);">🐯 最適化</button></div>`;
+  const timeStr=_lastOptimizeTime?`${String(_lastOptimizeTime.getHours()).padStart(2,'0')}:${String(_lastOptimizeTime.getMinutes()).padStart(2,'0')}時点`:'';
+  if(_optimizeNeeded){
+    area.innerHTML=`<div style="display:flex;justify-content:flex-end;margin-bottom:8px;"><button onclick="runOptimize()" style="font-size:11px;color:white;background:var(--accent);border:none;border-radius:6px;padding:5px 12px;cursor:pointer;font-family:var(--font);font-weight:500;">🐯 最適化する</button></div>`;
+  } else {
+    area.innerHTML=`<div style="display:flex;justify-content:flex-end;margin-bottom:8px;"><button onclick="runOptimize()" style="font-size:11px;color:var(--text3);background:var(--bg2);border:0.5px solid var(--sep);border-radius:6px;padding:5px 12px;cursor:pointer;font-family:var(--font);">✓ 最適化済み${timeStr?` ${timeStr}`:''}</button></div>`;
+  }
 }
 
 // 最適化ボタン押下 → 即DB保存 → バナー表示
@@ -936,9 +958,13 @@ window.runOptimize=async function(){
     if(t){t.scheduled_date=targetDate;t.scheduled_time=newTime;}
   }));
 
+  _optimizeNeeded=false;
+  _lastOptimizeTime=new Date();
   renderSchedule();
   renderRightPanel();
+  renderOptimizeArea();
   showFinishBanner();
+  if(document.getElementById('page-plan').classList.contains('active'))renderPlan();
 };
 
 function showFinishBanner(){
@@ -1107,7 +1133,7 @@ async function loadAll(){
     db.from('subtasks').select('*').order('sort_order'),
     db.from('blocks').select('*').eq('user_id',currentUser.id).order('start_time')
   ]);
-  allTasks=(tasks||[]).map(t=>({...t,scheduled_date:normalizeDate(t.scheduled_date)}));
+  allTasks=(tasks||[]).map(t=>({...t,scheduled_date:normalizeDate(t.scheduled_date),date_pinned:t.date_pinned||false}));
   allSubtasks=subtasks||[];
   allBlocks=(blocks||[]).map(b=>({...b,_is_absence:b._is_absence||false}));
 
@@ -1135,10 +1161,11 @@ function navigateTo(page){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById('page-'+page).classList.add('active');
   if(page==='add')initAddPage();
-  if(page==='list')renderTaskList();
-  if(page==='tomorrow')renderTomorrow();
+  if(page==='plan')renderPlan();
+  if(page==='setup')renderTomorrow();
   if(page==='today')renderToday();
 }
+document.getElementById('setup-open-time-btn')?.addEventListener('click',()=>openModal('start-modal'));
 document.querySelectorAll('.nav-item, .pc-nav-item').forEach(item=>{
   item.addEventListener('click',()=>navigateTo(item.dataset.page));
 });
@@ -1146,10 +1173,6 @@ document.addEventListener('keydown',e=>{
   if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;
   if(e.metaKey||e.ctrlKey||e.altKey)return;
   switch(e.key.toLowerCase()){
-    case'n':navigateTo('add');setTimeout(()=>document.getElementById('task-name-input')?.focus(),100);break;
-    case'd':navigateTo('today');break;
-    case'l':navigateTo('list');break;
-    case'm':navigateTo('tomorrow');break;
     case'escape':['detail-modal','review-modal','block-modal'].forEach(id=>closeModal(id));break;
   }
 });
@@ -1784,6 +1807,102 @@ function renderTomorrow(){
   const tmTasks=allTasks.filter(t=>t.scheduled_date===TOMORROW_STR&&t.status!=='done').sort((a,b)=>(a.scheduled_time||'99:99').localeCompare(b.scheduled_time||'99:99'));
   const tmList=document.getElementById('tomorrow-task-list');
   tmList.innerHTML=tmTasks.length?tmTasks.map(t=>`<div class="task-card ${t.pinned?'pinned':''}" style="margin-bottom:6px;" onclick="openDetail('${t.id}')"><div class="task-card-top"><div class="task-card-left"><div class="task-type-badge type-${t.type}">${typeLabel(t.type)}</div><span class="task-title">${t.title}</span></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0;"><span class="task-time">${t.scheduled_time?t.scheduled_time.slice(0,5):'--:--'} · ${t.estimated_minutes}min</span>${t.pinned?'<span style="font-size:10px;color:var(--accent);">📌</span>':''}</div></div><div class="task-reason">${buildReason(t)}</div></div>`).join(''):'<div style="font-size:13px;color:var(--text3);padding:8px 0;">明日のタスクなし</div>';
+}
+
+// ============================================================
+// PLAN PAGE（横5カラム）
+// ============================================================
+function renderPlan(){
+  const board=document.getElementById('plan-board');
+  if(!board)return;
+  const d1=new Date(TODAY);
+  const d2=new Date(TODAY);d2.setDate(TODAY.getDate()+1);
+  const d3=new Date(TODAY);d3.setDate(TODAY.getDate()+2);
+  const DAY3=new Date(TODAY);DAY3.setDate(TODAY.getDate()+3);
+  const DAY3_STR=localDateStr(DAY3);
+  const cols=[
+    {key:TODAY_STR,label:`${d1.getMonth()+1}/${d1.getDate()}(${DAYS[d1.getDay()]})`,tasks:[]},
+    {key:TOMORROW_STR,label:`${d2.getMonth()+1}/${d2.getDate()}(${DAYS[d2.getDay()]})`,tasks:[]},
+    {key:DAY_AFTER_STR,label:`${d3.getMonth()+1}/${d3.getDate()}(${DAYS[d3.getDay()]})`,tasks:[]},
+    {key:'later',label:'以降',tasks:[]},
+    {key:'unassigned',label:'未分配',tasks:[]}
+  ];
+  allTasks.filter(t=>t.status==='pending').forEach(t=>{
+    if(!t.scheduled_date)cols[4].tasks.push(t);
+    else if(t.scheduled_date===TODAY_STR)cols[0].tasks.push(t);
+    else if(t.scheduled_date===TOMORROW_STR)cols[1].tasks.push(t);
+    else if(t.scheduled_date===DAY_AFTER_STR)cols[2].tasks.push(t);
+    else cols[3].tasks.push(t);
+  });
+  board.innerHTML='';
+  cols.forEach(col=>{
+    // 終了時間計算（今日〜明後日のみ）
+    let finishLabel='';
+    if(col.key!=='later'&&col.key!=='unassigned'){
+      const sorted=col.tasks.filter(t=>t.scheduled_time).sort((a,b)=>(a.scheduled_time||'').localeCompare(b.scheduled_time||''));
+      if(sorted.length){
+        const fm=calcFinishTime(sorted,col.key);
+        const fh=Math.floor(fm/60),fmm=fm%60;
+        finishLabel=`${String(fh).padStart(2,'0')}:${String(fmm).padStart(2,'0')}終了予定`;
+      }
+    }
+    const colEl=document.createElement('div');
+    colEl.style.cssText='flex:0 0 220px;background:var(--bg2);border-radius:var(--radius);padding:12px;min-height:300px;';
+    colEl.dataset.date=col.key;
+    colEl.innerHTML=`
+      <div style="margin-bottom:10px;">
+        <div style="font-size:12px;font-weight:600;color:var(--text);">${col.label} <span style="font-size:10px;color:var(--text3);font-weight:400;">${col.tasks.length}件</span></div>
+        ${finishLabel?`<div style="font-size:11px;color:var(--text3);margin-top:2px;">${finishLabel}</div>`:''}
+      </div>
+      <div id="col-body-${col.key}" style="min-height:200px;"></div>`;
+    const body=colEl.querySelector(`#col-body-${col.key}`);
+    col.tasks.sort((a,b)=>(a.scheduled_time||'99:99').localeCompare(b.scheduled_time||'99:99')).forEach(t=>{
+      const card=document.createElement('div');
+      card.style.cssText=`background:var(--white);border:0.5px solid ${t.date_pinned?'#4A6FA5':'var(--sep)'};border-radius:var(--radius-sm);padding:9px 11px;margin-bottom:6px;cursor:grab;`;
+      card.draggable=true;
+      card.dataset.taskId=t.id;
+      const timeLabel=t.scheduled_time?t.scheduled_time.slice(0,5):'';
+      card.innerHTML=`
+        <div style="font-size:12px;font-weight:500;color:var(--text);margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${t.title}</div>
+        <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
+          <span class="task-type-badge type-${t.type}" style="font-size:8px;">${typeLabel(t.type)}</span>
+          <span style="font-size:10px;color:var(--text3);">${t.estimated_minutes}min</span>
+          ${timeLabel?`<span style="font-size:10px;color:var(--text3);">${timeLabel}</span>`:''}
+          ${t.deadline?`<span style="font-size:10px;color:var(--accent);">期限${t.deadline.slice(5).replace('-','/')}</span>`:''}
+          ${t.repeat&&t.repeat!=='none'?`<span style="font-size:10px;color:#4A6FA5;">🔁</span>`:''}
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px;">
+          <button class="plan-date-pin-btn" data-id="${t.id}" style="font-size:10px;color:${t.date_pinned?'#4A6FA5':'var(--text3)'};background:none;border:0.5px solid ${t.date_pinned?'#4A6FA5':'var(--sep)'};border-radius:4px;padding:2px 6px;cursor:pointer;font-family:var(--font);">${t.date_pinned?'📌固定中':'固定'}</button>
+        </div>`;
+      card.addEventListener('dragstart',e=>{e.dataTransfer.setData('taskId',t.id);card.style.opacity='.4';});
+      card.addEventListener('dragend',()=>{card.style.opacity='1';});
+      card.querySelector('.plan-date-pin-btn').addEventListener('click',e=>{e.stopPropagation();toggleDatePin(t.id);});
+      card.addEventListener('click',e=>{if(e.target.closest('.plan-date-pin-btn'))return;openDetail(t.id);});
+      body.appendChild(card);
+    });
+    // drag-over
+    colEl.addEventListener('dragover',e=>{e.preventDefault();colEl.style.background='var(--accent-light)';});
+    colEl.addEventListener('dragleave',()=>{colEl.style.background='var(--bg2)';});
+    colEl.addEventListener('drop',async e=>{
+      e.preventDefault();colEl.style.background='var(--bg2)';
+      const taskId=e.dataTransfer.getData('taskId');
+      const targetDate=col.key==='later'?DAY3_STR:col.key==='unassigned'?null:col.key;
+      const task=allTasks.find(t=>t.id===taskId);if(!task)return;
+      const upd={scheduled_date:targetDate,scheduled_time:null,date_pinned:targetDate?true:false};
+      await db.from('tasks').update(upd).eq('id',taskId);
+      task.scheduled_date=targetDate;task.scheduled_time=null;task.date_pinned=targetDate?true:false;
+      markOptimizeNeeded();renderPlan();renderToday();
+    });
+    board.appendChild(colEl);
+  });
+}
+
+async function toggleDatePin(taskId){
+  const task=allTasks.find(t=>t.id===taskId);if(!task)return;
+  const newVal=!task.date_pinned;
+  await db.from('tasks').update({date_pinned:newVal}).eq('id',taskId);
+  task.date_pinned=newVal;
+  markOptimizeNeeded();renderPlan();
 }
 
 // ============================================================
