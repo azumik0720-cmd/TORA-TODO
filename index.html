@@ -792,10 +792,9 @@ function calcFinishTime(tasks, targetDate=TODAY_STR){
   const now=new Date();
   const nowMin=now.getHours()*60+now.getMinutes();
   const sm=(window._dayStartHour||DEFAULT_START_HOUR)*60+(window._dayStartMin||DEFAULT_START_MIN);
+  const WORK_END=(window._dayEndHour||DEFAULT_END_HOUR)*60;
   const startMin=targetDate===TODAY_STR?nowMin:sm;
-  const WORK_END_MAX=24*60;
 
-  // 対象日の固定ブロック（繰り返し含む）
   const allDayB=[...allBlocks.filter(b=>!b._is_absence&&isBlockActiveOnDate(b,targetDate)),...getDefaultBlocks(targetDate)];
   const blockRanges=allDayB.map(b=>{
     const[sh,bsm]=b.start_time.split(':').map(Number);
@@ -804,19 +803,29 @@ function calcFinishTime(tasks, targetDate=TODAY_STR){
   }).filter(r=>r.end>startMin).sort((a,b)=>a.start-b.start);
 
   let cursor=startMin;
-  const taskMins=tasks.map(t=>t.estimated_minutes||30);
-  for(const min of taskMins){
+  for(const min of tasks.map(t=>t.estimated_minutes||30)){
     let placed=false;
     while(!placed){
       const block=blockRanges.find(b=>b.start<=cursor&&b.end>cursor);
       if(block)cursor=block.end;
       const nextBlock=blockRanges.find(b=>b.start>cursor);
-      const spaceEnd=nextBlock?nextBlock.start:WORK_END_MAX;
+      const spaceEnd=nextBlock?nextBlock.start:24*60;
       if(spaceEnd-cursor>=min){cursor+=min;placed=true;}
       else{if(nextBlock)cursor=nextBlock.end;else{cursor+=min;placed=true;}}
     }
   }
   return cursor;
+}
+
+function fmtFinishTime(totalMin){
+  // 24時超えの場合は「終業後+Xmin」表示
+  const WORK_END=(window._dayEndHour||DEFAULT_END_HOUR)*60;
+  if(totalMin>WORK_END){
+    const over=totalMin-WORK_END;
+    return`終業+${over}min`;
+  }
+  const h=Math.floor(totalMin/60),m=totalMin%60;
+  return`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}終了予定`;
 }
 
 // optimize-area の初期表示（ボタンのみ）
@@ -843,37 +852,35 @@ function renderOptimizeArea(){
 window.runOptimize=async function(){
   const area=document.getElementById('optimize-area');
   if(!area)return;
-  // ローディング表示
   area.innerHTML=`<div style="display:flex;justify-content:flex-end;margin-bottom:8px;"><span style="font-size:11px;color:var(--text3);padding:4px 10px;">最適化中...</span></div>`;
 
-  // 全未完了・時刻固定でないタスクを対象（date_pinnedは日付固定のみ、時刻は再配置する）
-  const targets=allTasks.filter(t=>t.status==='pending'&&!t.pinned)
-    .map(t=>({...t,score:calcPriorityScore(t)}))
-    .sort((a,b)=>b.score-a.score);
+  // 変数を先に定義
+  const now=new Date();
+  const nowMin=now.getHours()*60+now.getMinutes();
+  const sm=(window._dayStartHour||DEFAULT_START_HOUR)*60+(window._dayStartMin||DEFAULT_START_MIN);
+  const WORK_END=(window._dayEndHour||DEFAULT_END_HOUR)*60;
 
   // 深夜（終業時間を過ぎている）場合は今日の空き=0
   const todayAvailable=nowMin<WORK_END;
 
+  // 全未完了・時刻固定でないタスクを対象
+  const targets=allTasks.filter(t=>t.status==='pending'&&!t.pinned)
+    .map(t=>({...t,score:calcPriorityScore(t)}))
+    .sort((a,b)=>b.score-a.score);
+
   // コンフリクトタスクを最優先
-  const allTodayBlocks=[...allBlocks.filter(b=>b.date===TODAY_STR),...getDefaultBlocks(TODAY_STR)];
+  const allTodayBlocks=[...allBlocks.filter(b=>!b._is_absence&&isBlockActiveOnDate(b,TODAY_STR)),...getDefaultBlocks(TODAY_STR)];
   const conflictIds=new Set();
   targets.filter(t=>t.scheduled_date===TODAY_STR&&t.scheduled_time).forEach(t=>{
     const[th,tm]=t.scheduled_time.split(':').map(Number);
     const tS=th*60+tm,tE=tS+(t.estimated_minutes||30);
     allTodayBlocks.forEach(b=>{
-      const[bsh,bsm]=b.start_time.split(':').map(Number);
-      const[beh,bem]=b.end_time.split(':').map(Number);
+      const[bsh,bsm]=b.start_time.split(':').map(Number);const[beh,bem]=b.end_time.split(':').map(Number);
       if(tS<beh*60+bem&&tE>bsh*60+bsm)conflictIds.add(t.id);
     });
   });
   targets.forEach(t=>{if(conflictIds.has(t.id))t.score=99999;});
   targets.sort((a,b)=>b.score-a.score);
-
-  // 各日の残り容量確認
-  const now=new Date();
-  const nowMin=now.getHours()*60+now.getMinutes();
-  const sm=(window._dayStartHour||DEFAULT_START_HOUR)*60+(window._dayStartMin||DEFAULT_START_MIN);
-  const WORK_END=(window._dayEndHour||DEFAULT_END_HOUR)*60;
 
   function getVirtualSlots(date){
     const startMin=date===TODAY_STR?Math.max(sm,nowMin):sm;
@@ -983,44 +990,22 @@ window.runOptimize=async function(){
 };
 
 function showFinishBanner(){
-  const area=document.getElementById('optimize-area');
-  if(!area)return;
-
-  // 今日の未完了タスク全体で終了時間計算
+  const wrap=document.getElementById('finish-banner-wrap');
+  if(!wrap)return;
   const todayTasks=allTasks.filter(t=>t.scheduled_date===TODAY_STR&&t.status==='pending')
     .sort((a,b)=>(a.scheduled_time||'99:99').localeCompare(b.scheduled_time||'99:99'));
+  if(!todayTasks.length){wrap.innerHTML='';return;}
   const finishMin=calcFinishTime(todayTasks);
-  const fh=Math.floor(finishMin/60),fm=finishMin%60;
-  const finishStr=`${String(fh).padStart(2,'0')}:${String(fm).padStart(2,'0')}`;
-
-  // 期限今日タスクのみの最短終了時間
-  const todayDeadlineTasks=allTasks.filter(t=>{
-    if(t.scheduled_date!==TODAY_STR||t.status!=='pending'||!t.deadline)return false;
-    const dl=Math.ceil((new Date(t.deadline)-TODAY)/(1000*60*60*24));return dl<=0;
-  }).sort((a,b)=>(a.scheduled_time||'99:99').localeCompare(b.scheduled_time||'99:99'));
-  const minFinishMin=calcFinishTime(todayDeadlineTasks);
-  const mfh=Math.floor(minFinishMin/60),mfm=minFinishMin%60;
-  const minFinishStr=`${String(mfh).padStart(2,'0')}:${String(mfm).padStart(2,'0')}`;
-
-  const hasTodayDeadline=todayDeadlineTasks.length>0;
-
-  area.innerHTML=`
-    <div style="background:var(--green);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-        <div>
-          <div style="font-size:11px;color:rgba(255,255,255,.5);letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px;">最適化完了</div>
-          <div style="font-size:15px;font-weight:500;color:white;">今日は <span style="font-family:var(--font-num);font-size:20px;">${finishStr}</span> 終わりになります</div>
-          ${hasTodayDeadline?`<div style="font-size:11px;color:rgba(255,255,255,.6);margin-top:3px;">期限今日のタスクのみなら最短 <strong style="color:white;">${minFinishStr}</strong></div>`:''}
-        </div>
-        <button onclick="dismissFinishBanner()" style="width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,.15);border:none;color:white;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">✕</button>
+  const finishStr=fmtFinishTime(finishMin);
+  const timeLabel=_lastOptimizeTime?`${String(_lastOptimizeTime.getHours()).padStart(2,'0')}:${String(_lastOptimizeTime.getMinutes()).padStart(2,'0')}時点`:'';
+  wrap.innerHTML=`
+    <div style="background:var(--green);border-radius:var(--radius);padding:12px 16px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        ${timeLabel?`<div style="font-size:10px;color:rgba(255,255,255,.5);margin-bottom:2px;">${timeLabel}</div>`:''}
+        <div style="font-size:14px;font-weight:500;color:white;">今日は <strong style="font-family:var(--font-num);font-size:18px;">${finishStr}</strong></div>
       </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button onclick="showEarlyLeaveOptions()" style="height:32px;padding:0 14px;background:rgba(255,255,255,.15);color:white;border:0.5px solid rgba(255,255,255,.3);border-radius:6px;font-size:12px;font-family:var(--font);cursor:pointer;">早く帰る</button>
-        ${hasTodayDeadline?`<button onclick="keepTodayDeadlineOnly()" style="height:32px;padding:0 14px;background:rgba(255,255,255,.15);color:white;border:0.5px solid rgba(255,255,255,.3);border-radius:6px;font-size:12px;font-family:var(--font);cursor:pointer;">期限今日だけにする</button>`:''}
-      </div>
-      <div id="early-leave-panel" style="display:none;margin-top:10px;"></div>
-    </div>
-  `;
+      <button onclick="document.getElementById('finish-banner-wrap').innerHTML=''" style="width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.15);border:none;color:white;font-size:12px;cursor:pointer;">✕</button>
+    </div>`;
 }
 
 window.dismissFinishBanner=function(){
@@ -1871,8 +1856,7 @@ function renderPlan(){
       const sorted=col.tasks.filter(t=>t.scheduled_time).sort((a,b)=>(a.scheduled_time||'').localeCompare(b.scheduled_time||''));
       if(sorted.length){
         const fm=calcFinishTime(sorted,col.key);
-        const fh=Math.floor(fm/60),fmm=fm%60;
-        finishLabel=`${String(fh).padStart(2,'0')}:${String(fmm).padStart(2,'0')}終了予定`;
+        finishLabel=fmtFinishTime(fm);
       }
     }
     const colEl=document.createElement('div');
