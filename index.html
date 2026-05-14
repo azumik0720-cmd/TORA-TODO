@@ -1563,31 +1563,36 @@ document.addEventListener('click',async(e)=>{
   if(selectedDeadline&&selectedDeadline<TODAY_STR){showToast('過去の期限は設定できません');return;}
   const memo=document.getElementById('memo-input')?.value.trim()||null;
   btn.disabled=true;btn.textContent='追加中...';
-  await saveTask({title,type:addState.type,estimated_minutes:addState.totalMin,deadline:selectedDeadline,memo,subtasks:addState.subtasks,repeat:addState.repeat||'none'});
+  const ok=await saveTask({title,type:addState.type,estimated_minutes:addState.totalMin,deadline:selectedDeadline,memo,subtasks:addState.subtasks,repeat:addState.repeat||'none'});
+  btn.disabled=false;btn.textContent='タスクを追加 🐯';
+  if(!ok)return;
   showToast('タスクを追加しました 🐯');
   initAddPage();
   navigateTo('today');
 });
 
 async function saveTask(data){
+  if(!currentUser){showToast('ログインが必要です');return false;}
   const{data:task,error}=await db.from('tasks').insert({
     user_id:currentUser.id,title:data.title,type:data.type||'judgment',status:'pending',
     estimated_minutes:data.estimated_minutes||30,deadline:data.deadline||null,
-    scheduled_date:null,scheduled_time:null, // 未分配で追加
+    scheduled_date:null,scheduled_time:null,
     pinned:false,date_pinned:false,
     repeat:data.repeat||'none',
     repeat_origin:data.repeat&&data.repeat!=='none'?TODAY_STR:null
   }).select().single();
-  if(error){showToast('追加に失敗しました');return;}
+  if(error||!task){console.error('saveTask error:',error);showToast('追加に失敗しました');return false;}
   task.scheduled_date=normalizeDate(task.scheduled_date);
   allTasks.unshift(task);
   if(data.subtasks?.length){
-    const subs=data.subtasks.map((s,i)=>({task_id:task.id,title:s.title,estimated_minutes:s.minutes||s.estimated_minutes||15,status:'pending',sort_order:i}));
-    const{data:savedSubs}=await db.from('subtasks').insert(subs).select();
+    const subs=data.subtasks.map((s,i)=>({task_id:task.id,title:s.title||'ステップ',estimated_minutes:s.minutes||s.estimated_minutes||15,status:'pending',sort_order:i}));
+    const{data:savedSubs,error:subError}=await db.from('subtasks').insert(subs).select();
+    if(subError)console.error('subtask error:',subError);
     if(savedSubs)allSubtasks.push(...savedSubs);
   }
   markOptimizeNeeded();
   renderUnplacedBanner();
+  return true;
 }
 
 // ============================================================
@@ -1673,7 +1678,9 @@ document.getElementById('auth-btn').addEventListener('click',async()=>{
   if(error){errEl.textContent=error.message;return;}
 });
 
-db.auth.onAuthStateChange(async(event,session)=>{
+// 起動時に既存セッションを即確認
+(async()=>{
+  const{data:{session}}=await db.auth.getSession();
   if(session?.user){
     currentUser=session.user;
     document.getElementById('auth-screen').style.display='none';
@@ -1681,8 +1688,20 @@ db.auth.onAuthStateChange(async(event,session)=>{
     const d=new Date();
     document.getElementById('header-date').textContent=`${d.getMonth()+1}/${d.getDate()}(${DAYS[d.getDay()]})`;
     await loadAll();
-  } else {
+  }
+})();
+
+db.auth.onAuthStateChange(async(event,session)=>{
+  if(event==='SIGNED_IN'&&session?.user){
+    currentUser=session.user;
+    document.getElementById('auth-screen').style.display='none';
+    document.getElementById('app').style.display='flex';
+    const d=new Date();
+    document.getElementById('header-date').textContent=`${d.getMonth()+1}/${d.getDate()}(${DAYS[d.getDay()]})`;
+    if(allTasks.length===0)await loadAll(); // 初回のみロード
+  } else if(event==='SIGNED_OUT'){
     currentUser=null;
+    allTasks=[];allSubtasks=[];allBlocks=[];
     document.getElementById('auth-screen').style.display='flex';
     document.getElementById('app').style.display='none';
   }
