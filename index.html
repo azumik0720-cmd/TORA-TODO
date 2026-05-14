@@ -914,8 +914,8 @@ window.runOptimize=async function(){
   const sm=(window._dayStartHour||DEFAULT_START_HOUR)*60+(window._dayStartMin||DEFAULT_START_MIN);
   const WORK_END=(window._dayEndHour||DEFAULT_END_HOUR)*60;
 
-  // 終業時間を過ぎている場合は今日の空き=0（深夜0時台も終業後と判定）
-  const todayAvailable=nowMin>=sm&&nowMin<WORK_END;
+  // 今日のスロットは現在時刻か始業時間の遅い方から計算（深夜でも始業前なら始業から）
+  const todayAvailable=true; // 常にtrue、getVirtualSlotsのstartMinで正しく制御される
 
   // 全未完了・時刻固定でないタスクを対象
   const targets=allTasks.filter(t=>t.status==='pending'&&!t.pinned)
@@ -961,9 +961,10 @@ window.runOptimize=async function(){
     const needed=min+(TYPE_BUFFER[type]||0);
     const startFloor=date===TODAY_STR?Math.max(sm,nowMin):sm;
     const NOON=12*60,CONC=16*60;
-    // virtualSlotsにない日付（明後日以降）は空配列で扱う
     if(!virtualSlots[date])virtualSlots[date]=getVirtualSlots(date);
     const slots=virtualSlots[date];
+    // スロットが空の場合はnullを返す（配置不可）
+    if(!slots||!slots.length)return null;
     let idxs=[];
     if(type==='judgment'||type==='unknown'||type==='creative'){
       idxs=[
@@ -987,6 +988,7 @@ window.runOptimize=async function(){
         return timeStr;
       }
     }
+    // フォールバック：同じ日の最初の空き枠
     const vi=slots.findIndex(s=>s.start>=startFloor);
     if(vi>=0){
       const slot=slots[vi];
@@ -996,25 +998,25 @@ window.runOptimize=async function(){
       if(newStart<slot.end)slots[vi]={start:newStart,end:slot.end};else slots.splice(vi,1);
       return timeStr;
     }
-    return`${String(Math.floor(startFloor/60)).padStart(2,'0')}:${String(startFloor%60).padStart(2,'0')}`;
+    return null; // 入れる場所がない
   }
 
   function pickDate(task){
-    // 日付固定タスクは日付を動かさない
     if(task.date_pinned&&task.scheduled_date)return task.scheduled_date;
-    // dependentは金曜→次の営業日
     if(task.type==='dependent'&&now.getDay()===5)return nextBizDay(TODAY,1);
-    // 期限今日・期限切れは今日に強制
-    if(task.deadline){const dl=Math.ceil((new Date(task.deadline)-TODAY)/(1000*60*60*24));if(dl<=0)return TODAY_STR;}
-
-    // 今日が営業日かつ空きあり
+    // 期限切れは今日が営業日なら今日、そうでなければ次の営業日
+    if(task.deadline){
+      const dl=Math.ceil((new Date(task.deadline)-TODAY)/(1000*60*60*24));
+      if(dl<=0)return todayAvailable&&isWorkday(TODAY_STR)?TODAY_STR:nextBizDay(TODAY,1);
+    }
+    // 今日が営業日かつ作業時間内で空きあり
     if(todayAvailable&&isWorkday(TODAY_STR)){
       const remToday=virtualSlots[TODAY_STR].reduce((a,s)=>a+(s.end-s.start),0);
       if(remToday>=(task.estimated_minutes||30))return TODAY_STR;
     }
-    // 次の営業日を探す（最大7日先まで）
+    // 次の営業日を探す
     let d=new Date(TODAY);
-    for(let i=1;i<=7;i++){
+    for(let i=1;i<=14;i++){
       d.setDate(d.getDate()+1);
       const ds=localDateStr(d);
       if(!isWorkday(ds))continue;
@@ -1022,7 +1024,6 @@ window.runOptimize=async function(){
       const rem=virtualSlots[ds].reduce((a,s)=>a+(s.end-s.start),0);
       if(rem>=(task.estimated_minutes||30))return ds;
     }
-    // フォールバック：次の営業日
     return nextBizDay(TODAY,1);
   }
 
@@ -1031,6 +1032,7 @@ window.runOptimize=async function(){
   for(const task of targets){
     const targetDate=pickDate(task);
     const newTime=pickSlot(targetDate,task.type,task.estimated_minutes||30);
+    if(newTime===null)continue; // スロットなし→スキップ
     const currentDate=normalizeDate(task.scheduled_date);
     const currentTime=(task.scheduled_time||'').slice(0,5);
     if(currentDate!==targetDate||currentTime!==newTime.slice(0,5)){
