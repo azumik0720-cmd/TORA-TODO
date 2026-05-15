@@ -321,28 +321,13 @@ kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); b
         </div>
       </div>
 
-      <!-- 一覧 -->
+      <!-- PLAN -->
       <div class="page" id="page-plan">
         <div style="display:flex;align-items:center;justify-content:space-between;margin:4px 0 12px;">
           <div style="font-size:13px;font-weight:500;color:var(--text);">タスク計画</div>
           <button onclick="runOptimize()" id="plan-optimize-btn" style="font-size:11px;color:var(--text3);background:var(--bg2);border:0.5px solid var(--sep);border-radius:6px;padding:5px 12px;cursor:pointer;font-family:var(--font);">🐯 最適化</button>
         </div>
         <div id="plan-board" style="display:flex;gap:12px;overflow-x:auto;padding-bottom:16px;-webkit-overflow-scrolling:touch;"></div>
-      </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;margin-bottom:10px;">
-          <div class="sec-label" style="margin:0;">タスク一覧</div>
-          <button class="btn-sm" id="review-btn">週次レビュー</button>
-        </div>
-        <div class="chip-group" id="filter-chips">
-          <div class="chip selected" data-filter="all">すべて</div>
-          <div class="chip" data-filter="pending">未完了</div>
-          <div class="chip" data-filter="routine">ルーティン</div>
-          <div class="chip" data-filter="unknown">初めて</div>
-          <div class="chip" data-filter="judgment">判断</div>
-          <div class="chip" data-filter="dependent">他者依存</div>
-          <div class="chip" data-filter="creative">制作</div>
-        </div>
-        <div id="task-list"></div>
       </div>
 
       <!-- SETUP -->
@@ -1311,6 +1296,9 @@ function navigateTo(page){
   document.querySelectorAll(`[data-page="${page}"]`).forEach(n=>n.classList.add('active'));
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById('page-'+page).classList.add('active');
+  // setup・planページでは右パネルを非表示
+  const rp=document.getElementById('right-panel');
+  if(rp)rp.style.display=(page==='setup'||page==='plan'||page==='add')?'none':'';
   if(page==='add')initAddPage();
   if(page==='plan')renderPlan();
   if(page==='setup'){renderTomorrow();renderSetup();}
@@ -2305,58 +2293,6 @@ document.getElementById('absence-add-btn')?.addEventListener('click',()=>{
   if(!window._absences)window._absences=[];
   window._absences.push({label,start,end});
   renderAbsenceList();
-});
-
-document.querySelectorAll('.start-opt').forEach(btn=>{
-  btn.addEventListener('click',()=>{
-    document.querySelectorAll('.start-opt').forEach(b=>{b.style.borderColor='var(--sep)';b.style.background='var(--white)';b.style.fontWeight='';b.style.color='var(--text)';});
-    btn.style.borderColor='var(--accent)';btn.style.background='var(--accent-light)';btn.style.fontWeight='500';btn.style.color='var(--accent)';
-    window._selectedStartH=parseInt(btn.dataset.h);window._selectedStartM=parseInt(btn.dataset.m);
-  });
-});
-
-document.querySelectorAll('.end-opt').forEach(btn=>{
-  btn.addEventListener('click',()=>{
-    document.querySelectorAll('.end-opt').forEach(b=>{b.style.borderColor='var(--sep)';b.style.background='var(--white)';b.style.fontWeight='';b.style.color='var(--text)';});
-    btn.style.borderColor='var(--accent)';btn.style.background='var(--accent-light)';btn.style.fontWeight='500';btn.style.color='var(--accent)';
-    window._selectedEndH=parseInt(btn.dataset.h);
-  });
-});
-
-document.getElementById('start-save-btn').addEventListener('click',async()=>{
-  if(window._selectedStartH!==undefined){
-    window._dayStartHour=window._selectedStartH;
-    window._dayStartMin=window._selectedStartM||0;
-  }
-  if(window._selectedEndH!==undefined){
-    setEndHour(window._selectedEndH);
-  } else {
-    setEndHour(window._dayEndHour||DEFAULT_END_HOUR);
-  }
-  // sessionStorage に始業時間も保存
-  try{const s=JSON.parse(sessionStorage.getItem('tora_settings')||'{}');s.sh=window._dayStartHour||DEFAULT_START_HOUR;s.sm=window._dayStartMin||0;sessionStorage.setItem('tora_settings',JSON.stringify(s));}catch(e){}
-  closeModal('start-modal');
-
-  // 終業時間を超えるタスクを明日以降に移動
-  const ehMin=(window._dayEndHour||DEFAULT_END_HOUR)*60;
-  const overTasks=allTasks.filter(t=>{
-    if(t.scheduled_date!==TODAY_STR||t.status==='done'||t.pinned)return false;
-    if(!t.scheduled_time)return false;
-    const[h,m]=t.scheduled_time.split(':').map(Number);
-    return h*60+m+(t.estimated_minutes||30)>ehMin;
-  });
-  if(overTasks.length>0){
-    for(const t of overTasks){
-      const newDate=autoPlotDate(t);
-      const newTime=autoPlotTime(t.type,t.estimated_minutes||30,newDate,null,newDate===TODAY_STR);
-      await db.from('tasks').update({scheduled_date:newDate,scheduled_time:newTime}).eq('id',t.id);
-      t.scheduled_date=newDate;t.scheduled_time=newTime;
-    }
-    showToast(`${overTasks.length}件を明日以降に移動しました`);
-  } else {
-    showToast('スケジュール設定を更新しました');
-  }
-  renderToday();renderRightPanel();
 });
 
 // 現在時刻ラインを1分ごとに更新
