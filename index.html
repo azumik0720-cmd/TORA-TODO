@@ -1914,7 +1914,7 @@ function openDetail(taskId){
     if(t){t.title=newTitle;t.estimated_minutes=newMin;t.deadline=newDeadline;t.memo=newMemo;t.repeat=newRepeat;}
     closeModal('detail-modal');
     showToast('タスクを更新しました');
-    setTimeout(()=>{renderToday();renderTaskList();},350);
+    setTimeout(()=>{renderToday();renderTaskList();renderPlan();},350);
   });
   document.getElementById('dd-btn').addEventListener('click',async()=>{
     await toggleTask(taskId);
@@ -1933,7 +1933,7 @@ function openDetail(taskId){
     await db.from('tasks').delete().eq('id',taskId);
     allTasks=allTasks.filter(t=>t.id!==taskId);allSubtasks=allSubtasks.filter(s=>s.task_id!==taskId);
     closeModal('detail-modal');showToast('削除しました');
-    setTimeout(()=>{renderToday();renderTaskList();},350);
+    setTimeout(()=>{renderToday();renderTaskList();renderPlan();},350);
   });
   openModal('detail-modal');
 }
@@ -2212,7 +2212,7 @@ document.getElementById('block-save-btn').addEventListener('click',async()=>{
   }
   document.getElementById('block-title').value='';
   closeModal('block-modal');
-  renderTomorrow();renderToday();renderRightPanel();
+  renderTomorrow();renderToday();renderRightPanel();renderSetupBlockList();
 });
 
 document.getElementById('block-delete-btn').addEventListener('click',async()=>{
@@ -2223,7 +2223,7 @@ document.getElementById('block-delete-btn').addEventListener('click',async()=>{
   await db.from('blocks').delete().eq('id',_editingBlockId);
   allBlocks=allBlocks.filter(x=>x.id!==_editingBlockId);
   closeModal('block-modal');
-  renderTomorrow();renderToday();renderRightPanel();
+  renderTomorrow();renderToday();renderRightPanel();renderSetupBlockList();
   showToast('削除しました');
 });
 
@@ -2470,7 +2470,7 @@ document.getElementById('setup-save-btn')?.addEventListener('click',async()=>{
     t.scheduled_date=newDate;t.scheduled_time=null;
   }
   markOptimizeNeeded();showToast('設定を保存しました');
-  renderToday();renderRightPanel();
+  renderToday();renderRightPanel();renderSetup();
 });
 
 document.getElementById('logout-btn')?.addEventListener('click',async()=>{
@@ -2520,7 +2520,7 @@ function renderFutureAbsenceList(){
 window.deleteFutureAbsence=async function(id){
   await db.from('blocks').delete().eq('id',id);
   allBlocks=allBlocks.filter(b=>b.id!==id);
-  markOptimizeNeeded();renderFutureAbsenceList();showToast('削除しました');
+  markOptimizeNeeded();renderFutureAbsenceList();renderToday();renderSetupBlockList();showToast('削除しました');
 };
 
 // ============================================================
