@@ -63,7 +63,7 @@ kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); b
   /* SETUP 会議リストのみスクロール */
   #setup-block-list { max-height: calc(100vh - 280px); overflow-y: auto; }
   /* PLAN: 均等カラム・各カラム内スクロール */
-  #plan-board { max-height: calc(100vh - 120px); overflow-x: visible; align-items: stretch; }
+  #plan-board { max-height: calc(100vh - 120px); overflow-x: visible; align-items: stretch; width: 100%; }
   #plan-board > div { flex: 1 1 0; min-width: 0; max-height: calc(100vh - 120px); overflow-y: auto; }
   /* ADD: 2カラム */
   #page-add .add-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: start; }
@@ -358,11 +358,10 @@ kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); b
 
       <!-- PLAN -->
       <div class="page" id="page-plan">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin:4px 0 12px;">
-          <div style="font-size:13px;font-weight:500;color:var(--text);">タスク計画</div>
+        <div style="display:flex;align-items:center;justify-content:flex-end;margin:4px 0 12px;">
           <button onclick="runOptimize()" id="plan-optimize-btn" style="font-size:11px;color:var(--text3);background:var(--bg2);border:0.5px solid var(--sep);border-radius:6px;padding:5px 12px;cursor:pointer;font-family:var(--font);">🐯 最適化</button>
         </div>
-        <div id="plan-board" style="display:flex;gap:12px;overflow-x:auto;padding-bottom:16px;-webkit-overflow-scrolling:touch;"></div>
+        <div id="plan-board" style="display:flex;gap:12px;overflow-x:auto;padding-bottom:16px;-webkit-overflow-scrolling:touch;width:100%;"></div>
       </div>
 
       <!-- SETUP -->
@@ -699,6 +698,8 @@ function isBlockActiveOnDate(b, targetDate){
 }
 
 function getDefaultBlocks(date){
+  // 非営業日はデフォルトブロックなし
+  if(!isWorkday(date))return [];
   const sm=(window._dayStartHour||DEFAULT_START_HOUR)*60+(window._dayStartMin||DEFAULT_START_MIN);
   const WORK_END=(window._dayEndHour||DEFAULT_END_HOUR)*60;
 
@@ -1086,7 +1087,10 @@ window.runOptimize=async function(){
   }
 
   function pickDate(task){
-    if(task.date_pinned&&task.scheduled_date)return task.scheduled_date;
+    if(task.date_pinned&&task.scheduled_date){
+      // 固定日が非営業日なら翌営業日に移動
+      return isWorkday(task.scheduled_date)?task.scheduled_date:nextBizDay(new Date(task.scheduled_date+'T00:00:00'),1);
+    }
     if(task.type==='dependent'&&now.getDay()===5)return nextBizDay(TODAY,1);
     // 期限切れは今日が営業日なら今日、そうでなければ次の営業日
     if(task.deadline){
@@ -2084,7 +2088,8 @@ function renderPlan(){
       }
     }
     const colEl=document.createElement('div');
-    colEl.style.cssText='flex:0 0 220px;background:var(--bg2);border-radius:var(--radius);padding:12px;min-height:300px;';
+    const isPC=window.innerWidth>=900;
+    colEl.style.cssText=`${isPC?'flex:1 1 0;min-width:0;':'flex:0 0 220px;'}background:var(--bg2);border-radius:var(--radius);padding:12px;min-height:300px;`;
     colEl.dataset.date=col.key;
     colEl.innerHTML=`
       <div style="margin-bottom:10px;">
