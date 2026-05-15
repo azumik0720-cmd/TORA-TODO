@@ -54,16 +54,12 @@ kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); b
   .nav { display: none; }
   .pc-nav { display: flex !important; }
   .header { padding: 0 40px; height: 52px; }
-  /* TODAY: 2カラムグリッド */
-  #page-today { display: grid !important; grid-template-columns: 1fr 340px; gap: 32px; align-items: start; }
-  #page-today-left { min-width: 0; }
-  #page-today-right { position: sticky; top: 0; }
-  /* PLAN: 横スクロール全幅 */
-  #page-plan { display: block !important; }
-  #plan-board { max-height: calc(100vh - 160px); }
+  /* TODAY: 2カラムグリッド（activeのときのみgridを適用） */
+  .page.active#page-today { display: grid; grid-template-columns: 1fr 320px; gap: 32px; align-items: start; }
   /* SETUP: 2カラムグリッド */
-  #page-setup { display: grid !important; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
-  #page-setup .setup-col-full { grid-column: span 2; }
+  .page.active#page-setup { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+  /* PLAN: block */
+  #plan-board { max-height: calc(100vh - 160px); }
 }
 .app-body { display: flex; flex: 1; overflow: hidden; }
 .main { flex: 1; overflow-y: auto; padding: 16px 20px 100px; }
