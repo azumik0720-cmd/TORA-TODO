@@ -1080,8 +1080,8 @@ window.runOptimize=async function(){
       const dl=Math.ceil((new Date(task.deadline)-TODAY)/(1000*60*60*24));
       if(dl<=0)return todayAvailable&&isWorkday(TODAY_STR)?TODAY_STR:nextBizDay(TODAY,1);
     }
-    // 今日が営業日かつ作業時間内で空きあり
-    if(todayAvailable&&isWorkday(TODAY_STR)){
+    // 今日が営業日かつ終業前で実際に空きスロットがある場合のみ今日を返す
+    if(todayAvailable&&isWorkday(TODAY_STR)&&nowMin<WORK_END){
       const remToday=virtualSlots[TODAY_STR].reduce((a,s)=>a+(s.end-s.start),0);
       if(remToday>=(task.estimated_minutes||30))return TODAY_STR;
     }
@@ -1102,12 +1102,25 @@ window.runOptimize=async function(){
   const updates=[];
   for(const task of targets){
     const targetDate=pickDate(task);
-    const newTime=pickSlot(targetDate,task.type,task.estimated_minutes||30);
-    if(newTime===null)continue; // スロットなし→スキップ
+    let newTime=pickSlot(targetDate,task.type,task.estimated_minutes||30);
+    let finalDate=targetDate;
+    // スロットが取れなかった場合は翌営業日を探してリトライ
+    if(newTime===null){
+      let d=new Date(TODAY);
+      for(let i=1;i<=14;i++){
+        d.setDate(d.getDate()+1);
+        const ds=localDateStr(d);
+        if(!isWorkday(ds))continue;
+        if(!virtualSlots[ds])virtualSlots[ds]=getVirtualSlots(ds);
+        newTime=pickSlot(ds,task.type,task.estimated_minutes||30);
+        if(newTime!==null){finalDate=ds;break;}
+      }
+    }
+    if(newTime===null)continue; // それでも入れる場所がない場合はスキップ
     const currentDate=normalizeDate(task.scheduled_date);
     const currentTime=(task.scheduled_time||'').slice(0,5);
-    if(currentDate!==targetDate||currentTime!==newTime.slice(0,5)){
-      updates.push({task,targetDate,newTime});
+    if(currentDate!==finalDate||currentTime!==newTime.slice(0,5)){
+      updates.push({task,targetDate:finalDate,newTime});
     }
   }
   await Promise.all(updates.map(async({task,targetDate,newTime})=>{
