@@ -211,8 +211,10 @@ kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); b
 .empty { text-align: center; padding: 36px 20px; color: var(--text3); font-size: 13px; line-height: 1.8; }
 .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(16px); background: var(--green); color: white; font-size: 13px; padding: 10px 20px; border-radius: 100px; z-index: 300; opacity: 0; transition: all .3s; white-space: nowrap; pointer-events: none; }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-.right-panel-sec { margin-bottom: 20px; }
-.right-panel-title { font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: var(--text3); font-weight: 500; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+.setup-time-btn { height:36px; padding:0 12px; border:0.5px solid var(--sep); border-radius:var(--radius-sm); background:var(--white); font-size:12px; font-family:var(--font); cursor:pointer; color:var(--text); transition:all .15s; }
+.setup-time-btn.selected { border-color:var(--accent); background:var(--accent-light); color:var(--accent); font-weight:500; }
+.setup-time-btn:hover:not(.selected) { border-color:var(--bg3); background:var(--bg2); }
+
 </style>
 </head>
 <body>
@@ -342,25 +344,25 @@ kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); b
           <div style="margin-bottom:14px;">
             <div style="font-size:11px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">始業時間</div>
             <div style="display:flex;gap:6px;flex-wrap:wrap;" id="setup-start-opts">
-              <button class="setup-start-opt" data-h="8" data-m="0">8:00</button>
-              <button class="setup-start-opt" data-h="8" data-m="30">8:30</button>
-              <button class="setup-start-opt" data-h="9" data-m="0">9:00</button>
-              <button class="setup-start-opt" data-h="9" data-m="30">9:30</button>
-              <button class="setup-start-opt" data-h="10" data-m="0">10:00</button>
-              <button class="setup-start-opt" data-h="10" data-m="30">10:30</button>
-              <button class="setup-start-opt" data-h="11" data-m="0">11:00</button>
+              <button class="setup-time-btn setup-start-opt" data-h="8" data-m="0">8:00</button>
+              <button class="setup-time-btn setup-start-opt" data-h="8" data-m="30">8:30</button>
+              <button class="setup-time-btn setup-start-opt" data-h="9" data-m="0">9:00</button>
+              <button class="setup-time-btn setup-start-opt" data-h="9" data-m="30">9:30</button>
+              <button class="setup-time-btn setup-start-opt" data-h="10" data-m="0">10:00</button>
+              <button class="setup-time-btn setup-start-opt" data-h="10" data-m="30">10:30</button>
+              <button class="setup-time-btn setup-start-opt" data-h="11" data-m="0">11:00</button>
             </div>
           </div>
           <div style="margin-bottom:16px;">
             <div style="font-size:11px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">終業時間</div>
             <div style="display:flex;gap:6px;flex-wrap:wrap;" id="setup-end-opts">
-              <button class="setup-end-opt" data-h="15">15:00</button>
-              <button class="setup-end-opt" data-h="16">16:00</button>
-              <button class="setup-end-opt" data-h="17">17:00</button>
-              <button class="setup-end-opt" data-h="18">18:00</button>
-              <button class="setup-end-opt" data-h="19">19:00</button>
-              <button class="setup-end-opt" data-h="20">20:00</button>
-              <button class="setup-end-opt" data-h="21">21:00</button>
+              <button class="setup-time-btn setup-end-opt" data-h="15">15:00</button>
+              <button class="setup-time-btn setup-end-opt" data-h="16">16:00</button>
+              <button class="setup-time-btn setup-end-opt" data-h="17">17:00</button>
+              <button class="setup-time-btn setup-end-opt" data-h="18">18:00</button>
+              <button class="setup-time-btn setup-end-opt" data-h="19">19:00</button>
+              <button class="setup-time-btn setup-end-opt" data-h="20">20:00</button>
+              <button class="setup-time-btn setup-end-opt" data-h="21">21:00</button>
             </div>
           </div>
           <button class="btn-next" id="setup-save-btn">保存する</button>
@@ -2306,40 +2308,32 @@ setInterval(()=>{
 // SETUP PAGE JS
 // ============================================================
 
-// ボタンスタイルユーティリティ
-function applyOptBtn(btn,active){
-  btn.style.borderColor=active?'var(--accent)':'var(--sep)';
-  btn.style.background=active?'var(--accent-light)':'var(--white)';
-  btn.style.fontWeight=active?'500':'';
-  btn.style.color=active?'var(--accent)':'var(--text)';
-}
-
-// SETUP始業ボタン
-document.querySelectorAll('.setup-start-opt').forEach(btn=>{
-  btn.style.cssText='height:36px;padding:0 10px;border:0.5px solid var(--sep);border-radius:var(--radius-sm);background:var(--white);font-size:12px;font-family:var(--font);cursor:pointer;color:var(--text);';
-  btn.addEventListener('click',()=>{
-    document.querySelectorAll('.setup-start-opt').forEach(b=>applyOptBtn(b,false));
-    applyOptBtn(btn,true);
-    window._selectedStartH=parseInt(btn.dataset.h);window._selectedStartM=parseInt(btn.dataset.m||0);
-  });
+// イベント委譲で確実に動作（DOMロード時のquerySelectorAllは使わない）
+document.getElementById('setup-start-opts')?.addEventListener('click',e=>{
+  const btn=e.target.closest('.setup-start-opt');if(!btn)return;
+  document.querySelectorAll('.setup-start-opt').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  window._selectedStartH=parseInt(btn.dataset.h);
+  window._selectedStartM=parseInt(btn.dataset.m||0);
 });
 
-// SETUP終業ボタン
-document.querySelectorAll('.setup-end-opt').forEach(btn=>{
-  btn.style.cssText='height:36px;padding:0 10px;border:0.5px solid var(--sep);border-radius:var(--radius-sm);background:var(--white);font-size:12px;font-family:var(--font);cursor:pointer;color:var(--text);';
-  btn.addEventListener('click',()=>{
-    document.querySelectorAll('.setup-end-opt').forEach(b=>applyOptBtn(b,false));
-    applyOptBtn(btn,true);
-    window._selectedEndH=parseInt(btn.dataset.h);
-  });
+document.getElementById('setup-end-opts')?.addEventListener('click',e=>{
+  const btn=e.target.closest('.setup-end-opt');if(!btn)return;
+  document.querySelectorAll('.setup-end-opt').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  window._selectedEndH=parseInt(btn.dataset.h);
 });
 
-// SETUP不在追加
-const setupAbsenceStart=document.getElementById('setup-absence-start');
-const setupAbsenceEnd=document.getElementById('setup-absence-end');
-if(setupAbsenceStart&&setupAbsenceStart.options.length<=1){
-  for(let h=6;h<=22;h++)for(let m=0;m<60;m+=30){setupAbsenceStart.add(new Option(`${h}:${String(m).padStart(2,'0')}`,h*60+m));setupAbsenceEnd.add(new Option(`${h}:${String(m).padStart(2,'0')}`,h*60+m));}
-}
+// 不在時間セレクトの初期化
+(function(){
+  ['setup-absence-start','setup-absence-end','future-absence-start','future-absence-end'].forEach(id=>{
+    const sel=document.getElementById(id);
+    if(sel&&sel.options.length<=1){
+      for(let h=6;h<=22;h++)for(let m=0;m<60;m+=30)sel.add(new Option(`${h}:${String(m).padStart(2,'0')}`,h*60+m));
+    }
+  });
+})();
+
 document.getElementById('setup-absence-add-btn')?.addEventListener('click',()=>{
   const label=document.getElementById('setup-absence-label').value;
   const start=parseInt(document.getElementById('setup-absence-start').value);
@@ -2353,42 +2347,25 @@ document.getElementById('setup-absence-add-btn')?.addEventListener('click',()=>{
 function renderSetupAbsenceList(){
   const list=document.getElementById('setup-absence-list');if(!list)return;
   const absences=window._absences||[];
-  if(!absences.length){list.innerHTML='';return;}
-  list.innerHTML=absences.map((a,i)=>`<div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg2);border-radius:var(--radius-sm);padding:8px 12px;font-size:12px;"><span>${a.label} ${toTimeStr(a.start).slice(0,5)}〜${toTimeStr(a.end).slice(0,5)}</span><button onclick="removeSetupAbsence(${i})" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:12px;font-family:var(--font);">削除</button></div>`).join('');
+  if(!absences.length){list.innerHTML='<div style="font-size:12px;color:var(--text3);padding:4px 0;">設定なし</div>';return;}
+  list.innerHTML=absences.map((a,i)=>`<div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg2);border-radius:var(--radius-sm);padding:8px 12px;font-size:12px;margin-top:6px;"><span>${a.label} ${toTimeStr(a.start).slice(0,5)}〜${toTimeStr(a.end).slice(0,5)}</span><button onclick="removeSetupAbsence(${i})" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:12px;font-family:var(--font);">削除</button></div>`).join('');
 }
 window.removeSetupAbsence=function(i){window._absences=(window._absences||[]).filter((_,idx)=>idx!==i);saveSettings();renderSetupAbsenceList();markOptimizeNeeded();};
 
 document.getElementById('setup-save-btn')?.addEventListener('click',async()=>{
-  // 選択された値をwindow変数に反映（未選択なら現在値を維持）
-  if(window._selectedStartH!==undefined){
-    window._dayStartHour=window._selectedStartH;
-    window._dayStartMin=window._selectedStartM||0;
-  }
-  if(window._selectedEndH!==undefined){
-    setEndHour(window._selectedEndH);
-  }
-  // sessionStorageに保存
+  window._dayStartHour=window._selectedStartH??window._dayStartHour??DEFAULT_START_HOUR;
+  window._dayStartMin=window._selectedStartM??window._dayStartMin??DEFAULT_START_MIN;
+  setEndHour(window._selectedEndH??window._dayEndHour??DEFAULT_END_HOUR);
   try{
     const s=JSON.parse(sessionStorage.getItem('tora_settings')||'{}');
-    s.date=TODAY_STR;
-    s.sh=window._dayStartHour||DEFAULT_START_HOUR;
-    s.sm=window._dayStartMin||0;
-    s.eh=window._dayEndHour||DEFAULT_END_HOUR;
+    s.date=TODAY_STR;s.sh=window._dayStartHour;s.sm=window._dayStartMin;s.eh=window._dayEndHour;
     sessionStorage.setItem('tora_settings',JSON.stringify(s));
   }catch(e){}
-
-  // ヘッダーの時間表示を更新
-  const sh=window._dayStartHour||DEFAULT_START_HOUR;
-  const sm2=window._dayStartMin||DEFAULT_START_MIN;
-  const eh=window._dayEndHour||DEFAULT_END_HOUR;
+  const sh=window._dayStartHour,sm2=window._dayStartMin,eh=window._dayEndHour;
   const startBtn=document.getElementById('start-time-btn');
   if(startBtn)startBtn.textContent=`⏰ ${sh}:${String(sm2).padStart(2,'0')}〜${eh}:00`;
-
-  // 現在設定の表示を更新
   const cur=document.getElementById('setup-current-time');
   if(cur)cur.textContent=`${sh}:${String(sm2).padStart(2,'0')}〜${eh}:00`;
-
-  // 終業時間を超えるタスクを移動（日付固定以外）
   const ehMin=eh*60;
   const overTasks=allTasks.filter(t=>{
     if(t.scheduled_date!==TODAY_STR||t.status==='done'||t.pinned||t.date_pinned)return false;
@@ -2396,60 +2373,50 @@ document.getElementById('setup-save-btn')?.addEventListener('click',async()=>{
     const[h,m]=t.scheduled_time.split(':').map(Number);
     return h*60+m+(t.estimated_minutes||30)>ehMin;
   });
-  // 日付固定タスクがはみ出る場合はアラート
   const fixedOver=allTasks.filter(t=>{
-    if(t.scheduled_date!==TODAY_STR||t.status==='done'||!t.date_pinned)return false;
-    if(!t.scheduled_time)return false;
+    if(t.scheduled_date!==TODAY_STR||t.status==='done'||!t.date_pinned||!t.scheduled_time)return false;
     const[h,m]=t.scheduled_time.split(':').map(Number);
     return h*60+m+(t.estimated_minutes||30)>ehMin;
   });
-  if(fixedOver.length){
-    showToast(`⚠️「${fixedOver.map(t=>t.title).join('・')}」は日付固定のため終業後も残ります`);
+  if(fixedOver.length)showToast(`⚠️「${fixedOver.map(t=>t.title).join('・')}」は日付固定のため終業後も残ります`);
+  for(const t of overTasks){
+    const newDate=isWorkday(TOMORROW_STR)?TOMORROW_STR:nextBizDay(TODAY,1);
+    await db.from('tasks').update({scheduled_date:newDate,scheduled_time:null}).eq('id',t.id);
+    t.scheduled_date=newDate;t.scheduled_time=null;
   }
-  if(overTasks.length>0){
-    for(const t of overTasks){
-      const newDate=isWorkday(TOMORROW_STR)?TOMORROW_STR:nextBizDay(TODAY,1);
-      await db.from('tasks').update({scheduled_date:newDate,scheduled_time:null}).eq('id',t.id);
-      t.scheduled_date=newDate;t.scheduled_time=null;
-    }
-  }
-  markOptimizeNeeded();
-  showToast('設定を保存しました');
+  markOptimizeNeeded();showToast('設定を保存しました');
   renderToday();renderRightPanel();
 });
 
-// 将来の不在時間セレクト
-const futureAbsStart=document.getElementById('future-absence-start');
-const futureAbsEnd=document.getElementById('future-absence-end');
-if(futureAbsStart&&futureAbsStart.options.length<=1){
-  for(let h=6;h<=22;h++)for(let m=0;m<60;m+=30){futureAbsStart.add(new Option(`${h}:${String(m).padStart(2,'0')}`,h*60+m));futureAbsEnd.add(new Option(`${h}:${String(m).padStart(2,'0')}`,h*60+m));}
-}
-
-// ログアウト
 document.getElementById('logout-btn')?.addEventListener('click',async()=>{
   if(!confirm('ログアウトしますか？'))return;
   await db.auth.signOut();
 });
 
-// SETUP表示を更新する関数
+document.getElementById('future-absence-add-btn')?.addEventListener('click',async()=>{
+  const date=document.getElementById('future-absence-date').value;
+  const label=document.getElementById('future-absence-label').value;
+  const start=parseInt(document.getElementById('future-absence-start').value);
+  const end=parseInt(document.getElementById('future-absence-end').value);
+  if(!date||isNaN(start)||isNaN(end)||start>=end){showToast('日付と時間を正しく入力してください');return;}
+  const{data}=await db.from('blocks').insert({user_id:currentUser.id,title:label,start_time:toTimeStr(start),end_time:toTimeStr(end),date,_is_absence:true,repeat:'none'}).select().single();
+  if(data){allBlocks.push({...data,_is_absence:true});markOptimizeNeeded();renderFutureAbsenceList();showToast('不在日を登録しました');}
+});
+
 function renderSetup(){
   const sh=window._dayStartHour||DEFAULT_START_HOUR;
   const sm2=window._dayStartMin||DEFAULT_START_MIN;
   const eh=window._dayEndHour||DEFAULT_END_HOUR;
-  // 現在設定を大きく表示
   const cur=document.getElementById('setup-current-time');
   if(cur)cur.textContent=`${sh}:${String(sm2).padStart(2,'0')}〜${eh}:00`;
-  // ボタンの選択状態を反映
   document.querySelectorAll('.setup-start-opt').forEach(btn=>{
-    const bh=parseInt(btn.dataset.h),bm=parseInt(btn.dataset.m||0);
-    applyOptBtn(btn,bh===sh&&bm===sm2);
+    btn.classList.toggle('selected',parseInt(btn.dataset.h)===sh&&parseInt(btn.dataset.m||0)===sm2);
   });
   document.querySelectorAll('.setup-end-opt').forEach(btn=>{
-    applyOptBtn(btn,parseInt(btn.dataset.h)===eh);
+    btn.classList.toggle('selected',parseInt(btn.dataset.h)===eh);
   });
-  renderSetupAbsenceList();
-  renderSetupBlockList();
-  renderFutureAbsenceList();
+  window._selectedStartH=sh;window._selectedStartM=sm2;window._selectedEndH=eh;
+  renderSetupAbsenceList();renderSetupBlockList();renderFutureAbsenceList();
 }
 
 function renderSetupBlockList(){
@@ -2470,17 +2437,6 @@ window.deleteFutureAbsence=async function(id){
   allBlocks=allBlocks.filter(b=>b.id!==id);
   markOptimizeNeeded();renderFutureAbsenceList();showToast('削除しました');
 };
-
-// 将来の不在追加
-document.getElementById('future-absence-add-btn')?.addEventListener('click',async()=>{
-  const date=document.getElementById('future-absence-date').value;
-  const label=document.getElementById('future-absence-label').value;
-  const start=parseInt(document.getElementById('future-absence-start').value);
-  const end=parseInt(document.getElementById('future-absence-end').value);
-  if(!date||isNaN(start)||isNaN(end)||start>=end){showToast('日付と時間を正しく入力してください');return;}
-  const{data}=await db.from('blocks').insert({user_id:currentUser.id,title:label,start_time:toTimeStr(start),end_time:toTimeStr(end),date,_is_absence:true,repeat:'none'}).select().single();
-  if(data){allBlocks.push({...data,_is_absence:true});markOptimizeNeeded();renderFutureAbsenceList();showToast('不在日を登録しました');}
-});
 
 // ============================================================
 // MODAL CLOSE
