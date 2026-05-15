@@ -46,11 +46,21 @@ body { display: flex; flex-direction: column; margin: 0 auto; }
 .pc-nav-item svg { width: 16px; height: 16px; flex-shrink: 0; }
 kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); border-radius: 3px; font-size: 10px; font-family: var(--font); background: var(--bg2); color: var(--text2); }
 @media (min-width: 900px) {
-  .app-body { display: grid; grid-template-columns: 1fr 300px; flex: 1; overflow: hidden; }
-  .main { padding: 20px 24px 24px; overflow-y: auto; }
-  .right-panel { border-left: 0.5px solid var(--sep); background: var(--white); overflow-y: auto; padding: 20px; display: block !important; }
+  body { overflow: hidden; }
+  #app { height: 100vh; display: flex; flex-direction: column; }
+  .app-body { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+  .main { flex: 1; overflow-y: auto; padding: 28px 40px 40px; max-width: 1200px; margin: 0 auto; width: 100%; }
+  .right-panel { display: none !important; }
   .nav { display: none; }
   .pc-nav { display: flex !important; }
+  .header { padding: 0 40px; height: 52px; }
+  /* TODAY: 2カラムグリッド（activeのときのみgridを適用） */
+  .page.active#page-today { display: grid; grid-template-columns: 1fr 320px; gap: 32px; align-items: start; }
+  /* SETUP: 2カラムグリッド */
+  .page.active#page-setup { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+  /* PLAN: 均等カラム */
+  #plan-board { max-height: calc(100vh - 160px); overflow-x: visible; }
+  #plan-board > div { flex: 1 1 0; min-width: 0; }
 }
 .app-body { display: flex; flex: 1; overflow: hidden; }
 .main { flex: 1; overflow-y: auto; padding: 16px 20px 100px; }
@@ -211,8 +221,10 @@ kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); b
 .empty { text-align: center; padding: 36px 20px; color: var(--text3); font-size: 13px; line-height: 1.8; }
 .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(16px); background: var(--green); color: white; font-size: 13px; padding: 10px 20px; border-radius: 100px; z-index: 300; opacity: 0; transition: all .3s; white-space: nowrap; pointer-events: none; }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-.right-panel-sec { margin-bottom: 20px; }
-.right-panel-title { font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: var(--text3); font-weight: 500; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+.setup-time-btn { height:36px; padding:0 12px; border:0.5px solid var(--sep); border-radius:var(--radius-sm); background:var(--white); font-size:12px; font-family:var(--font); cursor:pointer; color:var(--text); transition:all .15s; }
+.setup-time-btn.selected { border-color:var(--accent); background:var(--accent-light); color:var(--accent); font-weight:500; }
+.setup-time-btn:hover:not(.selected) { border-color:var(--bg3); background:var(--bg2); }
+
 </style>
 </head>
 <body>
@@ -255,11 +267,21 @@ kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); b
     <div class="main" id="main-content">
       <!-- 今日 -->
       <div class="page active" id="page-today">
-        <div id="optimize-area"></div>
-        <div id="unplaced-banner"></div>
-        <div id="finish-banner-wrap"></div>
-        <div class="sec-label" style="margin-top:12px;">今日のスケジュール</div>
-        <div id="schedule-list"></div>
+        <!-- 左カラム：スケジュール -->
+        <div id="page-today-left">
+          <div id="optimize-area"></div>
+          <div id="unplaced-banner"></div>
+          <div id="finish-banner-wrap"></div>
+          <div class="sec-label" style="margin-top:8px;">今日のスケジュール</div>
+          <div id="schedule-list"></div>
+        </div>
+        <!-- 右カラム：今日の情報 -->
+        <div id="page-today-right">
+          <div class="sec-label" style="margin-top:8px;">今日の会議</div>
+          <div id="today-meetings" style="margin-bottom:20px;"></div>
+          <div class="sec-label">期限が近いタスク</div>
+          <div id="today-urgent" style="margin-bottom:20px;"></div>
+        </div>
       </div>
 
       <!-- 追加 -->
@@ -321,7 +343,7 @@ kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); b
         </div>
       </div>
 
-      <!-- 一覧 -->
+      <!-- PLAN -->
       <div class="page" id="page-plan">
         <div style="display:flex;align-items:center;justify-content:space-between;margin:4px 0 12px;">
           <div style="font-size:13px;font-weight:500;color:var(--text);">タスク計画</div>
@@ -329,34 +351,83 @@ kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); b
         </div>
         <div id="plan-board" style="display:flex;gap:12px;overflow-x:auto;padding-bottom:16px;-webkit-overflow-scrolling:touch;"></div>
       </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;margin-bottom:10px;">
-          <div class="sec-label" style="margin:0;">タスク一覧</div>
-          <button class="btn-sm" id="review-btn">週次レビュー</button>
-        </div>
-        <div class="chip-group" id="filter-chips">
-          <div class="chip selected" data-filter="all">すべて</div>
-          <div class="chip" data-filter="pending">未完了</div>
-          <div class="chip" data-filter="routine">ルーティン</div>
-          <div class="chip" data-filter="unknown">初めて</div>
-          <div class="chip" data-filter="judgment">判断</div>
-          <div class="chip" data-filter="dependent">他者依存</div>
-          <div class="chip" data-filter="creative">制作</div>
-        </div>
-        <div id="task-list"></div>
-      </div>
 
-      <!-- 明日 -->
+      <!-- SETUP -->
       <div class="page" id="page-setup">
-        <div class="sec-label" style="margin-top:4px;">今日の時間設定</div>
-        <div id="setup-time-wrap" style="background:var(--white);border:0.5px solid var(--sep);border-radius:var(--radius);padding:14px;margin-bottom:12px;">
-          <div style="font-size:11px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;">⏰ 始業・終業・不在</div>
-          <button id="setup-open-time-btn" style="width:100%;height:40px;background:var(--bg2);border:0.5px solid var(--sep);border-radius:var(--radius-sm);font-size:13px;font-family:var(--font);cursor:pointer;color:var(--text2);" id="start-time-btn-setup">時間設定を開く</button>
+        <!-- 左カラム：今日の設定 + 不在 -->
+        <div>
+          <div class="sec-label" style="margin-top:4px;">今日の設定</div>
+          <div style="background:var(--white);border:0.5px solid var(--sep);border-radius:var(--radius);padding:16px;margin-bottom:12px;">
+            <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:16px;">
+              <div style="font-size:22px;font-weight:500;color:var(--text);" id="setup-current-time">--:--〜--:--</div>
+              <div style="font-size:11px;color:var(--text3);">現在の設定</div>
+            </div>
+            <div style="margin-bottom:14px;">
+              <div style="font-size:11px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">始業時間</div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;" id="setup-start-opts">
+                <button class="setup-time-btn setup-start-opt" data-h="8" data-m="0">8:00</button>
+                <button class="setup-time-btn setup-start-opt" data-h="8" data-m="30">8:30</button>
+                <button class="setup-time-btn setup-start-opt" data-h="9" data-m="0">9:00</button>
+                <button class="setup-time-btn setup-start-opt" data-h="9" data-m="30">9:30</button>
+                <button class="setup-time-btn setup-start-opt" data-h="10" data-m="0">10:00</button>
+                <button class="setup-time-btn setup-start-opt" data-h="10" data-m="30">10:30</button>
+                <button class="setup-time-btn setup-start-opt" data-h="11" data-m="0">11:00</button>
+              </div>
+            </div>
+            <div style="margin-bottom:16px;">
+              <div style="font-size:11px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">終業時間</div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;" id="setup-end-opts">
+                <button class="setup-time-btn setup-end-opt" data-h="15">15:00</button>
+                <button class="setup-time-btn setup-end-opt" data-h="16">16:00</button>
+                <button class="setup-time-btn setup-end-opt" data-h="17">17:00</button>
+                <button class="setup-time-btn setup-end-opt" data-h="18">18:00</button>
+                <button class="setup-time-btn setup-end-opt" data-h="19">19:00</button>
+                <button class="setup-time-btn setup-end-opt" data-h="20">20:00</button>
+                <button class="setup-time-btn setup-end-opt" data-h="21">21:00</button>
+              </div>
+            </div>
+            <button class="btn-next" id="setup-save-btn">保存する</button>
+          </div>
+          <div class="sec-label">今日の不在時間</div>
+          <div style="background:var(--white);border:0.5px solid var(--sep);border-radius:var(--radius);padding:16px;margin-bottom:12px;">
+            <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center;flex-wrap:wrap;">
+              <select id="setup-absence-label" class="wiz-input" style="flex:1.5;min-width:80px;height:36px;font-size:12px;">
+                <option>時間休</option><option>午後休</option><option>終日休暇</option><option>移動時間</option><option>その他</option>
+              </select>
+              <select id="setup-absence-start" class="wiz-input" style="flex:1;min-width:70px;height:36px;font-size:12px;"></select>
+              <span style="font-size:12px;color:var(--text3);">〜</span>
+              <select id="setup-absence-end" class="wiz-input" style="flex:1;min-width:70px;height:36px;font-size:12px;"></select>
+              <button id="setup-absence-add-btn" style="height:36px;padding:0 12px;background:var(--accent);color:white;border:none;border-radius:var(--radius-sm);font-size:12px;font-family:var(--font);cursor:pointer;flex-shrink:0;">追加</button>
+            </div>
+            <div id="setup-absence-list"></div>
+          </div>
+          <div class="sec-label">将来の不在日</div>
+          <div style="background:var(--white);border:0.5px solid var(--sep);border-radius:var(--radius);padding:16px;margin-bottom:12px;">
+            <div style="font-size:12px;color:var(--text3);margin-bottom:12px;">休暇・移動を事前登録。最適化に反映されます。</div>
+            <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center;flex-wrap:wrap;">
+              <input class="wiz-input" type="date" id="future-absence-date" style="flex:1.2;height:36px;font-size:12px;min-width:120px;padding:0 8px;">
+              <select id="future-absence-label" class="wiz-input" style="flex:1;min-width:80px;height:36px;font-size:12px;">
+                <option>休暇</option><option>午前休</option><option>午後休</option><option>終日休暇</option><option>移動時間</option><option>その他</option>
+              </select>
+              <select id="future-absence-start" class="wiz-input" style="flex:1;min-width:70px;height:36px;font-size:12px;"></select>
+              <span style="font-size:12px;color:var(--text3);">〜</span>
+              <select id="future-absence-end" class="wiz-input" style="flex:1;min-width:70px;height:36px;font-size:12px;"></select>
+              <button id="future-absence-add-btn" style="height:36px;padding:0 12px;background:var(--accent);color:white;border:none;border-radius:var(--radius-sm);font-size:12px;font-family:var(--font);cursor:pointer;flex-shrink:0;">登録</button>
+            </div>
+            <div id="future-absence-list"></div>
+          </div>
         </div>
-        <div class="sec-label">会議・固定ブロック</div>
-        <div id="block-list"></div>
-        <button class="btn-sm btn-sm-accent" id="add-block-btn" style="margin-bottom:16px;">+ 会議・MTGを追加</button>
-        <div class="sec-label">明日のタスク</div>
-        <div id="tomorrow-task-list"></div>
+        <!-- 右カラム：会議・固定ブロック + ログアウト -->
+        <div>
+          <div class="sec-label" style="margin-top:4px;">会議・固定ブロック</div>
+          <div style="background:var(--white);border:0.5px solid var(--sep);border-radius:var(--radius);padding:16px;margin-bottom:12px;">
+            <div id="setup-block-list" style="margin-bottom:12px;"></div>
+            <button class="btn-sm btn-sm-accent" id="add-block-btn">+ 会議・MTGを追加</button>
+          </div>
+          <div style="margin-bottom:32px;">
+            <button id="logout-btn" style="width:100%;height:44px;background:none;border:0.5px solid var(--sep);border-radius:var(--radius-sm);font-size:13px;font-family:var(--font);color:var(--text3);cursor:pointer;">ログアウト</button>
+          </div>
+        </div>
       </div>
     </div>
     <div class="right-panel" id="right-panel">
@@ -1058,29 +1129,14 @@ window.runOptimize=async function(){
 function showFinishBanner(){
   const wrap=document.getElementById('finish-banner-wrap');
   if(!wrap)return;
-  // 最適化後のタスク配置で終了時間を計算（始業時間からの全体計算）
-  const todayTasks=allTasks.filter(t=>t.scheduled_date===TODAY_STR&&t.status==='pending')
+  const todayTasks=allTasks.filter(t=>t.scheduled_date===TODAY_STR&&t.status==='pending'&&t.scheduled_time)
     .sort((a,b)=>(a.scheduled_time||'99:99').localeCompare(b.scheduled_time||'99:99'));
   if(!todayTasks.length){wrap.innerHTML='';return;}
-  // 始業時間から計算（最適化直後は全体が再配置済みのため始業から計算が正しい）
-  const sm=(window._dayStartHour||DEFAULT_START_HOUR)*60+(window._dayStartMin||DEFAULT_START_MIN);
-  const WORK_END=(window._dayEndHour||DEFAULT_END_HOUR)*60;
-  const blockRanges=[...allBlocks.filter(b=>!b._is_absence&&isBlockActiveOnDate(b,TODAY_STR)),...getDefaultBlocks(TODAY_STR)]
-    .map(b=>{const[sh,bsm]=b.start_time.split(':').map(Number);const[eh,em]=b.end_time.split(':').map(Number);return{start:sh*60+bsm,end:eh*60+em};})
-    .filter(r=>r.end>sm).sort((a,b)=>a.start-b.start);
-  let cursor=sm;
-  for(const min of todayTasks.map(t=>t.estimated_minutes||30)){
-    let placed=false;
-    while(!placed){
-      const block=blockRanges.find(b=>b.start<=cursor&&b.end>cursor);
-      if(block)cursor=block.end;
-      const nextBlock=blockRanges.find(b=>b.start>cursor);
-      const spaceEnd=nextBlock?nextBlock.start:24*60;
-      if(spaceEnd-cursor>=min){cursor+=min;placed=true;}
-      else{if(nextBlock)cursor=nextBlock.end;else{cursor+=min;placed=true;}}
-    }
-  }
-  const finishStr=fmtFinishTime(cursor);
+  // 実際のscheduled_timeから終了時間を計算（最後のタスクの終了時刻）
+  const lastTask=todayTasks[todayTasks.length-1];
+  const[lh,lm]=lastTask.scheduled_time.split(':').map(Number);
+  const finishMin=lh*60+lm+(lastTask.estimated_minutes||30);
+  const finishStr=fmtFinishTime(finishMin);
   const timeLabel=_lastOptimizeTime?`${String(_lastOptimizeTime.getHours()).padStart(2,'0')}:${String(_lastOptimizeTime.getMinutes()).padStart(2,'0')}時点`:'';
   wrap.innerHTML=`
     <div style="background:var(--green);border-radius:var(--radius);padding:12px 16px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">
@@ -1250,7 +1306,7 @@ function navigateTo(page){
   document.getElementById('page-'+page).classList.add('active');
   if(page==='add')initAddPage();
   if(page==='plan')renderPlan();
-  if(page==='setup')renderTomorrow();
+  if(page==='setup'){renderTomorrow();renderSetup();}
   if(page==='today')renderToday();
 }
 document.getElementById('setup-open-time-btn')?.addEventListener('click',()=>openModal('start-modal'));
@@ -1273,6 +1329,44 @@ function renderToday(){
   renderUnplacedBanner();
   renderSchedule();
   renderRightPanel();
+  renderTodayRight();
+}
+
+function renderTodayRight(){
+  // 今日の会議
+  const meetings=document.getElementById('today-meetings');
+  if(meetings){
+    const todayBlocks=allBlocks.filter(b=>!b._is_absence&&isBlockActiveOnDate(b,TODAY_STR))
+      .sort((a,b)=>a.start_time.localeCompare(b.start_time));
+    if(!todayBlocks.length){
+      meetings.innerHTML='<div style="font-size:12px;color:var(--text3);padding:4px 0;">今日の会議なし</div>';
+    } else {
+      meetings.innerHTML=todayBlocks.map(b=>`
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--sep);">
+          <div style="font-family:var(--font-num);font-size:13px;color:var(--text3);width:40px;flex-shrink:0;">${b.start_time.slice(0,5)}</div>
+          <div style="flex:1;"><div style="font-size:13px;font-weight:500;">${b.title}</div><div style="font-size:11px;color:var(--text3);">${b.start_time.slice(0,5)}〜${b.end_time.slice(0,5)}</div></div>
+        </div>`).join('');
+    }
+  }
+  // 期限が近いタスク（3日以内）
+  const urgent=document.getElementById('today-urgent');
+  if(urgent){
+    const urgentTasks=allTasks.filter(t=>{
+      if(t.status==='done'||!t.deadline)return false;
+      const dl=Math.ceil((new Date(t.deadline)-TODAY)/(1000*60*60*24));
+      return dl<=3;
+    }).sort((a,b)=>a.deadline.localeCompare(b.deadline)).slice(0,5);
+    if(!urgentTasks.length){
+      urgent.innerHTML='<div style="font-size:12px;color:var(--text3);padding:4px 0;">期限が近いタスクなし</div>';
+    } else {
+      urgent.innerHTML=urgentTasks.map(t=>{
+        const dl=Math.ceil((new Date(t.deadline)-TODAY)/(1000*60*60*24));
+        const dlLabel=dl<=0?'期限超過':dl===1?'明日まで':`${dl}日後`;
+        const dlColor=dl<=0?'var(--accent)':dl===1?'#E65100':'var(--text3)';
+        return`<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:0.5px solid var(--sep);cursor:pointer;" onclick="openDetail('${t.id}')"><div class="task-type-badge type-${t.type}">${typeLabel(t.type)}</div><div style="flex:1;min-width:0;font-size:12px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${t.title}</div><div style="font-size:11px;color:${dlColor};flex-shrink:0;">${dlLabel}</div></div>`;
+      }).join('');
+    }
+  }
 }
 
 function renderUnplacedBanner(){
@@ -2105,19 +2199,13 @@ async function autoReplaceAfterBlock(date){
 // RIGHT PANEL
 // ============================================================
 function renderRightPanel(){
-  // 繰り返しブロックも含めて今日の会議を表示
-  const todayBlocks=allBlocks.filter(b=>!b._is_absence&&isBlockActiveOnDate(b,TODAY_STR))
-    .sort((a,b)=>a.start_time.localeCompare(b.start_time));
-  const blockRight=document.getElementById('block-list-right');
-  if(blockRight)blockRight.innerHTML=todayBlocks.length?todayBlocks.map(b=>`<div class="task-card block-card" style="margin-bottom:6px;cursor:default;"><div class="task-card-top"><div class="task-card-left"><div class="task-type-badge type-block">固定</div><span class="task-title">${b.title}</span></div><span class="task-time">${b.start_time.slice(0,5)}〜${b.end_time.slice(0,5)}</span></div></div>`).join(''):'<div style="font-size:12px;color:var(--text3);padding:4px 0;">今日の会議なし</div>';
-  const miniLoad=document.getElementById('tomorrow-mini-load');
-  if(miniLoad){const tmUsed=calcUsedMinutes(TOMORROW_STR),tmPct=Math.min(100,Math.round(tmUsed/BUFFER_LIMIT*100));miniLoad.innerHTML=`<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-bottom:6px;"><span>${tmUsed}min / ${BUFFER_LIMIT}min</span><span style="color:${tmUsed>BUFFER_LIMIT?'var(--accent)':'var(--text3)'};">${tmUsed>BUFFER_LIMIT?'上限超え':'余裕あり'}</span></div><div class="buffer-track"><div class="buffer-fill ${tmUsed>BUFFER_LIMIT?'warn':''}" style="width:${tmPct}%"></div></div>`;}
+  // 右パネル廃止済み（互換性のため関数は残す）
 }
 
 // ============================================================
 // WEEKLY REVIEW
 // ============================================================
-document.getElementById('review-btn').addEventListener('click',()=>{
+document.getElementById('review-btn')?.addEventListener('click',()=>{
   const pending=allTasks.filter(t=>t.status==='pending');
   const body=document.getElementById('review-body');
   body.innerHTML=`<div style="font-size:13px;color:var(--text2);margin-bottom:16px;">未完了 <strong>${pending.length}件</strong></div>`+(pending.length?pending.slice(0,15).map(t=>`<div class="review-card"><div class="review-card-title">${t.title}</div><div class="review-card-sub">${typeLabel(t.type)} · ${t.estimated_minutes}min</div><div class="review-action"><button class="btn-sm" onclick="reviewMoveNextWeek('${t.id}')">来週に移す</button><button class="btn-sm btn-sm-accent" onclick="reviewKeep()">今週継続</button><button class="btn-sm" style="color:var(--accent);" onclick="reviewDrop('${t.id}')">削除</button></div></div>`).join(''):'<div class="empty">未完了タスクなし 🎉</div>');
@@ -2146,10 +2234,7 @@ window.switchScheduleTab=function(tab){
 };
 
 document.getElementById('start-time-btn').addEventListener('click',()=>{
-  initAbsenceSelects();
-  renderAbsenceList();
-  switchScheduleTab('today');
-  openModal('start-modal');
+  navigateTo('setup');
 });
 
 function initAbsenceSelects(){
@@ -2244,64 +2329,146 @@ document.getElementById('absence-add-btn')?.addEventListener('click',()=>{
   renderAbsenceList();
 });
 
-document.querySelectorAll('.start-opt').forEach(btn=>{
-  btn.addEventListener('click',()=>{
-    document.querySelectorAll('.start-opt').forEach(b=>{b.style.borderColor='var(--sep)';b.style.background='var(--white)';b.style.fontWeight='';b.style.color='var(--text)';});
-    btn.style.borderColor='var(--accent)';btn.style.background='var(--accent-light)';btn.style.fontWeight='500';btn.style.color='var(--accent)';
-    window._selectedStartH=parseInt(btn.dataset.h);window._selectedStartM=parseInt(btn.dataset.m);
-  });
-});
-
-document.querySelectorAll('.end-opt').forEach(btn=>{
-  btn.addEventListener('click',()=>{
-    document.querySelectorAll('.end-opt').forEach(b=>{b.style.borderColor='var(--sep)';b.style.background='var(--white)';b.style.fontWeight='';b.style.color='var(--text)';});
-    btn.style.borderColor='var(--accent)';btn.style.background='var(--accent-light)';btn.style.fontWeight='500';btn.style.color='var(--accent)';
-    window._selectedEndH=parseInt(btn.dataset.h);
-  });
-});
-
-document.getElementById('start-save-btn').addEventListener('click',async()=>{
-  if(window._selectedStartH!==undefined){
-    window._dayStartHour=window._selectedStartH;
-    window._dayStartMin=window._selectedStartM||0;
-  }
-  if(window._selectedEndH!==undefined){
-    setEndHour(window._selectedEndH);
-  } else {
-    setEndHour(window._dayEndHour||DEFAULT_END_HOUR);
-  }
-  // sessionStorage に始業時間も保存
-  try{const s=JSON.parse(sessionStorage.getItem('tora_settings')||'{}');s.sh=window._dayStartHour||DEFAULT_START_HOUR;s.sm=window._dayStartMin||0;sessionStorage.setItem('tora_settings',JSON.stringify(s));}catch(e){}
-  closeModal('start-modal');
-
-  // 終業時間を超えるタスクを明日以降に移動
-  const ehMin=(window._dayEndHour||DEFAULT_END_HOUR)*60;
-  const overTasks=allTasks.filter(t=>{
-    if(t.scheduled_date!==TODAY_STR||t.status==='done'||t.pinned)return false;
-    if(!t.scheduled_time)return false;
-    const[h,m]=t.scheduled_time.split(':').map(Number);
-    return h*60+m+(t.estimated_minutes||30)>ehMin;
-  });
-  if(overTasks.length>0){
-    for(const t of overTasks){
-      const newDate=autoPlotDate(t);
-      const newTime=autoPlotTime(t.type,t.estimated_minutes||30,newDate,null,newDate===TODAY_STR);
-      await db.from('tasks').update({scheduled_date:newDate,scheduled_time:newTime}).eq('id',t.id);
-      t.scheduled_date=newDate;t.scheduled_time=newTime;
-    }
-    showToast(`${overTasks.length}件を明日以降に移動しました`);
-  } else {
-    showToast('スケジュール設定を更新しました');
-  }
-  renderToday();renderRightPanel();
-});
-
 // 現在時刻ラインを1分ごとに更新
 setInterval(()=>{
   if(document.getElementById('page-today').classList.contains('active')){
     renderSchedule();
   }
 },60000);
+
+// ============================================================
+// SETUP PAGE JS
+// ============================================================
+
+// イベント委譲で確実に動作（DOMロード時のquerySelectorAllは使わない）
+document.getElementById('setup-start-opts')?.addEventListener('click',e=>{
+  const btn=e.target.closest('.setup-start-opt');if(!btn)return;
+  document.querySelectorAll('.setup-start-opt').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  window._selectedStartH=parseInt(btn.dataset.h);
+  window._selectedStartM=parseInt(btn.dataset.m||0);
+});
+
+document.getElementById('setup-end-opts')?.addEventListener('click',e=>{
+  const btn=e.target.closest('.setup-end-opt');if(!btn)return;
+  document.querySelectorAll('.setup-end-opt').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  window._selectedEndH=parseInt(btn.dataset.h);
+});
+
+// 不在時間セレクトの初期化
+(function(){
+  ['setup-absence-start','setup-absence-end','future-absence-start','future-absence-end'].forEach(id=>{
+    const sel=document.getElementById(id);
+    if(sel&&sel.options.length<=1){
+      for(let h=6;h<=22;h++)for(let m=0;m<60;m+=30)sel.add(new Option(`${h}:${String(m).padStart(2,'0')}`,h*60+m));
+    }
+  });
+})();
+
+document.getElementById('setup-absence-add-btn')?.addEventListener('click',()=>{
+  const label=document.getElementById('setup-absence-label').value;
+  const start=parseInt(document.getElementById('setup-absence-start').value);
+  const end=parseInt(document.getElementById('setup-absence-end').value);
+  if(isNaN(start)||isNaN(end)||start>=end){showToast('時間を正しく入力してください');return;}
+  window._absences=window._absences||[];
+  window._absences.push({label,start,end});
+  saveSettings();renderSetupAbsenceList();markOptimizeNeeded();showToast('不在時間を追加しました');
+});
+
+function renderSetupAbsenceList(){
+  const list=document.getElementById('setup-absence-list');if(!list)return;
+  const absences=window._absences||[];
+  if(!absences.length){list.innerHTML='<div style="font-size:12px;color:var(--text3);padding:4px 0;">設定なし</div>';return;}
+  list.innerHTML=absences.map((a,i)=>`<div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg2);border-radius:var(--radius-sm);padding:8px 12px;font-size:12px;margin-top:6px;"><span>${a.label} ${toTimeStr(a.start).slice(0,5)}〜${toTimeStr(a.end).slice(0,5)}</span><button onclick="removeSetupAbsence(${i})" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:12px;font-family:var(--font);">削除</button></div>`).join('');
+}
+window.removeSetupAbsence=function(i){window._absences=(window._absences||[]).filter((_,idx)=>idx!==i);saveSettings();renderSetupAbsenceList();markOptimizeNeeded();};
+
+document.getElementById('setup-save-btn')?.addEventListener('click',async()=>{
+  window._dayStartHour=window._selectedStartH??window._dayStartHour??DEFAULT_START_HOUR;
+  window._dayStartMin=window._selectedStartM??window._dayStartMin??DEFAULT_START_MIN;
+  setEndHour(window._selectedEndH??window._dayEndHour??DEFAULT_END_HOUR);
+  try{
+    const s=JSON.parse(sessionStorage.getItem('tora_settings')||'{}');
+    s.date=TODAY_STR;s.sh=window._dayStartHour;s.sm=window._dayStartMin;s.eh=window._dayEndHour;
+    sessionStorage.setItem('tora_settings',JSON.stringify(s));
+  }catch(e){}
+  const sh=window._dayStartHour,sm2=window._dayStartMin,eh=window._dayEndHour;
+  const startBtn=document.getElementById('start-time-btn');
+  if(startBtn)startBtn.textContent=`⏰ ${sh}:${String(sm2).padStart(2,'0')}〜${eh}:00`;
+  const cur=document.getElementById('setup-current-time');
+  if(cur)cur.textContent=`${sh}:${String(sm2).padStart(2,'0')}〜${eh}:00`;
+  const ehMin=eh*60;
+  const overTasks=allTasks.filter(t=>{
+    if(t.scheduled_date!==TODAY_STR||t.status==='done'||t.pinned||t.date_pinned)return false;
+    if(!t.scheduled_time)return false;
+    const[h,m]=t.scheduled_time.split(':').map(Number);
+    return h*60+m+(t.estimated_minutes||30)>ehMin;
+  });
+  const fixedOver=allTasks.filter(t=>{
+    if(t.scheduled_date!==TODAY_STR||t.status==='done'||!t.date_pinned||!t.scheduled_time)return false;
+    const[h,m]=t.scheduled_time.split(':').map(Number);
+    return h*60+m+(t.estimated_minutes||30)>ehMin;
+  });
+  if(fixedOver.length)showToast(`⚠️「${fixedOver.map(t=>t.title).join('・')}」は日付固定のため終業後も残ります`);
+  for(const t of overTasks){
+    const newDate=isWorkday(TOMORROW_STR)?TOMORROW_STR:nextBizDay(TODAY,1);
+    await db.from('tasks').update({scheduled_date:newDate,scheduled_time:null}).eq('id',t.id);
+    t.scheduled_date=newDate;t.scheduled_time=null;
+  }
+  markOptimizeNeeded();showToast('設定を保存しました');
+  renderToday();renderRightPanel();
+});
+
+document.getElementById('logout-btn')?.addEventListener('click',async()=>{
+  if(!confirm('ログアウトしますか？'))return;
+  await db.auth.signOut();
+});
+
+document.getElementById('future-absence-add-btn')?.addEventListener('click',async()=>{
+  const date=document.getElementById('future-absence-date').value;
+  const label=document.getElementById('future-absence-label').value;
+  const start=parseInt(document.getElementById('future-absence-start').value);
+  const end=parseInt(document.getElementById('future-absence-end').value);
+  if(!date||isNaN(start)||isNaN(end)||start>=end){showToast('日付と時間を正しく入力してください');return;}
+  const{data}=await db.from('blocks').insert({user_id:currentUser.id,title:label,start_time:toTimeStr(start),end_time:toTimeStr(end),date,_is_absence:true,repeat:'none'}).select().single();
+  if(data){allBlocks.push({...data,_is_absence:true});markOptimizeNeeded();renderFutureAbsenceList();showToast('不在日を登録しました');}
+});
+
+function renderSetup(){
+  const sh=window._dayStartHour||DEFAULT_START_HOUR;
+  const sm2=window._dayStartMin||DEFAULT_START_MIN;
+  const eh=window._dayEndHour||DEFAULT_END_HOUR;
+  const cur=document.getElementById('setup-current-time');
+  if(cur)cur.textContent=`${sh}:${String(sm2).padStart(2,'0')}〜${eh}:00`;
+  document.querySelectorAll('.setup-start-opt').forEach(btn=>{
+    btn.classList.toggle('selected',parseInt(btn.dataset.h)===sh&&parseInt(btn.dataset.m||0)===sm2);
+  });
+  document.querySelectorAll('.setup-end-opt').forEach(btn=>{
+    btn.classList.toggle('selected',parseInt(btn.dataset.h)===eh);
+  });
+  window._selectedStartH=sh;window._selectedStartM=sm2;window._selectedEndH=eh;
+  renderSetupAbsenceList();renderSetupBlockList();renderFutureAbsenceList();
+}
+
+function renderSetupBlockList(){
+  const list=document.getElementById('setup-block-list');if(!list)return;
+  const blocks=allBlocks.filter(b=>!b._is_absence).sort((a,b)=>a.date.localeCompare(b.date)||a.start_time.localeCompare(b.start_time));
+  if(!blocks.length){list.innerHTML='<div style="font-size:13px;color:var(--text3);padding:4px 0 8px;">登録された会議はありません</div>';return;}
+  list.innerHTML=blocks.map(b=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:0.5px solid var(--sep);"><div><div style="font-size:13px;font-weight:500;">${b.title}</div><div style="font-size:11px;color:var(--text3);margin-top:2px;">${b.date} ${b.start_time.slice(0,5)}〜${b.end_time.slice(0,5)}${b.repeat&&b.repeat!=='none'?' · 繰り返し':''}</div></div><button onclick="openBlockModal('${b.id}')" style="font-size:11px;color:var(--accent);background:none;border:0.5px solid var(--accent);border-radius:6px;padding:3px 10px;cursor:pointer;font-family:var(--font);">編集</button></div>`).join('');
+}
+
+function renderFutureAbsenceList(){
+  const list=document.getElementById('future-absence-list');if(!list)return;
+  const futures=allBlocks.filter(b=>b._is_absence&&b.date>=TODAY_STR).sort((a,b)=>a.date.localeCompare(b.date));
+  if(!futures.length){list.innerHTML='<div style="font-size:12px;color:var(--text3);">登録なし</div>';return;}
+  list.innerHTML=futures.map(b=>`<div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg2);border-radius:var(--radius-sm);padding:8px 12px;font-size:12px;margin-bottom:4px;"><span>${b.date} ${b.title} ${b.start_time.slice(0,5)}〜${b.end_time.slice(0,5)}</span><button onclick="deleteFutureAbsence('${b.id}')" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:12px;font-family:var(--font);">削除</button></div>`).join('');
+}
+window.deleteFutureAbsence=async function(id){
+  await db.from('blocks').delete().eq('id',id);
+  allBlocks=allBlocks.filter(b=>b.id!==id);
+  markOptimizeNeeded();renderFutureAbsenceList();showToast('削除しました');
+};
 
 // ============================================================
 // MODAL CLOSE
