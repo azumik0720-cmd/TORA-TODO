@@ -50,22 +50,29 @@ kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); b
   #app { height: 100vh; display: flex; flex-direction: column; }
   .app-body { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
   .main { flex: 1; overflow-y: auto; padding: 28px 40px 40px; max-width: 1200px; margin: 0 auto; width: 100%; }
+  /* PLANとSETUPは画面幅いっぱい・スクロールなし */
+  .main.page-plan, .main.page-setup { max-width: none; overflow-y: hidden; padding: 20px 32px; }
   .right-panel { display: none !important; }
   .nav { display: none; }
   .pc-nav { display: flex !important; }
   .header { padding: 0 40px; height: 52px; }
-  /* TODAY: 2カラムグリッド（activeのときのみgridを適用） */
+  /* TODAY: 2カラムグリッド */
   .page.active#page-today { display: grid; grid-template-columns: 1fr 320px; gap: 32px; align-items: start; }
-  /* SETUP: 2カラムグリッド */
+  /* SETUP: 2カラムグリッド・固定 */
   .page.active#page-setup { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+  /* SETUP 会議リストのみスクロール */
+  #setup-block-list { max-height: calc(100vh - 280px); overflow-y: auto; }
   /* PLAN: 均等カラム・各カラム内スクロール */
-  #plan-board { max-height: calc(100vh - 160px); overflow-x: visible; align-items: stretch; }
-  #plan-board > div { flex: 1 1 0; min-width: 0; max-height: calc(100vh - 160px); overflow-y: auto; }
+  #plan-board { max-height: calc(100vh - 120px); overflow-x: visible; align-items: stretch; }
+  #plan-board > div { flex: 1 1 0; min-width: 0; max-height: calc(100vh - 120px); overflow-y: auto; }
+  /* ADD: 2カラム */
+  #page-add .add-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: start; }
 }
 .app-body { display: flex; flex: 1; overflow: hidden; }
 .main { flex: 1; overflow-y: auto; padding: 16px 20px 100px; }
 .right-panel { display: none; }
 .nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: rgba(242,237,230,.94); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-top: 0.5px solid var(--sep); display: flex; justify-content: space-around; padding: 8px 0 calc(8px + env(safe-area-inset-bottom)); z-index: 100; }
+@media (min-width: 900px) { .nav { display: none !important; } }
 .nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; padding: 4px 14px; border-radius: 8px; }
 .nav-item:active { background: var(--bg3); }
 .nav-icon { width: 22px; height: 22px; }
@@ -287,58 +294,64 @@ kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); b
       <!-- 追加 -->
       <div class="page" id="page-add">
         <div class="sec-label" style="margin-top:4px;">タスクを追加</div>
-        <div style="display:flex;flex-direction:column;gap:12px;">
-          <div class="add-step">
-            <div class="add-step-title">タスク名</div>
-            <input class="wiz-input" id="task-name-input" placeholder="例：来月キャンペーン企画" maxlength="60">
-          </div>
-          <div class="add-step">
-            <div class="add-step-title">期限（任意）</div>
-            <div id="deadline-calendar"></div>
-            <div style="margin-top:8px;display:flex;align-items:center;justify-content:space-between;">
-              <span id="deadline-selected" style="font-size:12px;color:var(--text3);">未設定</span>
-              <button id="deadline-clear-btn" style="font-size:11px;color:var(--text3);background:none;border:none;cursor:pointer;font-family:var(--font);">クリア</button>
+        <div class="add-cols">
+          <!-- 左カラム：タスク名 + 期限 -->
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div class="add-step">
+              <div class="add-step-title">タスク名</div>
+              <input class="wiz-input" id="task-name-input" placeholder="例：来月キャンペーン企画" maxlength="60">
+            </div>
+            <div class="add-step">
+              <div class="add-step-title">期限（任意）</div>
+              <div id="deadline-calendar"></div>
+              <div style="margin-top:8px;display:flex;align-items:center;justify-content:space-between;">
+                <span id="deadline-selected" style="font-size:12px;color:var(--text3);">未設定</span>
+                <button id="deadline-clear-btn" style="font-size:11px;color:var(--text3);background:none;border:none;cursor:pointer;font-family:var(--font);">クリア</button>
+              </div>
             </div>
           </div>
-          <div class="add-step">
-            <div class="add-step-title">タスクのタイプ</div>
-            <div class="type-grid">
-              <div class="type-opt" data-type="routine"><div class="type-opt-name">ルーティン</div><div class="type-opt-desc">毎回同じ手順</div></div>
-              <div class="type-opt" data-type="unknown"><div class="type-opt-name">初めて</div><div class="type-opt-desc">新規・不確実</div></div>
-              <div class="type-opt" data-type="judgment"><div class="type-opt-name">判断</div><div class="type-opt-desc">意思決定が主</div></div>
-              <div class="type-opt" data-type="dependent"><div class="type-opt-name">他者依存</div><div class="type-opt-desc">相手のアクション待ち</div></div>
-              <div class="type-opt" data-type="creative" style="grid-column:span 2;"><div class="type-opt-name">制作</div><div class="type-opt-desc">動画・デザイン・文章などの成果物をつくる</div></div>
+          <!-- 右カラム：タイプ〜追加ボタン -->
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div class="add-step">
+              <div class="add-step-title">タスクのタイプ</div>
+              <div class="type-grid">
+                <div class="type-opt" data-type="routine"><div class="type-opt-name">ルーティン</div><div class="type-opt-desc">毎回同じ手順</div></div>
+                <div class="type-opt" data-type="unknown"><div class="type-opt-name">初めて</div><div class="type-opt-desc">新規・不確実</div></div>
+                <div class="type-opt" data-type="judgment"><div class="type-opt-name">判断</div><div class="type-opt-desc">意思決定が主</div></div>
+                <div class="type-opt" data-type="dependent"><div class="type-opt-name">他者依存</div><div class="type-opt-desc">相手のアクション待ち</div></div>
+                <div class="type-opt" data-type="creative" style="grid-column:span 2;"><div class="type-opt-name">制作</div><div class="type-opt-desc">動画・デザイン・文章などの成果物をつくる</div></div>
+              </div>
             </div>
-          </div>
-          <div class="add-step" id="step-pattern" style="display:none;">
-            <div class="add-step-title">作業パターン</div>
-            <div id="pattern-list"></div>
-          </div>
-          <div class="add-step" id="step-count" style="display:none;">
-            <div class="add-step-title">件数</div>
-            <div class="count-row">
-              <button class="count-btn" id="count-minus">−</button>
-              <span class="count-val" id="count-val">1</span>
-              <button class="count-btn" id="count-plus">＋</button>
-              <span style="font-size:12px;color:var(--text3);">件</span>
+            <div class="add-step" id="step-pattern" style="display:none;">
+              <div class="add-step-title">作業パターン</div>
+              <div id="pattern-list"></div>
             </div>
-          </div>
-          <div class="add-step" id="step-preview" style="display:none;">
-            <div class="add-step-title">ステップ確認・編集</div>
-            <div id="subtask-preview"></div>
-          </div>
-          <div class="add-step" id="step-plot" style="display:none;">
-            <div id="plot-info" style="margin-bottom:14px;"></div>
-            <div class="add-step-title" style="margin-bottom:6px;">繰り返し（任意）</div>
-            <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;">
-              <button class="repeat-opt selected" data-repeat="none" style="height:32px;padding:0 12px;border:0.5px solid var(--accent);border-radius:var(--radius-sm);background:var(--accent-light);font-size:12px;font-weight:500;color:var(--accent);font-family:var(--font);cursor:pointer;">なし</button>
-              <button class="repeat-opt" data-repeat="daily" style="height:32px;padding:0 12px;border:0.5px solid var(--sep);border-radius:var(--radius-sm);background:var(--white);font-size:12px;color:var(--text);font-family:var(--font);cursor:pointer;">毎日</button>
-              <button class="repeat-opt" data-repeat="weekly" style="height:32px;padding:0 12px;border:0.5px solid var(--sep);border-radius:var(--radius-sm);background:var(--white);font-size:12px;color:var(--text);font-family:var(--font);cursor:pointer;">毎週</button>
-              <button class="repeat-opt" data-repeat="biweekly" style="height:32px;padding:0 12px;border:0.5px solid var(--sep);border-radius:var(--radius-sm);background:var(--white);font-size:12px;color:var(--text);font-family:var(--font);cursor:pointer;">隔週</button>
+            <div class="add-step" id="step-count" style="display:none;">
+              <div class="add-step-title">件数</div>
+              <div class="count-row">
+                <button class="count-btn" id="count-minus">−</button>
+                <span class="count-val" id="count-val">1</span>
+                <button class="count-btn" id="count-plus">＋</button>
+                <span style="font-size:12px;color:var(--text3);">件</span>
+              </div>
             </div>
-            <div class="add-step-title" style="margin-bottom:6px;">メモ・URL（任意）</div>
-            <textarea id="memo-input" placeholder="関連URLや補足情報を入力" style="width:100%;min-height:72px;border:0.5px solid var(--bg3);border-radius:var(--radius-sm);background:var(--white);padding:10px 12px;font-size:13px;font-family:var(--font);color:var(--text);outline:none;resize:vertical;line-height:1.5;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--bg3)'"></textarea>
-            <button class="btn-ok" id="plot-btn" style="margin-top:12px;">スケジュールに追加 🐯</button>
+            <div class="add-step" id="step-preview" style="display:none;">
+              <div class="add-step-title">ステップ確認・編集</div>
+              <div id="subtask-preview"></div>
+            </div>
+            <div class="add-step" id="step-plot" style="display:none;">
+              <div id="plot-info" style="margin-bottom:14px;"></div>
+              <div class="add-step-title" style="margin-bottom:6px;">繰り返し（任意）</div>
+              <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;">
+                <button class="repeat-opt selected" data-repeat="none" style="height:32px;padding:0 12px;border:0.5px solid var(--accent);border-radius:var(--radius-sm);background:var(--accent-light);font-size:12px;font-weight:500;color:var(--accent);font-family:var(--font);cursor:pointer;">なし</button>
+                <button class="repeat-opt" data-repeat="daily" style="height:32px;padding:0 12px;border:0.5px solid var(--sep);border-radius:var(--radius-sm);background:var(--white);font-size:12px;color:var(--text);font-family:var(--font);cursor:pointer;">毎日</button>
+                <button class="repeat-opt" data-repeat="weekly" style="height:32px;padding:0 12px;border:0.5px solid var(--sep);border-radius:var(--radius-sm);background:var(--white);font-size:12px;color:var(--text);font-family:var(--font);cursor:pointer;">毎週</button>
+                <button class="repeat-opt" data-repeat="biweekly" style="height:32px;padding:0 12px;border:0.5px solid var(--sep);border-radius:var(--radius-sm);background:var(--white);font-size:12px;color:var(--text);font-family:var(--font);cursor:pointer;">隔週</button>
+              </div>
+              <div class="add-step-title" style="margin-bottom:6px;">メモ・URL（任意）</div>
+              <textarea id="memo-input" placeholder="関連URLや補足情報を入力" style="width:100%;min-height:72px;border:0.5px solid var(--bg3);border-radius:var(--radius-sm);background:var(--white);padding:10px 12px;font-size:13px;font-family:var(--font);color:var(--text);outline:none;resize:vertical;line-height:1.5;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--bg3)'"></textarea>
+              <button class="btn-ok" id="plot-btn" style="margin-top:12px;">スケジュールに追加 🐯</button>
+            </div>
           </div>
         </div>
       </div>
@@ -1317,6 +1330,9 @@ function navigateTo(page){
   document.querySelectorAll(`[data-page="${page}"]`).forEach(n=>n.classList.add('active'));
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById('page-'+page).classList.add('active');
+  // mainにページクラスを付与（PLANとSETUPは画面幅いっぱい・固定）
+  const main=document.getElementById('main-content');
+  if(main){main.className=['plan','setup'].includes(page)?`main page-${page}`:'main';}
   if(page==='add')initAddPage();
   if(page==='plan')renderPlan();
   if(page==='setup'){renderTomorrow();renderSetup();}
@@ -1899,7 +1915,7 @@ function openDetail(taskId){
   document.getElementById('dd-btn').addEventListener('click',async()=>{
     await toggleTask(taskId);
     closeModal('detail-modal');
-    setTimeout(()=>{renderToday();renderTaskList();},350);
+    setTimeout(()=>{renderToday();renderTaskList();renderPlan();},350);
   });
   document.getElementById('detail-pin-btn').addEventListener('click',async()=>{
     await togglePin(taskId);
