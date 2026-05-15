@@ -1745,6 +1745,19 @@ async function toggleTask(taskId){
   renderToday();if(ns==='done')showToast('完了！🐯');
 }
 
+// PLANページからの完了（即時反映）
+async function toggleTaskFromPlan(taskId){
+  const task=allTasks.find(t=>t.id===taskId);if(!task)return;
+  const ns='done';
+  await db.from('tasks').update({status:ns}).eq('id',taskId);
+  task.status=ns;
+  if(task.repeat&&task.repeat!=='none'){
+    await generateNextRepeatTask(task);
+  }
+  renderPlan();
+  showToast('完了！🐯');
+}
+
 // 次の繰り返しタスクを生成する
 async function generateNextRepeatTask(completedTask){
   // 既に次の繰り返し（未完了）が存在するなら生成しない
@@ -2071,21 +2084,27 @@ function renderPlan(){
       card.dataset.taskId=t.id;
       const timeLabel=t.scheduled_time?t.scheduled_time.slice(0,5):'';
       card.innerHTML=`
-        <div style="font-size:12px;font-weight:500;color:var(--text);margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${t.title}</div>
-        <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
-          <span class="task-type-badge type-${t.type}" style="font-size:8px;">${typeLabel(t.type)}</span>
-          <span style="font-size:10px;color:var(--text3);">${t.estimated_minutes}min</span>
-          ${timeLabel?`<span style="font-size:10px;color:var(--text3);">${timeLabel}</span>`:''}
-          ${t.deadline?`<span style="font-size:10px;color:var(--accent);">期限${t.deadline.slice(5).replace('-','/')}</span>`:''}
-          ${t.repeat&&t.repeat!=='none'?`<span style="font-size:10px;color:#4A6FA5;">🔁</span>`:''}
-        </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px;">
-          <button class="plan-date-pin-btn" data-id="${t.id}" style="font-size:10px;color:${t.date_pinned?'#4A6FA5':'var(--text3)'};background:none;border:0.5px solid ${t.date_pinned?'#4A6FA5':'var(--sep)'};border-radius:4px;padding:2px 6px;cursor:pointer;font-family:var(--font);">${t.date_pinned?'📌固定中':'固定'}</button>
+        <div style="display:flex;align-items:flex-start;gap:8px;">
+          <button class="plan-done-btn" data-id="${t.id}" title="完了にする" style="width:20px;height:20px;border-radius:50%;border:1.5px solid var(--bg3);background:var(--white);flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;margin-top:1px;"></button>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:12px;font-weight:500;color:var(--text);margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${t.title}</div>
+            <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
+              <span class="task-type-badge type-${t.type}" style="font-size:8px;">${typeLabel(t.type)}</span>
+              <span style="font-size:10px;color:var(--text3);">${t.estimated_minutes}min</span>
+              ${timeLabel?`<span style="font-size:10px;color:var(--text3);">${timeLabel}</span>`:''}
+              ${t.deadline?`<span style="font-size:10px;color:var(--accent);">期限${t.deadline.slice(5).replace('-','/')}</span>`:''}
+              ${t.repeat&&t.repeat!=='none'?`<span style="font-size:10px;color:#4A6FA5;">🔁</span>`:''}
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px;">
+              <button class="plan-date-pin-btn" data-id="${t.id}" style="font-size:10px;color:${t.date_pinned?'#4A6FA5':'var(--text3)'};background:none;border:0.5px solid ${t.date_pinned?'#4A6FA5':'var(--sep)'};border-radius:4px;padding:2px 6px;cursor:pointer;font-family:var(--font);">${t.date_pinned?'📌固定中':'固定'}</button>
+            </div>
+          </div>
         </div>`;
       card.addEventListener('dragstart',e=>{e.dataTransfer.setData('taskId',t.id);card.style.opacity='.4';});
       card.addEventListener('dragend',()=>{card.style.opacity='1';});
       card.querySelector('.plan-date-pin-btn').addEventListener('click',e=>{e.stopPropagation();toggleDatePin(t.id);});
-      card.addEventListener('click',e=>{if(e.target.closest('.plan-date-pin-btn'))return;openDetail(t.id);});
+      card.querySelector('.plan-done-btn').addEventListener('click',e=>{e.stopPropagation();toggleTaskFromPlan(t.id);});
+      card.addEventListener('click',e=>{if(e.target.closest('.plan-date-pin-btn')||e.target.closest('.plan-done-btn'))return;openDetail(t.id);});
       body.appendChild(card);
     });
     // drag-over
