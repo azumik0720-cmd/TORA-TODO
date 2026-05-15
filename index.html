@@ -46,11 +46,13 @@ body { display: flex; flex-direction: column; margin: 0 auto; }
 .pc-nav-item svg { width: 16px; height: 16px; flex-shrink: 0; }
 kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); border-radius: 3px; font-size: 10px; font-family: var(--font); background: var(--bg2); color: var(--text2); }
 @media (min-width: 900px) {
-  .app-body { display: grid; grid-template-columns: 1fr 300px; flex: 1; overflow: hidden; }
-  .main { padding: 20px 24px 24px; overflow-y: auto; }
-  .right-panel { border-left: 0.5px solid var(--sep); background: var(--white); overflow-y: auto; padding: 20px; display: block !important; }
+  .app-body { display: block; flex: 1; overflow: hidden; }
+  .main { max-width: 720px; margin: 0 auto; padding: 24px 24px 40px; overflow-y: auto; height: calc(100vh - 53px); }
+  .right-panel { display: none !important; }
   .nav { display: none; }
   .pc-nav { display: flex !important; }
+  #page-setup { max-width: 560px; }
+  #page-plan .plan-board { max-height: calc(100vh - 160px); }
 }
 .app-body { display: flex; flex: 1; overflow: hidden; }
 .main { flex: 1; overflow-y: auto; padding: 16px 20px 100px; }
@@ -333,7 +335,7 @@ kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); b
       </div>
 
       <!-- SETUP -->
-      <div class="page" id="page-setup" style="max-width:560px;">
+      <div class="page" id="page-setup">
         <!-- 今日の設定 -->
         <div class="sec-label" style="margin-top:4px;">今日の設定</div>
         <div style="background:var(--white);border:0.5px solid var(--sep);border-radius:var(--radius);padding:16px;margin-bottom:12px;">
@@ -1298,9 +1300,6 @@ function navigateTo(page){
   document.querySelectorAll(`[data-page="${page}"]`).forEach(n=>n.classList.add('active'));
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById('page-'+page).classList.add('active');
-  // setup・planページでは右パネルを非表示
-  const rp=document.getElementById('right-panel');
-  if(rp)rp.style.display=(page==='setup'||page==='plan'||page==='add')?'none':'';
   if(page==='add')initAddPage();
   if(page==='plan')renderPlan();
   if(page==='setup'){renderTomorrow();renderSetup();}
@@ -2158,19 +2157,13 @@ async function autoReplaceAfterBlock(date){
 // RIGHT PANEL
 // ============================================================
 function renderRightPanel(){
-  // 繰り返しブロックも含めて今日の会議を表示
-  const todayBlocks=allBlocks.filter(b=>!b._is_absence&&isBlockActiveOnDate(b,TODAY_STR))
-    .sort((a,b)=>a.start_time.localeCompare(b.start_time));
-  const blockRight=document.getElementById('block-list-right');
-  if(blockRight)blockRight.innerHTML=todayBlocks.length?todayBlocks.map(b=>`<div class="task-card block-card" style="margin-bottom:6px;cursor:default;"><div class="task-card-top"><div class="task-card-left"><div class="task-type-badge type-block">固定</div><span class="task-title">${b.title}</span></div><span class="task-time">${b.start_time.slice(0,5)}〜${b.end_time.slice(0,5)}</span></div></div>`).join(''):'<div style="font-size:12px;color:var(--text3);padding:4px 0;">今日の会議なし</div>';
-  const miniLoad=document.getElementById('tomorrow-mini-load');
-  if(miniLoad){const tmUsed=calcUsedMinutes(TOMORROW_STR),tmPct=Math.min(100,Math.round(tmUsed/BUFFER_LIMIT*100));miniLoad.innerHTML=`<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-bottom:6px;"><span>${tmUsed}min / ${BUFFER_LIMIT}min</span><span style="color:${tmUsed>BUFFER_LIMIT?'var(--accent)':'var(--text3)'};">${tmUsed>BUFFER_LIMIT?'上限超え':'余裕あり'}</span></div><div class="buffer-track"><div class="buffer-fill ${tmUsed>BUFFER_LIMIT?'warn':''}" style="width:${tmPct}%"></div></div>`;}
+  // 右パネル廃止済み（互換性のため関数は残す）
 }
 
 // ============================================================
 // WEEKLY REVIEW
 // ============================================================
-document.getElementById('review-btn').addEventListener('click',()=>{
+document.getElementById('review-btn')?.addEventListener('click',()=>{
   const pending=allTasks.filter(t=>t.status==='pending');
   const body=document.getElementById('review-body');
   body.innerHTML=`<div style="font-size:13px;color:var(--text2);margin-bottom:16px;">未完了 <strong>${pending.length}件</strong></div>`+(pending.length?pending.slice(0,15).map(t=>`<div class="review-card"><div class="review-card-title">${t.title}</div><div class="review-card-sub">${typeLabel(t.type)} · ${t.estimated_minutes}min</div><div class="review-action"><button class="btn-sm" onclick="reviewMoveNextWeek('${t.id}')">来週に移す</button><button class="btn-sm btn-sm-accent" onclick="reviewKeep()">今週継続</button><button class="btn-sm" style="color:var(--accent);" onclick="reviewDrop('${t.id}')">削除</button></div></div>`).join(''):'<div class="empty">未完了タスクなし 🎉</div>');
@@ -2199,10 +2192,7 @@ window.switchScheduleTab=function(tab){
 };
 
 document.getElementById('start-time-btn').addEventListener('click',()=>{
-  initAbsenceSelects();
-  renderAbsenceList();
-  switchScheduleTab('today');
-  openModal('start-modal');
+  navigateTo('setup');
 });
 
 function initAbsenceSelects(){
