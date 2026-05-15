@@ -342,12 +342,14 @@ kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); b
             <div class="add-step" id="step-plot" style="display:none;">
               <div id="plot-info" style="margin-bottom:14px;"></div>
               <div class="add-step-title" style="margin-bottom:6px;">繰り返し（任意）</div>
-              <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;">
-                <button class="repeat-opt selected" data-repeat="none" style="height:32px;padding:0 12px;border:0.5px solid var(--accent);border-radius:var(--radius-sm);background:var(--accent-light);font-size:12px;font-weight:500;color:var(--accent);font-family:var(--font);cursor:pointer;">なし</button>
-                <button class="repeat-opt" data-repeat="daily" style="height:32px;padding:0 12px;border:0.5px solid var(--sep);border-radius:var(--radius-sm);background:var(--white);font-size:12px;color:var(--text);font-family:var(--font);cursor:pointer;">毎日</button>
-                <button class="repeat-opt" data-repeat="weekly" style="height:32px;padding:0 12px;border:0.5px solid var(--sep);border-radius:var(--radius-sm);background:var(--white);font-size:12px;color:var(--text);font-family:var(--font);cursor:pointer;">毎週</button>
-                <button class="repeat-opt" data-repeat="biweekly" style="height:32px;padding:0 12px;border:0.5px solid var(--sep);border-radius:var(--radius-sm);background:var(--white);font-size:12px;color:var(--text);font-family:var(--font);cursor:pointer;">隔週</button>
-              </div>
+              <select id="repeat-select" class="wiz-input" style="height:36px;font-size:13px;margin-bottom:14px;">
+                <option value="none">なし</option>
+                <option value="daily">毎日</option>
+                <option value="weekly">毎週（同じ曜日）</option>
+                <option value="biweekly">隔週（同じ曜日）</option>
+                <option value="monthly">毎月（同じ日付）</option>
+                <option value="monthly_dow">毎月（同じ第N曜日）</option>
+              </select>
               <div class="add-step-title" style="margin-bottom:6px;">メモ・URL（任意）</div>
               <textarea id="memo-input" placeholder="関連URLや補足情報を入力" style="width:100%;min-height:72px;border:0.5px solid var(--bg3);border-radius:var(--radius-sm);background:var(--white);padding:10px 12px;font-size:13px;font-family:var(--font);color:var(--text);outline:none;resize:vertical;line-height:1.5;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--bg3)'"></textarea>
               <button class="btn-ok" id="plot-btn" style="margin-top:12px;">スケジュールに追加 🐯</button>
@@ -557,7 +559,7 @@ kbd { display: inline-block; padding: 1px 5px; border: 0.5px solid var(--bg3); b
       <div class="wiz-input-wrap"><label class="wiz-label">終了</label><input class="wiz-input" type="time" id="block-end" value="11:00"></div>
     </div>
     <div class="wiz-input-wrap"><label class="wiz-label">日付</label><input class="wiz-input" type="date" id="block-date"></div>
-    <div class="wiz-input-wrap"><label class="wiz-label">繰り返し</label><select class="wiz-input" id="block-repeat"><option value="none">繰り返しなし</option><option value="weekly">毎週</option><option value="biweekly">隔週</option></select></div>
+    <div class="wiz-input-wrap"><label class="wiz-label">繰り返し</label><select class="wiz-input" id="block-repeat"><option value="none">繰り返しなし</option><option value="daily">毎日</option><option value="weekly">毎週（同じ曜日）</option><option value="biweekly">隔週（同じ曜日）</option><option value="monthly">毎月（同じ日付）</option><option value="monthly_dow">毎月（同じ第N曜日）</option></select></div>
     <div style="display:flex;gap:8px;">
       <button class="btn-next" id="block-save-btn">追加する</button>
       <button id="block-delete-btn" style="display:none;height:44px;padding:0 16px;background:none;border:0.5px solid #C4603A35;border-radius:var(--radius-sm);font-size:13px;font-family:var(--font);color:var(--accent);cursor:pointer;">削除</button>
@@ -685,6 +687,33 @@ function nthWorkday(n){
   }
 }
 
+function repeatLabel(repeat, baseDate){
+  if(!repeat||repeat==='none')return '';
+  if(repeat==='daily')return '毎日';
+  if(repeat==='weekly'){
+    if(!baseDate)return '毎週';
+    const d=new Date(baseDate+'T00:00:00');
+    return `毎週${['日','月','火','水','木','金','土'][d.getDay()]}曜`;
+  }
+  if(repeat==='biweekly'){
+    if(!baseDate)return '隔週';
+    const d=new Date(baseDate+'T00:00:00');
+    return `隔週${['日','月','火','水','木','金','土'][d.getDay()]}曜`;
+  }
+  if(repeat==='monthly'){
+    if(!baseDate)return '毎月';
+    const d=new Date(baseDate+'T00:00:00');
+    return `毎月${d.getDate()}日`;
+  }
+  if(repeat==='monthly_dow'){
+    if(!baseDate)return '毎月';
+    const d=new Date(baseDate+'T00:00:00');
+    const weekNum=Math.ceil(d.getDate()/7);
+    return `毎月第${weekNum}${['日','月','火','水','木','金','土'][d.getDay()]}曜`;
+  }
+  return repeat;
+}
+
 function isBlockActiveOnDate(b, targetDate){
   if(b.date===targetDate)return true;
   if(!b.repeat||b.repeat==='none')return false;
@@ -692,8 +721,19 @@ function isBlockActiveOnDate(b, targetDate){
   const target=new Date(targetDate+'T00:00:00');
   if(target<base)return false;
   const diffDays=Math.round((target-base)/(1000*60*60*24));
+  if(b.repeat==='daily')return true;
   if(b.repeat==='weekly')return diffDays%7===0;
   if(b.repeat==='biweekly')return diffDays%14===0;
+  if(b.repeat==='monthly'){
+    // 毎月同日
+    return target.getDate()===base.getDate();
+  }
+  if(b.repeat==='monthly_dow'){
+    // 第N曜日（基準日と同じ週番号・曜日）
+    const baseWeekNum=Math.ceil(base.getDate()/7);
+    const targetWeekNum=Math.ceil(target.getDate()/7);
+    return target.getDay()===base.getDay()&&targetWeekNum===baseWeekNum;
+  }
   return false;
 }
 
@@ -1609,14 +1649,9 @@ function initAddPage(){
   if(sel){sel.textContent='未設定';sel.style.color='var(--text3)';}
   renderDeadlineCalendar();
   document.querySelectorAll('.type-opt').forEach(o=>{o.style.borderColor='var(--sep)';o.style.background='var(--white)';});
-  // 繰り返しボタンをリセット
-  document.querySelectorAll('.repeat-opt').forEach(b=>{
-    const isNone=b.dataset.repeat==='none';
-    b.style.borderColor=isNone?'var(--accent)':'var(--sep)';
-    b.style.background=isNone?'var(--accent-light)':'var(--white)';
-    b.style.fontWeight=isNone?'500':'';
-    b.style.color=isNone?'var(--accent)':'var(--text)';
-  });
+  // 繰り返しセレクトをリセット
+  const rs=document.getElementById('repeat-select');if(rs)rs.value='none';
+  addState.repeat='none';
   ['step-pattern','step-count','step-preview','step-plot'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
 }
 
@@ -1642,14 +1677,8 @@ document.getElementById('deadline-clear-btn').addEventListener('click',()=>{
   if(addState.patternKey)updatePlotInfo();
 });
 
-document.querySelectorAll('.repeat-opt').forEach(btn=>{
-  btn.addEventListener('click',()=>{
-    document.querySelectorAll('.repeat-opt').forEach(b=>{
-      b.style.borderColor='var(--sep)';b.style.background='var(--white)';b.style.fontWeight='';b.style.color='var(--text)';
-    });
-    btn.style.borderColor='var(--accent)';btn.style.background='var(--accent-light)';btn.style.fontWeight='500';btn.style.color='var(--accent)';
-    addState.repeat=btn.dataset.repeat;
-  });
+document.getElementById('repeat-select')?.addEventListener('change',e=>{
+  addState.repeat=e.target.value;
 });
 
 document.getElementById('plot-btn').addEventListener('click',async()=>{
@@ -1800,6 +1829,20 @@ async function generateNextRepeatTask(completedTask){
     nextDate.setDate(nextDate.getDate()+7);
   } else if(completedTask.repeat==='biweekly'){
     nextDate.setDate(nextDate.getDate()+14);
+  } else if(completedTask.repeat==='monthly'){
+    // 毎月同日：翌月の同日
+    nextDate.setMonth(nextDate.getMonth()+1);
+  } else if(completedTask.repeat==='monthly_dow'){
+    // 第N曜日：翌月の同じ第N曜日
+    const dow=origin.getDay();
+    const weekNum=Math.ceil(origin.getDate()/7);
+    nextDate.setMonth(nextDate.getMonth()+1);
+    nextDate.setDate(1);
+    let count=0;
+    while(count<weekNum){
+      if(nextDate.getDay()===dow)count++;
+      if(count<weekNum)nextDate.setDate(nextDate.getDate()+1);
+    }
   }
 
   // 過去になってしまう場合は今日以降の最初の正しい日に
@@ -1807,6 +1850,18 @@ async function generateNextRepeatTask(completedTask){
     if(completedTask.repeat==='daily'){nextDate.setDate(nextDate.getDate()+1);}
     else if(completedTask.repeat==='weekly'){nextDate.setDate(nextDate.getDate()+7);}
     else if(completedTask.repeat==='biweekly'){nextDate.setDate(nextDate.getDate()+14);}
+    else if(completedTask.repeat==='monthly'){nextDate.setMonth(nextDate.getMonth()+1);}
+    else if(completedTask.repeat==='monthly_dow'){
+      const dow=origin.getDay();
+      const weekNum=Math.ceil(origin.getDate()/7);
+      nextDate.setMonth(nextDate.getMonth()+1);
+      nextDate.setDate(1);
+      let count=0;
+      while(count<weekNum){
+        if(nextDate.getDay()===dow)count++;
+        if(count<weekNum)nextDate.setDate(nextDate.getDate()+1);
+      }
+    }
   }
 
   const nextDateStr=localDateStr(nextDate);
@@ -1866,7 +1921,7 @@ function openDetail(taskId){
       <div style="margin-bottom:8px;"><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px;">タスク名</label><input id="edit-title" class="wiz-input" value="${task.title.replace(/"/g,'&quot;')}" style="height:40px;font-size:13px;"></div>
       <div style="margin-bottom:8px;"><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px;">所要時間 (min)</label><input id="edit-minutes" type="number" min="5" max="480" step="5" class="wiz-input" value="${task.estimated_minutes}" style="height:40px;font-size:13px;"></div>
       <div style="margin-bottom:8px;"><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px;">期限</label><input id="edit-deadline" type="date" class="wiz-input" value="${task.deadline||''}" style="height:40px;font-size:13px;"></div>
-      <div style="margin-bottom:8px;"><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px;">繰り返し</label><select id="edit-repeat" class="wiz-input" style="height:40px;font-size:13px;"><option value="none"${(!task.repeat||task.repeat==='none')?' selected':''}>なし</option><option value="daily"${task.repeat==='daily'?' selected':''}>毎日</option><option value="weekly"${task.repeat==='weekly'?' selected':''}>毎週</option><option value="biweekly"${task.repeat==='biweekly'?' selected':''}>隔週</option></select></div>
+      <div style="margin-bottom:8px;"><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px;">繰り返し</label><select id="edit-repeat" class="wiz-input" style="height:40px;font-size:13px;"><option value="none"${(!task.repeat||task.repeat==='none')?' selected':''}>なし</option><option value="daily"${task.repeat==='daily'?' selected':''}>毎日</option><option value="weekly"${task.repeat==='weekly'?' selected':''}>毎週（同じ曜日）</option><option value="biweekly"${task.repeat==='biweekly'?' selected':''}>隔週（同じ曜日）</option><option value="monthly"${task.repeat==='monthly'?' selected':''}>毎月（同じ日付）</option><option value="monthly_dow"${task.repeat==='monthly_dow'?' selected':''}>毎月（同じ第N曜日）</option></select></div>
       <div style="margin-bottom:10px;"><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px;">メモ・URL</label><textarea id="edit-memo" style="width:100%;min-height:60px;border:0.5px solid var(--bg3);border-radius:var(--radius-sm);background:var(--white);padding:8px 10px;font-size:12px;font-family:var(--font);color:var(--text);outline:none;resize:vertical;">${task.memo||''}</textarea></div>
       <div style="display:flex;gap:8px;"><button id="edit-save-btn" style="flex:1;height:36px;background:var(--accent);color:white;border:none;border-radius:var(--radius-sm);font-size:13px;font-family:var(--font);cursor:pointer;">保存</button><button id="edit-cancel-btn" style="height:36px;padding:0 12px;background:var(--white);border:0.5px solid var(--sep);border-radius:var(--radius-sm);font-size:13px;font-family:var(--font);color:var(--text3);cursor:pointer;">キャンセル</button></div>
     </div>
@@ -1876,7 +1931,7 @@ function openDetail(taskId){
       <div><div style="font-size:9px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px;">日付</div><div style="font-size:13px;color:var(--text2);margin-top:6px;">${dateLabel}</div></div>
       ${task.deadline?`<div><div style="font-size:9px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px;">期限</div><div style="font-size:13px;color:var(--accent);margin-top:6px;">${task.deadline}</div></div>`:''}
     </div>
-    <div style="font-size:11px;color:var(--text3);background:var(--bg2);border-radius:6px;padding:8px 10px;margin-bottom:14px;">🐯 ${reason||'ルーティンタスク'}${task.repeat&&task.repeat!=='none'?` · 🔁 ${{daily:'毎日',weekly:'毎週',biweekly:'隔週'}[task.repeat]||''}`:''}</div>
+    <div style="font-size:11px;color:var(--text3);background:var(--bg2);border-radius:6px;padding:8px 10px;margin-bottom:14px;">🐯 ${reason||'ルーティンタスク'}${task.repeat&&task.repeat!=='none'?` · 🔁 ${repeatLabel(task.repeat,task.repeat_origin||task.scheduled_date)}`:''}</div>
     ${task.memo?`<div style="margin-bottom:14px;background:var(--bg2);border-radius:var(--radius-sm);padding:10px 12px;font-size:13px;color:var(--text2);line-height:1.6;word-break:break-all;">${task.memo.replace(/https?:\/\/[^\s]+/g,url=>`<a href="${url}" target="_blank" style="color:var(--accent);text-decoration:none;">${url}</a>`)}</div>`:''}
     <!-- 固定スイッチ -->
     <div style="display:flex;align-items:center;justify-content:space-between;background:var(--white);border:0.5px solid var(--sep);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:14px;">
@@ -1982,7 +2037,7 @@ function renderTaskList(){
       const dateLabel=d===TODAY_STR?'今日':d===TOMORROW_STR?'明日':d===DAY_AFTER_STR?'明後日':d?d.slice(5).replace('-','/'):'';
       const card=document.createElement('div');
       card.className=`task-card${t.status==='done'?' done':''}${t.pinned?' pinned':''}`;
-      card.innerHTML=`<div class="task-card-top"><div class="task-card-left"><div class="task-type-badge type-${t.type}">${typeLabel(t.type)}</div><span class="task-title">${t.title}</span></div><span class="task-time">${t.estimated_minutes}min</span></div><div class="task-card-bottom">${dateLabel?`<span class="task-min">${dateLabel}</span>`:''} ${t.deadline?`<span class="task-deadline">期限 ${t.deadline.slice(5).replace('-','/')}</span>`:''} ${subs.length?`<span class="task-min">サブ ${subs.filter(s=>s.status==='done').length}/${subs.length}</span>`:''} ${t.repeat&&t.repeat!=='none'?`<span style="font-size:10px;color:var(--blue);">🔁${{daily:'毎日',weekly:'毎週',biweekly:'隔週'}[t.repeat]}</span>`:''} ${t.pinned?'<span style="font-size:10px;color:var(--accent);">📌</span>':''}</div>`;
+      card.innerHTML=`<div class="task-card-top"><div class="task-card-left"><div class="task-type-badge type-${t.type}">${typeLabel(t.type)}</div><span class="task-title">${t.title}</span></div><span class="task-time">${t.estimated_minutes}min</span></div><div class="task-card-bottom">${dateLabel?`<span class="task-min">${dateLabel}</span>`:''} ${t.deadline?`<span class="task-deadline">期限 ${t.deadline.slice(5).replace('-','/')}</span>`:''} ${subs.length?`<span class="task-min">サブ ${subs.filter(s=>s.status==='done').length}/${subs.length}</span>`:''} ${t.repeat&&t.repeat!=='none'?`<span style="font-size:10px;color:var(--blue);">🔁${repeatLabel(t.repeat,t.repeat_origin||t.scheduled_date)}</span>`:''} ${t.pinned?'<span style="font-size:10px;color:var(--accent);">📌</span>':''}</div>`;
       card.addEventListener('click',()=>openDetail(t.id));
       list.appendChild(card);
     });
@@ -2019,7 +2074,7 @@ function renderTaskList(){
       const card=document.createElement('div');
       card.className=`task-card${t.status==='done'?' done':''}${t.pinned?' pinned':''}`;
       card.style.marginBottom='6px';
-      card.innerHTML=`<div class="task-card-top"><div class="task-card-left"><div class="task-type-badge type-${t.type}">${typeLabel(t.type)}</div><span class="task-title">${t.title}</span></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0;"><span style="font-family:var(--font-num);font-size:12px;color:var(--text3);">${timeLabel}</span><span class="task-time">${t.estimated_minutes}min</span></div></div><div class="task-card-bottom">${t.deadline?`<span class="task-deadline">期限 ${t.deadline.slice(5).replace('-','/')}</span>`:''} ${subs.length?`<span class="task-min">サブ ${subs.filter(s=>s.status==='done').length}/${subs.length}</span>`:''} ${t.repeat&&t.repeat!=='none'?`<span style="font-size:10px;color:var(--blue);">🔁${{daily:'毎日',weekly:'毎週',biweekly:'隔週'}[t.repeat]}</span>`:''} ${t.pinned?'<span style="font-size:10px;color:var(--accent);">📌</span>':''}</div>`;
+      card.innerHTML=`<div class="task-card-top"><div class="task-card-left"><div class="task-type-badge type-${t.type}">${typeLabel(t.type)}</div><span class="task-title">${t.title}</span></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0;"><span style="font-family:var(--font-num);font-size:12px;color:var(--text3);">${timeLabel}</span><span class="task-time">${t.estimated_minutes}min</span></div></div><div class="task-card-bottom">${t.deadline?`<span class="task-deadline">期限 ${t.deadline.slice(5).replace('-','/')}</span>`:''} ${subs.length?`<span class="task-min">サブ ${subs.filter(s=>s.status==='done').length}/${subs.length}</span>`:''} ${t.repeat&&t.repeat!=='none'?`<span style="font-size:10px;color:var(--blue);">🔁${repeatLabel(t.repeat,t.repeat_origin||t.scheduled_date)}</span>`:''} ${t.pinned?'<span style="font-size:10px;color:var(--accent);">📌</span>':''}</div>`;
       card.addEventListener('click',()=>openDetail(t.id));
       list.appendChild(card);
     });
@@ -2506,9 +2561,14 @@ function renderSetup(){
 
 function renderSetupBlockList(){
   const list=document.getElementById('setup-block-list');if(!list)return;
-  const blocks=allBlocks.filter(b=>!b._is_absence).sort((a,b)=>a.date.localeCompare(b.date)||a.start_time.localeCompare(b.start_time));
+  // 過去日付の非繰り返しブロックは非表示
+  const blocks=allBlocks.filter(b=>!b._is_absence&&(b.repeat&&b.repeat!=='none'||b.date>=TODAY_STR))
+    .sort((a,b)=>a.date.localeCompare(b.date)||a.start_time.localeCompare(b.start_time));
   if(!blocks.length){list.innerHTML='<div style="font-size:13px;color:var(--text3);padding:4px 0 8px;">登録された会議はありません</div>';return;}
-  list.innerHTML=blocks.map(b=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:0.5px solid var(--sep);"><div><div style="font-size:13px;font-weight:500;">${b.title}</div><div style="font-size:11px;color:var(--text3);margin-top:2px;">${b.date} ${b.start_time.slice(0,5)}〜${b.end_time.slice(0,5)}${b.repeat&&b.repeat!=='none'?' · 繰り返し':''}</div></div><button onclick="openBlockModal('${b.id}')" style="font-size:11px;color:var(--accent);background:none;border:0.5px solid var(--accent);border-radius:6px;padding:3px 10px;cursor:pointer;font-family:var(--font);">編集</button></div>`).join('');
+  list.innerHTML=blocks.map(b=>{
+    const rl=repeatLabel(b.repeat,b.date);
+    return`<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:0.5px solid var(--sep);"><div><div style="font-size:13px;font-weight:500;">${b.title}</div><div style="font-size:11px;color:var(--text3);margin-top:2px;">${b.date} ${b.start_time.slice(0,5)}〜${b.end_time.slice(0,5)}${rl?' · '+rl:''}</div></div><button onclick="openBlockModal('${b.id}')" style="font-size:11px;color:var(--accent);background:none;border:0.5px solid var(--accent);border-radius:6px;padding:3px 10px;cursor:pointer;font-family:var(--font);">編集</button></div>`;
+  }).join('');
 }
 
 function renderFutureAbsenceList(){
