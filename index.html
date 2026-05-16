@@ -2551,9 +2551,10 @@ function renderSetup(){
 
 function renderSetupBlockList(){
   const list=document.getElementById('setup-block-list');if(!list)return;
-  // 繰り返しなし（またはrepeat未定義）は今日以降のみ表示、繰り返しありは常に表示
+  // repeatがundefined（DBにカラムなし）→全表示。repeatがnone→今日以降のみ。繰り返しあり→常に表示
   const blocks=allBlocks.filter(b=>{
     if(b._is_absence)return false;
+    if(b.repeat===undefined)return true;
     const rep=b.repeat||'none';
     return rep!=='none'||b.date>=TODAY_STR;
   }).sort((a,b)=>a.date.localeCompare(b.date)||a.start_time.localeCompare(b.start_time));
