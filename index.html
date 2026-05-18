@@ -1780,17 +1780,12 @@ async function toggleTask(taskId){
   const task=allTasks.find(t=>t.id===taskId);if(!task)return;
   const ns=task.status==='done'?'pending':'done';
   const completedAt=ns==='done'?new Date().toISOString():null;
-  const upd=ns==='done'
-    ?{status:ns,completed_at:completedAt,scheduled_date:null,scheduled_time:null}
-    :{status:ns,completed_at:null};
-  await db.from('tasks').update(upd).eq('id',taskId);
-  task.status=ns;
-  task.completed_at=completedAt;
-  if(ns==='done'){task.scheduled_date=null;task.scheduled_time=null;}
+  await db.from('tasks').update({status:ns,completed_at:completedAt}).eq('id',taskId);
+  task.status=ns;task.completed_at=completedAt;
   if(ns==='done'&&task.repeat&&task.repeat!=='none'){
     await generateNextRepeatTask(task);
   }
-  markOptimizeNeeded();
+  if(ns==='done')markOptimizeNeeded();
   renderToday();renderPlan();if(ns==='done')showToast('完了！🐯');
 }
 
@@ -1798,10 +1793,10 @@ async function toggleTask(taskId){
 async function toggleTaskFromPlan(taskId){
   const task=allTasks.find(t=>t.id===taskId);if(!task)return;
   const completedAt=new Date().toISOString();
-  await db.from('tasks').update({status:'done',completed_at:completedAt,scheduled_date:null,scheduled_time:null}).eq('id',taskId);
-  task.status='done';task.completed_at=completedAt;task.scheduled_date=null;task.scheduled_time=null;
+  await db.from('tasks').update({status:'done',completed_at:completedAt}).eq('id',taskId);
+  task.status='done';task.completed_at=completedAt;
   if(task.repeat&&task.repeat!=='none'){await generateNextRepeatTask(task);}
-  markOptimizeNeeded();renderPlan();showToast('完了！🐯');
+  markOptimizeNeeded();renderPlan();renderToday();showToast('完了！🐯');
 }
 
 // 次の繰り返しタスクを生成する
@@ -2193,6 +2188,26 @@ function renderPlan(){
       task.scheduled_date=targetDate;task.scheduled_time=null;task.date_pinned=targetDate?true:false;
       markOptimizeNeeded();renderPlan();renderToday();
     });
+    // 完了済みタスクを今日カラムの下に薄く追加
+    if(col.key===TODAY_STR){
+      const doneTasks=allTasks.filter(t=>t.status==='done'&&t.completed_at&&t.completed_at.slice(0,10)===TODAY_STR)
+        .sort((a,b)=>(a.completed_at||'').localeCompare(b.completed_at||''));
+      doneTasks.forEach(t=>{
+        const card=document.createElement('div');
+        card.style.cssText='background:var(--white);border:0.5px solid var(--sep);border-radius:var(--radius-sm);padding:9px 11px;margin-bottom:6px;opacity:.4;';
+        card.innerHTML=`
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:20px;height:20px;border-radius:50%;background:var(--accent);flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><polyline points="2,5 4,7 8,3" stroke="white" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>
+            </div>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:12px;font-weight:500;color:var(--text);text-decoration:line-through;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${t.title}</div>
+              <div style="font-size:10px;color:var(--text3);margin-top:2px;">${t.scheduled_time?t.scheduled_time.slice(0,5):''} ${t.estimated_minutes}min</div>
+            </div>
+          </div>`;
+        body.appendChild(card);
+      });
+    }
     board.appendChild(colEl);
   });
 }
