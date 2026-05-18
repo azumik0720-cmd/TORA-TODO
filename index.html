@@ -1158,16 +1158,26 @@ window.runOptimize=async function(){
     const targetDate=pickDate(task);
     let newTime=pickSlot(targetDate,task.type,task.estimated_minutes||30);
     let finalDate=targetDate;
-    // スロットが取れなかった場合は翌営業日を探してリトライ
+    // スロットが取れなかった場合
     if(newTime===null){
-      let d=new Date(TODAY);
-      for(let i=1;i<=14;i++){
-        d.setDate(d.getDate()+1);
-        const ds=localDateStr(d);
-        if(!isWorkday(ds))continue;
-        if(!virtualSlots[ds])virtualSlots[ds]=getVirtualSlots(ds);
-        newTime=pickSlot(ds,task.type,task.estimated_minutes||30);
-        if(newTime!==null){finalDate=ds;break;}
+      // 期限今日・超過タスクは今日に強制（終業後でも）
+      const isDeadlineToday=task.deadline&&Math.ceil((new Date(task.deadline)-TODAY)/(1000*60*60*24))<=0;
+      if(isDeadlineToday&&isWorkday(TODAY_STR)){
+        finalDate=TODAY_STR;
+        // 終業時間以降の最初の空き時間に詰める
+        const WORK_END_H=window._dayEndHour||DEFAULT_END_HOUR;
+        newTime=`${String(WORK_END_H).padStart(2,'0')}:00`;
+      } else {
+        // 翌営業日を探す
+        let d=new Date(TODAY);
+        for(let i=1;i<=14;i++){
+          d.setDate(d.getDate()+1);
+          const ds=localDateStr(d);
+          if(!isWorkday(ds))continue;
+          if(!virtualSlots[ds])virtualSlots[ds]=getVirtualSlots(ds);
+          newTime=pickSlot(ds,task.type,task.estimated_minutes||30);
+          if(newTime!==null){finalDate=ds;break;}
+        }
       }
     }
     if(newTime===null)continue; // それでも入れる場所がない場合はスキップ
