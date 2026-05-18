@@ -1469,7 +1469,13 @@ function renderGoals(){
 function renderSchedule(){
   const wrap=document.getElementById('schedule-list');
   // 完了タスクも含めて表示（完了はグレーで残す）
-  const todayTasks=allTasks.filter(t=>t.scheduled_date===TODAY_STR).sort((a,b)=>(a.scheduled_time||'99:99').localeCompare(b.scheduled_time||'99:99'));
+  // 今日完了したタスク（completed_atが今日）は薄く表示、過去完了は除外
+  const todayTasks=allTasks.filter(t=>{
+    if(t.scheduled_date!==TODAY_STR)return false;
+    if(t.status!=='done')return true;
+    if(!t.completed_at)return false;
+    return t.completed_at.slice(0,10)===TODAY_STR;
+  }).sort((a,b)=>(a.scheduled_time||'99:99').localeCompare(b.scheduled_time||'99:99'));
   const todayBlocks=allBlocks.filter(b=>b.date===TODAY_STR).sort((a,b)=>a.start_time.localeCompare(b.start_time));
   const defaultBlocks=getDefaultBlocks(TODAY_STR);
   // 不在時間をブロックとして追加
@@ -1773,28 +1779,29 @@ async function saveTask(data){
 async function toggleTask(taskId){
   const task=allTasks.find(t=>t.id===taskId);if(!task)return;
   const ns=task.status==='done'?'pending':'done';
-  await db.from('tasks').update({status:ns}).eq('id',taskId);
+  const completedAt=ns==='done'?new Date().toISOString():null;
+  const upd=ns==='done'
+    ?{status:ns,completed_at:completedAt,scheduled_date:null,scheduled_time:null}
+    :{status:ns,completed_at:null};
+  await db.from('tasks').update(upd).eq('id',taskId);
   task.status=ns;
-
-  // 繰り返しタスクの場合、完了時に次を生成
+  task.completed_at=completedAt;
+  if(ns==='done'){task.scheduled_date=null;task.scheduled_time=null;}
   if(ns==='done'&&task.repeat&&task.repeat!=='none'){
     await generateNextRepeatTask(task);
   }
-
-  renderToday();if(ns==='done')showToast('完了！🐯');
+  markOptimizeNeeded();
+  renderToday();renderPlan();if(ns==='done')showToast('完了！🐯');
 }
 
 // PLANページからの完了（即時反映）
 async function toggleTaskFromPlan(taskId){
   const task=allTasks.find(t=>t.id===taskId);if(!task)return;
-  const ns='done';
-  await db.from('tasks').update({status:ns}).eq('id',taskId);
-  task.status=ns;
-  if(task.repeat&&task.repeat!=='none'){
-    await generateNextRepeatTask(task);
-  }
-  renderPlan();
-  showToast('完了！🐯');
+  const completedAt=new Date().toISOString();
+  await db.from('tasks').update({status:'done',completed_at:completedAt,scheduled_date:null,scheduled_time:null}).eq('id',taskId);
+  task.status='done';task.completed_at=completedAt;task.scheduled_date=null;task.scheduled_time=null;
+  if(task.repeat&&task.repeat!=='none'){await generateNextRepeatTask(task);}
+  markOptimizeNeeded();renderPlan();showToast('完了！🐯');
 }
 
 // 次の繰り返しタスクを生成する
@@ -2551,13 +2558,9 @@ function renderSetup(){
 
 function renderSetupBlockList(){
   const list=document.getElementById('setup-block-list');if(!list)return;
-  // repeatがundefined（DBにカラムなし）→全表示。repeatがnone→今日以降のみ。繰り返しあり→常に表示
-  const blocks=allBlocks.filter(b=>{
-    if(b._is_absence)return false;
-    if(b.repeat===undefined)return true;
-    const rep=b.repeat||'none';
-    return rep!=='none'||b.date>=TODAY_STR;
-  }).sort((a,b)=>a.date.localeCompare(b.date)||a.start_time.localeCompare(b.start_time));
+  // repeatがnone・過去日付でも全て表示（繰り返し設定を編集できるよう）
+  const blocks=allBlocks.filter(b=>!b._is_absence)
+    .sort((a,b)=>a.date.localeCompare(b.date)||a.start_time.localeCompare(b.start_time));
   if(!blocks.length){list.innerHTML='<div style="font-size:13px;color:var(--text3);padding:4px 0 8px;">登録された会議はありません</div>';return;}
   list.innerHTML=blocks.map(b=>{
     const rl=repeatLabel(b.repeat,b.date);
