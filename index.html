@@ -1478,45 +1478,54 @@ function renderGoals(){
 
 function renderSchedule(){
   const wrap=document.getElementById('schedule-list');
-  // 完了タスクも含めて表示（完了はグレーで残す）
-  // 今日完了したタスク（completed_atが今日）は薄く表示、過去完了は除外
-  const todayTasks=allTasks.filter(t=>{
-    if(t.scheduled_date!==TODAY_STR)return false;
-    if(t.status!=='done')return true;
-    if(!t.completed_at)return false;
-    return t.completed_at.slice(0,10)===TODAY_STR;
-  }).sort((a,b)=>(a.scheduled_time||'99:99').localeCompare(b.scheduled_time||'99:99'));
+  const now=new Date();
+  const nowMin=now.getHours()*60+now.getMinutes();
+  const nowStr=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+  // 今日の未完了タスク
+  const todayPendingTasks=allTasks.filter(t=>t.scheduled_date===TODAY_STR&&t.status!=='done');
+  // 今日完了したタスク（completed_atが今日）→ completed_at時刻で表示
+  const todayDoneTasks=allTasks.filter(t=>
+    t.status==='done'&&t.completed_at&&t.completed_at.slice(0,10)===TODAY_STR
+  );
+
   const todayBlocks=allBlocks.filter(b=>b.date===TODAY_STR).sort((a,b)=>a.start_time.localeCompare(b.start_time));
   const defaultBlocks=getDefaultBlocks(TODAY_STR);
-  // 不在時間をブロックとして追加
   const absenceBlocks=(window._absences||[]).map(a=>({
     date:TODAY_STR,title:a.label,
     start_time:toTimeStr(a.start),end_time:toTimeStr(a.end),
     _absence:true
   }));
+
+  // 未完了ベースのアイテム（gap計算用）
   const baseItems=[
     ...todayBlocks.map(b=>({type:'block',time:b.start_time,data:b})),
     ...defaultBlocks.map(b=>({type:'block',time:b.start_time,data:b})),
     ...absenceBlocks.map(b=>({type:'block',time:b.start_time,data:b})),
-    ...todayTasks.map(t=>({type:'task',time:t.scheduled_time||'99:99',data:t}))
+    ...todayPendingTasks.map(t=>({type:'task',time:t.scheduled_time||'99:99',data:t}))
   ].sort((a,b)=>a.time.localeCompare(b.time));
+
   const ws=(window._dayStartHour||9)*60+(window._dayStartMin||30),we=(window._dayEndHour||DEFAULT_END_HOUR)*60;
-  // gap計算は未完了タスクとブロックのみで
   const busyItems=baseItems.filter(it=>it.type==='block'||(it.type==='task'&&it.data.status!=='done'));
   const busy=busyItems.map(it=>{if(it.type==='block'){const[sh,sm]=it.data.start_time.split(':').map(Number);const[eh,em]=it.data.end_time.split(':').map(Number);return{start:sh*60+sm,end:eh*60+em};}if(!it.data.scheduled_time)return null;const[sh,sm]=it.data.scheduled_time.split(':').map(Number);return{start:sh*60+sm,end:sh*60+sm+(it.data.estimated_minutes||0)};}).filter(Boolean).sort((a,b)=>a.start-b.start);
   const mrg=[];for(const b of busy){if(mrg.length&&b.start<=mrg[mrg.length-1].end)mrg[mrg.length-1].end=Math.max(mrg[mrg.length-1].end,b.end);else mrg.push({...b});}
   const gaps=[];let cur=ws;
   for(const b of mrg){if(b.start>cur+5){const h2=Math.floor(cur/60),m2=cur%60;gaps.push({type:'gap',time:String(h2).padStart(2,'0')+':'+String(m2).padStart(2,'0'),gapMin:b.start-cur});}cur=Math.max(cur,b.end);}
   if(cur<we-5){const h2=Math.floor(cur/60),m2=cur%60;gaps.push({type:'gap',time:String(h2).padStart(2,'0')+':'+String(m2).padStart(2,'0'),gapMin:we-cur});}
-  const items=[...baseItems,...gaps].sort((a,b)=>a.time.localeCompare(b.time));
+
+  // 完了タスクをcompleted_at時刻でアイテム化（現在時刻より前に表示）
+  const doneItems=todayDoneTasks.map(t=>{
+    const ct=new Date(t.completed_at);
+    const timeStr=`${String(ct.getHours()).padStart(2,'0')}:${String(ct.getMinutes()).padStart(2,'0')}`;
+    return{type:'task',time:timeStr,data:t,isDoneItem:true};
+  }).sort((a,b)=>a.time.localeCompare(b.time));
+
+  // 全アイテムを結合してソート（完了タスクは現在時刻より前に来るよう時刻で自然にソート）
+  const items=[...baseItems,...gaps,...doneItems].sort((a,b)=>a.time.localeCompare(b.time));
   if(!items.length){wrap.innerHTML='<div class="empty">今日のスケジュールはまだありません</div>';return;}
-  // 縦線コンテナ
+
   wrap.innerHTML='<div class="sched-line-bar"></div>';
   wrap.className='sched-wrap';
-
-  const now=new Date();
-  const nowMin=now.getHours()*60+now.getMinutes();
-  const nowStr=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
   let nowLineInserted=false;
 
   items.forEach((item,i)=>{
