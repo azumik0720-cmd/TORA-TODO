@@ -1489,7 +1489,7 @@ function renderSchedule(){
     t.status==='done'&&t.completed_at&&t.completed_at.slice(0,10)===TODAY_STR
   );
 
-  const todayBlocks=allBlocks.filter(b=>b.date===TODAY_STR).sort((a,b)=>a.start_time.localeCompare(b.start_time));
+  const todayBlocks=allBlocks.filter(b=>!b._is_absence&&isBlockActiveOnDate(b,TODAY_STR)).sort((a,b)=>a.start_time.localeCompare(b.start_time));
   const defaultBlocks=getDefaultBlocks(TODAY_STR);
   const absenceBlocks=(window._absences||[]).map(a=>({
     date:TODAY_STR,title:a.label,
