@@ -2522,6 +2522,16 @@ function renderSetupAbsenceList(){
   list.innerHTML=absences.map((a,i)=>`<div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg2);border-radius:var(--radius-sm);padding:8px 12px;font-size:12px;margin-top:6px;"><span>${a.label} ${toTimeStr(a.start).slice(0,5)}〜${toTimeStr(a.end).slice(0,5)}</span><button onclick="removeSetupAbsence(${i})" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:12px;font-family:var(--font);">削除</button></div>`).join('');
 }
 window.removeSetupAbsence=function(i){window._absences=(window._absences||[]).filter((_,idx)=>idx!==i);saveSettings();renderSetupAbsenceList();renderToday();markOptimizeNeeded();};
+function saveSettings(){
+  try{
+    const s=JSON.parse(sessionStorage.getItem('tora_settings')||'{}');
+    s.sh=window._dayStartHour||DEFAULT_START_HOUR;
+    s.sm=window._dayStartMin||DEFAULT_START_MIN;
+    s.eh=window._dayEndHour||DEFAULT_END_HOUR;
+    s.absences=window._absences||[];
+    sessionStorage.setItem('tora_settings',JSON.stringify(s));
+  }catch(e){}
+}  
 
 document.getElementById('setup-save-btn')?.addEventListener('click',async()=>{
   window._dayStartHour=window._selectedStartH??window._dayStartHour??DEFAULT_START_HOUR;
